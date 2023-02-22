@@ -3,7 +3,7 @@ import axios from "axios";
 import { Button } from "@mui/material";
 
 const fetchDummyBackend = () => {
-  return axios.get("http://localhost:3001/endpoint");
+  return axios.get("http://localhost:4000");
 };
 export default function Home() {
   const { isError, error, data, refetch } = useQuery(
@@ -16,6 +16,7 @@ export default function Home() {
     <main>
       <Button onClick={() => refetch()}>Call endpoint</Button>
       <div>{data?.data}</div>
+      <div>Hello</div>
     </main>
   );
 }

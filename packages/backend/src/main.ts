@@ -10,6 +10,6 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
   app.enableCors();
-  await app.listen(3001);
+  await app.listen(4000, '0.0.0.0');
 }
 bootstrap();
