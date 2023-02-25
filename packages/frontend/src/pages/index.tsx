@@ -1,15 +1,15 @@
-import { useQuery } from "react-query";
-import axios from "axios";
-import { Button } from "@mui/material";
+import { useQuery } from 'react-query';
+import axios from 'axios';
+import { Button } from '@mui/material';
 
 const fetchDummyBackend = () => {
-  return axios.get("http://localhost:4000");
+  return axios.get('http://localhost:4000');
 };
 export default function Home() {
   const { isError, error, data, refetch } = useQuery(
-    "dummy-backend",
+    'dummy-backend',
     fetchDummyBackend,
-    { enabled: false }
+    { enabled: false },
   );
 
   return (
