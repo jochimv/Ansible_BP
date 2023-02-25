@@ -1,11 +1,10 @@
-import type { AppProps } from "next/app";
-import { QueryClientProvider, QueryClient } from "react-query";
-import createEmotionCache from "../utils/createEmotionCache";
-import { Component } from "react";
-import { CacheProvider, EmotionCache } from "@emotion/react";
-import Head from "next/head";
-import { ThemeProvider } from "@mui/material";
-import theme from "@/utils/theme";
+import type { AppProps } from 'next/app';
+import { QueryClientProvider, QueryClient } from 'react-query';
+import createEmotionCache from '../utils/createEmotionCache';
+import { CacheProvider, EmotionCache } from '@emotion/react';
+import Head from 'next/head';
+import { ThemeProvider } from '@mui/material';
+import theme from '@/utils/theme';
 
 const queryClient = new QueryClient();
 
