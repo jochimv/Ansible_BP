@@ -5,7 +5,7 @@ import { FileProcessorModule } from './file-processor/file-processor.module';
 
 @Module({
   imports: [FileProcessorModule],
-  controllers: [AppController],
+  // controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}

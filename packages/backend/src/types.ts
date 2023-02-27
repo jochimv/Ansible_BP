@@ -1,4 +1,5 @@
 interface ProjectHosts {
+  inventoryPath: string;
   project: string;
   hosts: [];
 }

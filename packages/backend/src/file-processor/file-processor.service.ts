@@ -34,7 +34,7 @@ export class FileProcessorService {
       const groupHosts = Object.keys(parsedIni[iniGroup]);
       hosts.push(...groupHosts);
     }
-    return hosts;
+    return [...new Set(hosts)];
   }
 
   extractHostsFromYamlFile(yamlFileContent): string[] {
@@ -51,44 +51,11 @@ export class FileProcessorService {
       }
     }
     extractHosts(parsedYaml);
-
-    return hosts;
-  }
-
-  removeDuplicateHosts(array: ProjectsHosts): ProjectsHosts {
-    const unique = {};
-    array.forEach(function (i) {
-      if (!unique[i.project]) {
-        unique[i.project] = [];
-      }
-      i.hosts.forEach(function (j) {
-        if (unique[i.project].indexOf(j) === -1) {
-          unique[i.project].push(j);
-        }
-      });
-    });
-    const result = [];
-    for (const key in unique) {
-      result.push({ project: key, hosts: unique[key] });
-    }
-    return result;
-  }
-
-  joinHostsOnProject(arr: ProjectsHosts): ProjectsHosts {
-    const result = [];
-    arr.forEach((obj) => {
-      const index = result.findIndex((item) => item.project === obj.project);
-
-      if (index >= 0) {
-        result[index].hosts = [...result[index].hosts, ...obj.hosts];
-      } else {
-        result.push({ project: obj.project, hosts: obj.hosts });
-      }
-    });
-    return result;
+    return [...new Set(hosts)];
   }
 
   getProjectsHosts(): ProjectsHosts {
+    console.log('getProjectHosts called succesfully');
     const projectsHosts = [];
     const projects = readdirSync(this.ansibleReposPath);
 
@@ -96,20 +63,21 @@ export class FileProcessorService {
       const projectPath = join(this.ansibleReposPath, project);
       const inventoryPaths = this.getInventoryFilesPaths(projectPath);
 
+      const hosts = [];
       for (const inventoryPath of inventoryPaths) {
         const inventoryExtension = extname(inventoryPath);
         const fileContent = readFileSync(inventoryPath, 'utf-8');
-
         if (inventoryExtension === '.ini' || inventoryExtension === '') {
-          const hosts = this.extractHostsFromIniFile(fileContent);
-          projectsHosts.push({ project, hosts });
+          const inventoryHosts = this.extractHostsFromIniFile(fileContent);
+          hosts.push(...inventoryHosts);
         } else {
-          const hosts = this.extractHostsFromYamlFile(fileContent);
-          projectsHosts.push({ project, hosts });
+          const inventoryHosts = this.extractHostsFromYamlFile(fileContent);
+          hosts.push(...inventoryHosts);
         }
       }
+      projectsHosts.push({ project, hosts });
     }
-    return this.removeDuplicateHosts(this.joinHostsOnProject(projectsHosts));
+    return projectsHosts;
   }
 
   getInventoryFilesPaths(dir): string[] {
@@ -132,4 +100,6 @@ export class FileProcessorService {
     }
     return inventoryFilesPaths;
   }
+
+  getHostDetails(projectName, hostName) {}
 }
