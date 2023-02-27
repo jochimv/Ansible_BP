@@ -71,7 +71,6 @@ export class FileProcessorService {
     for (const key in unique) {
       result.push({ project: key, hosts: unique[key] });
     }
-    console.log(`returning from remove duplicates ${JSON.stringify(result)}`);
     return result;
   }
 
@@ -180,7 +179,7 @@ getProjects(): Project[]{
                 inventoryType = undefined; // in yaml, inventory type = group name ?
                 const parsedYaml = parseYaml(fileContent);
                 const yamlGroups = Object.keys(parsedYaml.all.children);
-                console.log(yamlGroups)
+
             }
             inventories.push({inventoryType, groups});
         }

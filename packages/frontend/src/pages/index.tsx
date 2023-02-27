@@ -1,6 +1,4 @@
 import React from 'react';
-import { useQuery, UseQueryResult } from 'react-query';
-import axios from 'axios';
 import {
   Autocomplete,
   TextField,
@@ -12,42 +10,16 @@ import {
   AutocompleteRenderInputParams,
 } from '@mui/material';
 import Link from 'next/link';
-import { AutocompleteProjectsHosts } from '@frontend/types';
-import { ProjectsHosts } from '@backend/types';
+
+import useAutocompleteProjectHosts from '@frontend/utils/hooks/useAutocompleteProjectsHosts';
 
 const ListSubheader = styled(MuiListSubheader)({
   position: 'sticky',
   top: '-8px',
 });
 
-const fetchInventoryFilesPaths = () => {
-  return axios.get('http://localhost:4000/projects');
-};
-
-function transformForAutocomplete(arr: ProjectsHosts): AutocompleteProjectsHosts {
-  const autocompleteProjectHosts: AutocompleteProjectsHosts = [];
-
-  arr.forEach((obj) => {
-    obj.hosts.forEach((host) => {
-      autocompleteProjectHosts.push({ project: obj.project, host });
-    });
-  });
-  return autocompleteProjectHosts;
-}
-export default function Home() {
-  const {
-    isError,
-    error,
-    data = [],
-  }: UseQueryResult<readonly any[], string> = useQuery(
-    'inventory-files',
-    fetchInventoryFilesPaths,
-    { select: (data) => transformForAutocomplete(data.data) },
-  );
-
-  if (isError) {
-    return <div>{error}</div>;
-  }
+const Home = () => {
+  const { data = [] } = useAutocompleteProjectHosts();
 
   return (
     <Autocomplete
@@ -61,7 +33,7 @@ export default function Home() {
       renderGroup={(params: AutocompleteRenderGroupParams) => {
         // @ts-ignore
         const group = params?.children?.map((param) => (
-          <ListItemButton key={param.key} component={Link} href={`/hosts/${param.key}`}>
+          <ListItemButton key={param.key} component={Link} href={`/${params.group}/${param.key}`}>
             <ListItemText primary={param.key} />
           </ListItemButton>
         ));
@@ -75,4 +47,6 @@ export default function Home() {
       }}
     />
   );
-}
+};
+
+export default Home;
