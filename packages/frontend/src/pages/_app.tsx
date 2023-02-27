@@ -3,9 +3,11 @@ import { QueryClientProvider, QueryClient } from 'react-query';
 import createEmotionCache from '../utils/createEmotionCache';
 import { CacheProvider, EmotionCache } from '@emotion/react';
 import Head from 'next/head';
-import { ThemeProvider } from '@mui/material';
+import { Button, ThemeProvider, Toolbar } from '@mui/material';
 import theme from '@frontend/utils/theme';
-import { AppBar } from '@mui/material';
+import { AppBar, Box } from '@mui/material';
+import { Search } from '@mui/icons-material';
+import Link from 'next/link';
 
 const queryClient = new QueryClient();
 
@@ -22,12 +24,20 @@ export default function App({
   return (
     <CacheProvider value={emotionCache}>
       <QueryClientProvider client={queryClient}>
-        <Head>
-          <meta name="viewport" content="initial-scale=1, width=device-width" />
-        </Head>
         <ThemeProvider theme={theme}>
-          <AppBar>Appbar</AppBar>
-          <Component {...pageProps} />
+          <Head>
+            <meta name="viewport" content="initial-scale=1, width=device-width" />
+          </Head>
+          <AppBar>
+            <Toolbar sx={{ justifyContent: 'flex-end' }}>
+              <Button color="inherit" startIcon={<Search />} component={Link} href="/">
+                Hledat
+              </Button>
+            </Toolbar>
+          </AppBar>
+          <Box sx={{ mt: 12, mx: 6 }}>
+            <Component {...pageProps} />
+          </Box>
         </ThemeProvider>
       </QueryClientProvider>
     </CacheProvider>
