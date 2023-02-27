@@ -1,7 +1,6 @@
-import axios from 'axios';
-import { useQuery, UseQueryResult } from 'react-query';
 import { ProjectsHosts } from '@backend/types';
 import { AutocompleteProjectHosts } from '@frontend/types';
+import useProjectsHosts from './useProjectsHosts';
 
 const transformForAutocomplete = (arr: ProjectsHosts = []): AutocompleteProjectHosts[] => {
   const autocompleteProjectHosts: AutocompleteProjectHosts[] = [];
@@ -13,13 +12,9 @@ const transformForAutocomplete = (arr: ProjectsHosts = []): AutocompleteProjectH
   return autocompleteProjectHosts;
 };
 
-const fetchInventoryFilesPaths = () => {
-  return axios.get('http://localhost:4000/projects');
-};
-
-const useAutocompleteProjectsHosts = (): UseQueryResult<AutocompleteProjectHosts[], unknown> =>
-  useQuery('inventory-files', fetchInventoryFilesPaths, {
-    select: (data) => transformForAutocomplete(data.data),
+const useAutocompleteProjectsHosts = () =>
+  useProjectsHosts({
+    select: (data: any) => transformForAutocomplete(data.data),
   });
 
 export default useAutocompleteProjectsHosts;

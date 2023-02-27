@@ -94,11 +94,11 @@ export class FileProcessorService {
 
     for (const project of projects) {
       const projectPath = join(this.ansibleReposPath, project);
-      const inventoryFilesPaths = this.getInventoryFilesPaths(projectPath);
+      const inventoryPaths = this.getInventoryFilesPaths(projectPath);
 
-      for (const inventoryFilePath of inventoryFilesPaths) {
-        const inventoryExtension = extname(inventoryFilePath);
-        const fileContent = readFileSync(inventoryFilePath, 'utf-8');
+      for (const inventoryPath of inventoryPaths) {
+        const inventoryExtension = extname(inventoryPath);
+        const fileContent = readFileSync(inventoryPath, 'utf-8');
 
         if (inventoryExtension === '.ini' || inventoryExtension === '') {
           const hosts = this.extractHostsFromIniFile(fileContent);
@@ -109,7 +109,6 @@ export class FileProcessorService {
         }
       }
     }
-
     return this.removeDuplicateHosts(this.joinHostsOnProject(projectsHosts));
   }
 

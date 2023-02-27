@@ -1,4 +1,4 @@
-import { Typography } from '@mui/material';
+import { Paper, Stack, Typography } from '@mui/material';
 
 interface HostPageProps {
   host: string;
@@ -7,10 +7,12 @@ interface HostPageProps {
 
 const HostPage = ({ host, project }: HostPageProps) => {
   return (
-    <div>
+    <Stack>
       <Typography variant="h3">{host}</Typography>
       <Typography variant="h5">{project}</Typography>
-    </div>
+      <Typography>Variables</Typography>
+      <Paper elevation={3}>lorem ipsum dolor sit amet</Paper>
+    </Stack>
   );
 };
 

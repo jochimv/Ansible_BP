@@ -10,9 +10,7 @@ import {
   AutocompleteRenderInputParams,
 } from '@mui/material';
 import Link from 'next/link';
-
 import useAutocompleteProjectHosts from '@frontend/utils/hooks/useAutocompleteProjectsHosts';
-
 const ListSubheader = styled(MuiListSubheader)({
   position: 'sticky',
   top: '-8px',
@@ -37,7 +35,6 @@ const Home = () => {
             <ListItemText primary={param.key} />
           </ListItemButton>
         ));
-
         return (
           <React.Fragment key={params.key}>
             <ListSubheader>{params.group}</ListSubheader>
