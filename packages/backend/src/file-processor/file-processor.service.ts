@@ -76,7 +76,6 @@ export class FileProcessorService {
 
   joinHostsOnProject(arr: ProjectsHosts): ProjectsHosts {
     const result = [];
-
     arr.forEach((obj) => {
       const index = result.findIndex((item) => item.project === obj.project);
 
@@ -86,7 +85,6 @@ export class FileProcessorService {
         result.push({ project: obj.project, hosts: obj.hosts });
       }
     });
-
     return result;
   }
 
@@ -126,11 +124,9 @@ export class FileProcessorService {
       }
       const filePath = join(dir, file);
       if (statSync(filePath).isDirectory()) {
-        // If it is, recursively call this function on the subdirectory
         inventoryFilesPaths = inventoryFilesPaths.concat(this.getInventoryFilesPaths(filePath));
       } else {
         if (this.possibleInventoryFiles.includes(file)) {
-          // If it's a file, add its path to the array
           inventoryFilesPaths.push(filePath);
         }
       }
@@ -138,52 +134,3 @@ export class FileProcessorService {
     return inventoryFilesPaths;
   }
 }
-
-/*
-
-extractSecondLastPathSegment(path) {
-        const pathSegments = path.split("/");
-        return pathSegments[pathSegments.length - 2];
-    }
-
-getProjects(): Project[]{
-    const projects = readdirSync(this.ansibleReposPath);
-
-    /!*
-    // v INI to má inventory typ (dá se nalézt na cestě, například prod), a group name ([webservers])
-    // v YAML to má group name a inventory typ v jednom
-    target:
-     [{project: 'ansible-kafka', inventories: [{inventoryType: 'dev', groups: [{name: 'webservers', hosts: [node1, node2, node3]}]}]}]
-     [{project: 'ansible-kafka', groups: [{groupType: 'dev', hosts: [{name: 'webservers', hosts: [node1, node2, node3]}]}]}]
-    *!/
-
-    const returnedArray = [];
-    for (const project of projects){
-        const projectPath = join(this.ansibleReposPath, project);
-        const inventoryFilesPaths = this.getInventoryFilesPaths(projectPath);
-        const inventories = [];
-        for (const inventoryFilesPath of inventoryFilesPaths){
-            const inventoryExtension = extname(inventoryFilesPath);
-            const fileContent = readFileSync(inventoryFilesPath, 'utf-8');
-            let inventoryType;
-            const groups = []; // dev, prod, ...
-            if(inventoryExtension === '.ini' ||  inventoryExtension === ''){
-                inventoryType = this.extractSecondLastPathSegment(inventoryFilesPath);
-                const parsedIni = parseIni(fileContent);
-                const iniGroups = Object.keys(parsedIni);
-                for (const iniGroup of iniGroups){
-                    const hosts = Object.keys(parsedIni[iniGroup]);
-                    groups.push({name: iniGroup, hosts })
-                }
-            } else {
-                inventoryType = undefined; // in yaml, inventory type = group name ?
-                const parsedYaml = parseYaml(fileContent);
-                const yamlGroups = Object.keys(parsedYaml.all.children);
-
-            }
-            inventories.push({inventoryType, groups});
-        }
-        returnedArray.push({project, inventories});
-    }
-    return returnedArray;
-}*/
