@@ -6,9 +6,15 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
+    "concurrently": "^7.6.0",
     "eslint": "^8.34.0",
     "eslint-config-prettier": "^8.6.0",
     "prettier": "^2.3.2",
     "typescript": "^4.9.5"
+  },
+  "scripts": {
+    "dev": "concurrently \"yarn frontend\" \"yarn backend\"",
+    "backend": "cd ./packages/backend && yarn start:dev",
+    "frontend": "cd ./packages/frontend && yarn dev"
   }
 }

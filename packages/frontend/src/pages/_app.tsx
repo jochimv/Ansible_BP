@@ -4,7 +4,8 @@ import createEmotionCache from '../utils/createEmotionCache';
 import { CacheProvider, EmotionCache } from '@emotion/react';
 import Head from 'next/head';
 import { ThemeProvider } from '@mui/material';
-import theme from '@/utils/theme';
+import theme from '@frontend/utils/theme';
+import { AppBar } from '@mui/material';
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ export default function App({
           <meta name="viewport" content="initial-scale=1, width=device-width" />
         </Head>
         <ThemeProvider theme={theme}>
+          <AppBar>Appbar</AppBar>
           <Component {...pageProps} />
         </ThemeProvider>
       </QueryClientProvider>
