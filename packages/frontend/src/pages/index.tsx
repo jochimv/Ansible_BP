@@ -10,21 +10,34 @@ import {
   AutocompleteRenderInputParams,
 } from '@mui/material';
 import Link from 'next/link';
-import useAutocompleteProjectHosts from '@frontend/utils/hooks/useAutocompleteProjectsHosts';
+import { getProjectsHosts } from '@frontend/utils';
+import { ProjectsHosts } from '@backend/types';
+import { AutocompleteProjectHosts } from '@frontend/types';
 const ListSubheader = styled(MuiListSubheader)({
   position: 'sticky',
   top: '-8px',
 });
 
-const Home = () => {
-  const { data = [] } = useAutocompleteProjectHosts();
+const transformForAutocomplete = (arr: ProjectsHosts = []): AutocompleteProjectHosts[] => {
+  const autocompleteProjectHosts: AutocompleteProjectHosts[] = [];
+  arr.forEach((obj) => {
+    obj.hosts.forEach((host) => {
+      autocompleteProjectHosts.push({ project: obj.project, host });
+    });
+  });
+  return autocompleteProjectHosts;
+};
 
+interface HomeProps {
+  autocompleteProjectsHosts: AutocompleteProjectHosts[];
+}
+const HomePage = ({ autocompleteProjectsHosts }: HomeProps) => {
   return (
     <Autocomplete
       renderInput={(params: AutocompleteRenderInputParams) => (
         <TextField {...params} label="Vyhledat server" />
       )}
-      options={data}
+      options={autocompleteProjectsHosts}
       groupBy={(option) => option.project}
       getOptionLabel={(option) => option.host}
       sx={{ width: 300 }}
@@ -46,4 +59,12 @@ const Home = () => {
   );
 };
 
-export default Home;
+export async function getServerSideProps() {
+  const autocompleteProjectsHosts = transformForAutocomplete(getProjectsHosts());
+
+  return {
+    props: { autocompleteProjectsHosts },
+  };
+}
+
+export default HomePage;

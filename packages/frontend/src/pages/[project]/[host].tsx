@@ -1,13 +1,22 @@
 import { Paper, Stack, Typography } from '@mui/material';
-import axios from 'axios';
-import { useQuery } from 'react-query';
+import { getHostDetails } from '@frontend/utils';
 
 interface HostPageProps {
   host: string;
   project: string;
+  hostDetails: hostDetails[];
 }
 
-const HostPage = ({ host, project }: HostPageProps) => {
+interface hostDetails {
+  inventoryType: string;
+  groupName: string;
+  commonVars?: any;
+  groupVars?: any;
+  hostDetails: any;
+}
+
+const HostDetailsPage = ({ host, project, hostDetails }: HostPageProps) => {
+  console.log(hostDetails);
   return (
     <Stack>
       <Typography variant="h3">{host}</Typography>
@@ -18,18 +27,10 @@ const HostPage = ({ host, project }: HostPageProps) => {
   );
 };
 
-export default HostPage;
-
-const useHostDetails = (project: string, host: string) =>
-  useQuery(`host-details-${project}-${host}`, () =>
-    axios.get(`http://localhost:4000/${project}/${host}`),
-  );
+export default HostDetailsPage;
 
 export async function getServerSideProps(context: any) {
   const { host, project } = context.query;
-  //const { data } = useHostDetails(project, host);
-  fetch(`http://localhost:4000/${project}/${host}`)
-    .then((res) => res.json())
-    .then((data) => console.log('logging data', data));
-  return { props: { host, project } };
+  const hostDetails = getHostDetails(project, host);
+  return { props: { host, project, hostDetails } };
 }
