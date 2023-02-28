@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { readdirSync, statSync, readFileSync } from 'fs';
-import { join } from 'path';
 import { parse as parseIni } from 'ini';
 import { parse as parseYaml } from 'yaml';
-import { extname } from 'path';
+import { extname, join } from 'path';
 import { ProjectsHosts } from '../types';
 
 @Injectable()
@@ -54,8 +53,14 @@ export class FileProcessorService {
     return [...new Set(hosts)];
   }
 
+  removeDuplicateHosts(arr) {
+    return arr.map(function (item) {
+      item.hosts = Array.from(new Set(item.hosts));
+      return item;
+    });
+  }
+
   getProjectsHosts(): ProjectsHosts {
-    console.log('getProjectHosts called succesfully');
     const projectsHosts = [];
     const projects = readdirSync(this.ansibleReposPath);
 
@@ -77,7 +82,7 @@ export class FileProcessorService {
       }
       projectsHosts.push({ project, hosts });
     }
-    return projectsHosts;
+    return this.removeDuplicateHosts(projectsHosts);
   }
 
   getInventoryFilesPaths(dir): string[] {
@@ -101,5 +106,7 @@ export class FileProcessorService {
     return inventoryFilesPaths;
   }
 
-  getHostDetails(projectName, hostName) {}
+  getHostDetails(projectName, hostName) {
+    const projectPath = join(this.ansibleReposPath, projectName);
+  }
 }
