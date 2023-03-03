@@ -158,34 +158,31 @@ export const getHostDetails = (projectName: string, hostName: string) => {
   for (const inventoryFilePath of inventoryFilesPaths) {
     const inventoryHosts = extractHostsFromInventory(inventoryFilePath);
     if (inventoryHosts.includes(hostName)) {
+      const variables = [];
       const inventoryDirectoryPath = getFileDirectory(inventoryFilePath);
       const inventoryType = getLastPathSegment(inventoryDirectoryPath);
 
       const hostVarsFilePath = join(inventoryDirectoryPath, 'host_vars', `${hostName}.yml`);
-      let hostVars = null;
+
       if (fileExists(hostVarsFilePath)) {
-        hostVars = parseYamlFile(hostVarsFilePath);
+        variables.push({ type: 'host', values: parseYamlFile(hostVarsFilePath) });
       }
       // check group vars
       const groupName = getGroupNameFromIniInventory(inventoryFilePath, hostName);
       const groupVarsFilePath = join(inventoryDirectoryPath, 'group_vars', `${groupName}.yml`);
-      let groupVars = null;
       if (fileExists(groupVarsFilePath)) {
-        groupVars = parseYamlFile(groupVarsFilePath);
+        variables.push({ type: 'group', values: parseYamlFile(groupVarsFilePath) });
       }
       const commonVarsFilePath = join(inventoryDirectoryPath, 'group_vars', 'all', 'common.yml');
-      let commonVars = null;
       if (fileExists(commonVarsFilePath)) {
-        commonVars = parseYamlFile(commonVarsFilePath);
+        variables.push({ type: 'common', values: parseYamlFile(commonVarsFilePath) });
       }
-      const inventoryHostDetails = {
+
+      projectHostDetails.push({
         inventoryType,
         groupName,
-        ...(commonVars && { commonVars }),
-        ...(groupVars && { groupVars }),
-        ...(hostVars && { hostVars }),
-      };
-      projectHostDetails.push(inventoryHostDetails);
+        variables,
+      });
     }
   }
   return projectHostDetails;

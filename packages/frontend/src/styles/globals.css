@@ -1,0 +1,10 @@
+body,html, #__next, #__next > .MuiBox-root{
+    height: 100%;
+}
+body{
+    margin:0;
+}
+#__next{
+    display:flex;
+    flex-direction: column;
+}

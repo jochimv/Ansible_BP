@@ -7,8 +7,8 @@ import { Button, ThemeProvider, Toolbar } from '@mui/material';
 import { AppBar, Box } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import Link from 'next/link';
-import { ReactQueryDevtools } from 'react-query/devtools';
 import { NextComponentType, NextPageContext } from 'next';
+import '../styles/globals.css';
 
 const queryClient = new QueryClient();
 
@@ -22,7 +22,6 @@ interface MyAppProps extends AppProps {
 const App = ({ Component, pageProps, emotionCache = clientSideEmotionCache }: MyAppProps) => (
   <CacheProvider value={emotionCache}>
     <QueryClientProvider client={queryClient}>
-      <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />
       <ThemeProvider theme={theme}>
         <Head>
           <meta name="viewport" content="initial-scale=1, width=device-width" />
@@ -34,7 +33,8 @@ const App = ({ Component, pageProps, emotionCache = clientSideEmotionCache }: My
             </Button>
           </Toolbar>
         </AppBar>
-        <Box sx={{ mt: 12, mx: 6 }}>
+        <Toolbar />
+        <Box sx={{ mx: 5, mt: 4, mb: 4 }}>
           <Component {...pageProps} />
         </Box>
       </ThemeProvider>
