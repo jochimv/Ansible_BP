@@ -1,4 +1,4 @@
-import { Box, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { Box, Button, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { getHostDetails } from '@frontend/utils';
 import Editor from '@monaco-editor/react';
 import { useState } from 'react';
@@ -19,18 +19,14 @@ interface hostDetails {
   hostVars?: any;
 }
 
-const EditorWithHeading = ({ heading, ...other }) => (
-  <>
-    <Typography>{heading}</Typography>
-    <Editor {...other} />
-  </>
-);
-
 /*todo: přepsat strukturu hostDetails pro Toggle button group, čili aby na tom člo zavolat map, něco jako {inventoryType, groupName, vars: [{type: "common", values: {...}}, {type: "group", values: {...}}]}*/
 const HostDetailsPage = ({ host, project, hostDetails }: HostPageProps) => {
   const [inventoryHostDetails, setInventoryHostDetails] = useState(hostDetails[0]);
   const [variablesToShow, setVariablesToShow] = useState(inventoryHostDetails.variables[0]);
+  const [isEditMode, setIsEditMode] = useState(false);
   const variablesPath = variablesToShow?.path;
+  const isEditorReadOnly = variablesToShow?.type === 'applied';
+  console.log(variablesToShow?.type, isEditorReadOnly);
 
   return (
     <>
@@ -64,7 +60,7 @@ const HostDetailsPage = ({ host, project, hostDetails }: HostPageProps) => {
           </ToggleButtonGroup>
           {variablesPath && (
             <>
-              <Typography>Variables applied</Typography>
+              <Typography>Variables</Typography>
               <ToggleButtonGroup
                 orientation="horizontal"
                 value={variablesToShow}
@@ -86,11 +82,18 @@ const HostDetailsPage = ({ host, project, hostDetails }: HostPageProps) => {
               </ToggleButtonGroup>
             </>
           )}
+          <Button onClick={() => setIsEditMode(!isEditMode)}>{`${
+            isEditMode ? 'Read' : 'Edit'
+          } mode`}</Button>
         </Box>
         {variablesPath ? (
           <Stack direction="column" flexGrow={1}>
             <div>{variablesPath}</div>
-            <Editor defaultLanguage="yaml" value={stringify(variablesToShow.values)} />
+            <Editor
+              options={{ readOnly: isEditorReadOnly || !isEditMode }}
+              defaultLanguage="yaml"
+              value={stringify(variablesToShow.values)}
+            />
           </Stack>
         ) : (
           <Typography>No variables found</Typography>

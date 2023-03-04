@@ -168,35 +168,47 @@ export const getHostDetails = (projectName: string, hostName: string) => {
 
       const hostVarsFilePath = join(inventoryDirectoryPath, 'host_vars', `${hostName}.yml`);
 
+      let hostVariables;
       if (fileExists(hostVarsFilePath)) {
-        variables.push({
+        hostVariables = {
           type: 'host',
           path: removeAnsibleReposPathFromPath(hostVarsFilePath),
           values: parseYamlFile(hostVarsFilePath),
-        });
+        };
+        variables.push(hostVariables);
       }
       const groupName = getGroupNameFromIniInventory(inventoryFilePath, hostName);
       const groupVarsFilePath = join(inventoryDirectoryPath, 'group_vars', `${groupName}.yml`);
+      let groupVariables;
       if (fileExists(groupVarsFilePath)) {
-        variables.push({
+        groupVariables = {
           type: 'group',
           path: removeAnsibleReposPathFromPath(groupVarsFilePath),
           values: parseYamlFile(groupVarsFilePath),
-        });
+        };
+        variables.push(groupVariables);
       }
       const commonVarsFilePath = join(inventoryDirectoryPath, 'group_vars', 'all', 'common.yml');
+      let commonVariables;
       if (fileExists(commonVarsFilePath)) {
-        variables.push({
+        commonVariables = {
           type: 'common',
           path: removeAnsibleReposPathFromPath(commonVarsFilePath),
           values: parseYamlFile(commonVarsFilePath),
-        });
+        };
+        variables.push(commonVariables);
       }
-
+      const appliedVariables = {
+        ...(commonVariables && commonVariables.values),
+        ...(groupVariables && groupVariables.values),
+        ...(hostVariables && hostVariables.values),
+      };
+      variables.unshift({ type: 'applied', path: 'w', values: appliedVariables });
       projectHostDetails.push({
         inventoryType,
         groupName,
         variables,
+        appliedVariables,
       });
     }
   }
