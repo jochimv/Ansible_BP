@@ -30,6 +30,8 @@ const EditorWithHeading = ({ heading, ...other }) => (
 const HostDetailsPage = ({ host, project, hostDetails }: HostPageProps) => {
   const [inventoryHostDetails, setInventoryHostDetails] = useState(hostDetails[0]);
   const [variablesToShow, setVariablesToShow] = useState(inventoryHostDetails.variables[0]);
+  const variablesPath = variablesToShow?.path;
+
   return (
     <>
       <Stack direction="row" sx={{ height: '100%' }}>
@@ -44,7 +46,9 @@ const HostDetailsPage = ({ host, project, hostDetails }: HostPageProps) => {
             value={inventoryHostDetails}
             exclusive
             onChange={(_event, newHostDetails) => {
+              console.log(newHostDetails);
               if (newHostDetails !== null) {
+                setVariablesToShow(newHostDetails.variables[0]);
                 setInventoryHostDetails(newHostDetails);
               }
             }}
@@ -52,35 +56,45 @@ const HostDetailsPage = ({ host, project, hostDetails }: HostPageProps) => {
             {hostDetails.map((hostDetail) => {
               const inventoryType = hostDetail.inventoryType;
               return (
-                <ToggleButton key={inventoryType} value={hostDetail}>
+                <ToggleButton key={inventoryType} value={hostDetail} size="small">
                   {inventoryType}
                 </ToggleButton>
               );
             })}
           </ToggleButtonGroup>
-
-          <Typography>Variables applied</Typography>
-          <ToggleButtonGroup
-            orientation="horizontal"
-            value={variablesToShow}
-            exclusive
-            onChange={(_event, newCurrentHostVariables) => {
-              if (newCurrentHostVariables !== null) {
-                setVariablesToShow(newCurrentHostVariables);
-              }
-            }}
-          >
-            {inventoryHostDetails.variables.map((variable) => {
-              const type = variable.type;
-              return (
-                <ToggleButton key={type} value={variable}>
-                  {type}
-                </ToggleButton>
-              );
-            })}
-          </ToggleButtonGroup>
+          {variablesPath && (
+            <>
+              <Typography>Variables applied</Typography>
+              <ToggleButtonGroup
+                orientation="horizontal"
+                value={variablesToShow}
+                exclusive
+                onChange={(_event, newCurrentHostVariables) => {
+                  if (newCurrentHostVariables !== null) {
+                    setVariablesToShow(newCurrentHostVariables);
+                  }
+                }}
+              >
+                {inventoryHostDetails.variables.map((variable) => {
+                  const type = variable.type;
+                  return (
+                    <ToggleButton size="small" key={type} value={variable}>
+                      {type}
+                    </ToggleButton>
+                  );
+                })}
+              </ToggleButtonGroup>
+            </>
+          )}
         </Box>
-        <Editor defaultLanguage="yaml" height="unset" value={stringify(variablesToShow.values)} />
+        {variablesPath ? (
+          <Stack direction="column" flexGrow={1}>
+            <div>{variablesPath}</div>
+            <Editor defaultLanguage="yaml" value={stringify(variablesToShow.values)} />
+          </Stack>
+        ) : (
+          <Typography>No variables found</Typography>
+        )}
       </Stack>
     </>
   );

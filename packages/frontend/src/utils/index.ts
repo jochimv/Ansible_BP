@@ -151,6 +151,10 @@ const getGroupNameFromIniInventory = (filePath: string, serverName: string): str
   return undefined;
 };
 
+const removeAnsibleReposPathFromPath = (filePath: string): string => {
+  return filePath.slice(ansibleReposPath.length);
+};
+
 export const getHostDetails = (projectName: string, hostName: string) => {
   const projectPath = join(ansibleReposPath, projectName);
   const inventoryFilesPaths = getInventoryFilesPaths(projectPath);
@@ -165,17 +169,28 @@ export const getHostDetails = (projectName: string, hostName: string) => {
       const hostVarsFilePath = join(inventoryDirectoryPath, 'host_vars', `${hostName}.yml`);
 
       if (fileExists(hostVarsFilePath)) {
-        variables.push({ type: 'host', values: parseYamlFile(hostVarsFilePath) });
+        variables.push({
+          type: 'host',
+          path: removeAnsibleReposPathFromPath(hostVarsFilePath),
+          values: parseYamlFile(hostVarsFilePath),
+        });
       }
-      // check group vars
       const groupName = getGroupNameFromIniInventory(inventoryFilePath, hostName);
       const groupVarsFilePath = join(inventoryDirectoryPath, 'group_vars', `${groupName}.yml`);
       if (fileExists(groupVarsFilePath)) {
-        variables.push({ type: 'group', values: parseYamlFile(groupVarsFilePath) });
+        variables.push({
+          type: 'group',
+          path: removeAnsibleReposPathFromPath(groupVarsFilePath),
+          values: parseYamlFile(groupVarsFilePath),
+        });
       }
       const commonVarsFilePath = join(inventoryDirectoryPath, 'group_vars', 'all', 'common.yml');
       if (fileExists(commonVarsFilePath)) {
-        variables.push({ type: 'common', values: parseYamlFile(commonVarsFilePath) });
+        variables.push({
+          type: 'common',
+          path: removeAnsibleReposPathFromPath(commonVarsFilePath),
+          values: parseYamlFile(commonVarsFilePath),
+        });
       }
 
       projectHostDetails.push({
