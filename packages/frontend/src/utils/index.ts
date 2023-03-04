@@ -172,7 +172,7 @@ export const getHostDetails = (projectName: string, hostName: string) => {
       if (fileExists(hostVarsFilePath)) {
         hostVariables = {
           type: 'host',
-          path: removeAnsibleReposPathFromPath(hostVarsFilePath),
+          pathInProject: removeAnsibleReposPathFromPath(hostVarsFilePath),
           values: parseYamlFile(hostVarsFilePath),
         };
         variables.push(hostVariables);
@@ -183,7 +183,7 @@ export const getHostDetails = (projectName: string, hostName: string) => {
       if (fileExists(groupVarsFilePath)) {
         groupVariables = {
           type: 'group',
-          path: removeAnsibleReposPathFromPath(groupVarsFilePath),
+          pathInProject: removeAnsibleReposPathFromPath(groupVarsFilePath),
           values: parseYamlFile(groupVarsFilePath),
         };
         variables.push(groupVariables);
@@ -193,7 +193,7 @@ export const getHostDetails = (projectName: string, hostName: string) => {
       if (fileExists(commonVarsFilePath)) {
         commonVariables = {
           type: 'common',
-          path: removeAnsibleReposPathFromPath(commonVarsFilePath),
+          pathInProject: removeAnsibleReposPathFromPath(commonVarsFilePath),
           values: parseYamlFile(commonVarsFilePath),
         };
         variables.push(commonVariables);
@@ -203,12 +203,11 @@ export const getHostDetails = (projectName: string, hostName: string) => {
         ...(groupVariables && groupVariables.values),
         ...(hostVariables && hostVariables.values),
       };
-      variables.unshift({ type: 'applied', path: 'w', values: appliedVariables });
+      variables.unshift({ type: 'applied', pathInProject: 'Read only', values: appliedVariables });
       projectHostDetails.push({
         inventoryType,
         groupName,
         variables,
-        appliedVariables,
       });
     }
   }
