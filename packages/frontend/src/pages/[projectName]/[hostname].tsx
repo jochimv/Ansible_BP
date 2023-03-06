@@ -44,7 +44,7 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
       <Stack direction="row" sx={{ height: '100%' }}>
         <Stack spacing={3}>
           <Breadcrumbs>
-            <Link href="/" color="inherit">
+            <Link href={`/${projectName}`} color="inherit">
               {projectName}
             </Link>
             <Typography>{hostname}</Typography>

@@ -155,6 +155,19 @@ const removeAnsibleReposPathFromPath = (filePath: string): string => {
   return filePath.slice(ansibleReposPath.length);
 };
 
+function extractBeforeColon(str) {
+  // find the index of the first colon in the string
+  const colonIndex = str.indexOf(':');
+
+  if (colonIndex === -1) {
+    // if the colon is not found, return the entire string
+    return str;
+  } else {
+    // extract the substring before the colon
+    return str.substring(0, colonIndex);
+  }
+}
+
 export const getHostDetails = (projectName: string, hostName: string) => {
   const projectPath = join(ansibleReposPath, projectName);
   const inventoryFilesPaths = getInventoryFilesPaths(projectPath);
@@ -178,7 +191,10 @@ export const getHostDetails = (projectName: string, hostName: string) => {
         variables.push(hostVariables);
       }
       const groupName = getGroupNameFromIniInventory(inventoryFilePath, hostName);
-      const groupVarsFilePath = join(inventoryDirectoryPath, 'group_vars', `${groupName}.yml`);
+      // baseGroupName - because some groups have name "foo:children," which will be displayed to the user, but the variables are placed in file foo.yml (without ":children")
+      const baseGroupName = extractBeforeColon(groupName);
+
+      const groupVarsFilePath = join(inventoryDirectoryPath, 'group_vars', `${baseGroupName}.yml`);
       let groupVariables;
       if (fileExists(groupVarsFilePath)) {
         groupVariables = {
