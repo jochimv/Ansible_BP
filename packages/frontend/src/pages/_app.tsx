@@ -25,18 +25,18 @@ interface MyAppProps extends AppProps {
 }
 
 const AppBarResolver = () => {
-  const isEditMode = useEditModeContext();
-  const setIsEditMode = useEditModeSetterContext();
+  const isInEditMode = useEditModeContext();
+  const setIsInEditMode = useEditModeSetterContext();
   return (
     <>
       <AppBar>
         <Toolbar sx={{ justifyContent: 'flex-end' }}>
           <Button
-            startIcon={isEditMode ? <EditIcon /> : <LibraryBooksIcon />}
+            startIcon={isInEditMode ? <EditIcon /> : <LibraryBooksIcon />}
             color="inherit"
-            onClick={() => setIsEditMode(!isEditMode)}
+            onClick={() => setIsInEditMode(!isInEditMode)}
           >
-            {isEditMode ? 'Edit mode' : 'Read mode'}
+            {isInEditMode ? 'Edit mode' : 'Read mode'}
           </Button>
           <Button color="inherit" startIcon={<Search />} component={Link} href="/">
             Hledat
