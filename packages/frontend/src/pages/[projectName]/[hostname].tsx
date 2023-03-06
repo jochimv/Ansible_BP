@@ -50,7 +50,7 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
             <Typography>{hostname}</Typography>
           </Breadcrumbs>
           <Box>
-            <Typography sx={{ fontWeight: 'bold' }}>Group</Typography>
+            <Typography sx={{ fontWeight: 'bold' }}>Server group</Typography>
             <Typography>{hostDetails.groupName}</Typography>
           </Box>
           <Box>

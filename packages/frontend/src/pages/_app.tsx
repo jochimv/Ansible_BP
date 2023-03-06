@@ -55,6 +55,7 @@ const App = ({ Component, pageProps, emotionCache = clientSideEmotionCache }: My
         <AppProvider>
           <Head>
             <meta name="viewport" content="initial-scale=1, width=device-width" />
+            <title>Ansible manager</title>
           </Head>
           <AppBarResolver />
           <Box sx={{ mx: 5, mt: 4, mb: 4 }}>
