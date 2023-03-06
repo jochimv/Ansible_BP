@@ -168,6 +168,14 @@ function extractBeforeColon(str) {
   }
 }
 
+const getCommonVariablesObj = (filePath) => {
+  return {
+    type: 'common',
+    pathInProject: removeAnsibleReposPathFromPath(filePath),
+    values: parseYamlFile(filePath),
+  };
+};
+
 export const getHostDetails = (projectName: string, hostName: string) => {
   const projectPath = join(ansibleReposPath, projectName);
   const inventoryFilesPaths = getInventoryFilesPaths(projectPath);
@@ -191,7 +199,7 @@ export const getHostDetails = (projectName: string, hostName: string) => {
         variables.push(hostVariables);
       }
       const groupName = getGroupNameFromIniInventory(inventoryFilePath, hostName);
-      // baseGroupName - because some groups have name "foo:children," which will be displayed to the user, but the variables are placed in file foo.yml (without ":children")
+      // because some groups have name "foo:children," which will be displayed to the user, but the variables are placed in file foo.yml (without ":children")
       const baseGroupName = extractBeforeColon(groupName);
 
       const groupVarsFilePath = join(inventoryDirectoryPath, 'group_vars', `${baseGroupName}.yml`);
@@ -204,14 +212,17 @@ export const getHostDetails = (projectName: string, hostName: string) => {
         };
         variables.push(groupVariables);
       }
-      const commonVarsFilePath = join(inventoryDirectoryPath, 'group_vars', 'all', 'common.yml');
+
+      const groupVarsDirectoryPath = join(inventoryDirectoryPath, 'group_vars');
+      const commonVarsFilePath = join(groupVarsDirectoryPath, 'all', 'common.yml');
+      const alternativeCommonVarsFilePath = join(groupVarsDirectoryPath, 'all.yml');
+
       let commonVariables;
       if (fileExists(commonVarsFilePath)) {
-        commonVariables = {
-          type: 'common',
-          pathInProject: removeAnsibleReposPathFromPath(commonVarsFilePath),
-          values: parseYamlFile(commonVarsFilePath),
-        };
+        commonVariables = getCommonVariablesObj(commonVarsFilePath);
+        variables.push(commonVariables);
+      } else if (fileExists(alternativeCommonVarsFilePath)) {
+        commonVariables = getCommonVariablesObj(alternativeCommonVarsFilePath);
         variables.push(commonVariables);
       }
       const appliedVariables = {
