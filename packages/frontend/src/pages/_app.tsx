@@ -13,6 +13,7 @@ import AppProvider from './AppProvider';
 import { useEditModeContext, useEditModeSetterContext } from '@frontend/pages/context';
 import EditIcon from '@mui/icons-material/Edit';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
+import GitHubIcon from '@mui/icons-material/GitHub';
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,9 @@ const AppBarResolver = () => {
     <>
       <AppBar>
         <Toolbar sx={{ justifyContent: 'flex-end' }}>
+          <Button color="inherit" startIcon={<GitHubIcon />} component={Link} href="/git">
+            Git
+          </Button>
           <Button
             startIcon={isInEditMode ? <EditIcon /> : <LibraryBooksIcon />}
             color="inherit"

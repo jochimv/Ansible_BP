@@ -1,12 +1,13 @@
-import { createContext, useContext } from 'react';
-import { Box, Button, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { useEffect } from 'react';
+import { Box, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { getHostDetails } from '@frontend/utils';
 import Editor from '@monaco-editor/react';
 import { useState } from 'react';
-import { stringify } from 'yaml';
 import { Breadcrumbs } from '@mui/material';
 import Link from 'next/link';
 import { useEditModeContext } from '@frontend/pages/context';
+import { stringify } from 'yaml';
+import { parse } from 'yaml';
 interface HostPageProps {
   hostname: string;
   projectName: string;
@@ -31,6 +32,19 @@ const getVariablesByType = (obj, type: string) => {
   return null;
 };
 
+function removeFromChangedVariables(variable: string): void {
+  const changedVariables = JSON.parse(localStorage.getItem('changed-variables') || '[]');
+  console.log('changed variables', changedVariables);
+  const filteredVariables = changedVariables.filter((v: string) => v !== variable);
+  console.log('filtered variables', filteredVariables);
+  localStorage.setItem('changed-variables', JSON.stringify(filteredVariables));
+}
+function addToChangedVariables(variable: string): void {
+  const changedVariables: string[] = JSON.parse(localStorage.getItem('changed-variables') || '[]');
+  changedVariables.push(variable);
+
+  localStorage.setItem('changed-variables', JSON.stringify(changedVariables));
+}
 const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: HostPageProps) => {
   const [hostDetails, setHostDetails] = useState(hostDetailsByInventoryType[0]);
   const [selectedVariables, setSelectedVariables] = useState(hostDetails.variables[0]);
@@ -38,6 +52,36 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
   const selectedVariablesAreAppliedVariables = selectedVariables?.type === 'applied';
 
   const isInEditMode = useEditModeContext();
+  const urlPathFromBase = `${projectName}/${hostname}`;
+
+  // todo: mrknout jestli to s tím changed-variables nejde vyřešit nějak líp, s tím že tam na začátku nic není ale po smazání všech změn tam zůstane [], tak aby to bylo konzistentní
+  const handleEditorChange = (newEditorValue) => {
+    const localStorageChangedVariablesKey = `${urlPathFromBase}/${hostDetails.inventoryType}/${selectedVariables.type}`;
+    const localStorageNewVariablesKey = `${localStorageChangedVariablesKey}/variables-new`;
+    const localStorageOldVariablesKey = `${localStorageChangedVariablesKey}/variables-old`;
+    const oldVariables = localStorage.getItem(localStorageOldVariablesKey);
+    const newVariables = JSON.stringify(parse(newEditorValue));
+    if (oldVariables === newVariables) {
+      localStorage.removeItem(localStorageNewVariablesKey);
+      removeFromChangedVariables(localStorageChangedVariablesKey);
+    } else {
+      localStorage.setItem(localStorageNewVariablesKey, newVariables);
+      addToChangedVariables(localStorageChangedVariablesKey);
+    }
+  };
+
+  useEffect(() => {
+    hostDetailsByInventoryType.forEach((detail) => {
+      detail.variables
+        .filter((variable) => variable.type !== 'applied')
+        .forEach((variable) => {
+          const localStorageVariablesPath = `${urlPathFromBase}/${detail.inventoryType}/${variable.type}/variables-old`;
+          if (!localStorage.getItem(localStorageVariablesPath)) {
+            localStorage.setItem(localStorageVariablesPath, JSON.stringify(variable.values));
+          }
+        });
+    });
+  }, []);
 
   return (
     <>
@@ -110,6 +154,7 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
               options={{ readOnly: selectedVariablesAreAppliedVariables || !isInEditMode }}
               defaultLanguage="yaml"
               value={stringify(selectedVariables.values)}
+              onChange={handleEditorChange}
             />
           </Stack>
         ) : (
