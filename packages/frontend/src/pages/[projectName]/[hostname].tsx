@@ -34,9 +34,7 @@ const getVariablesByType = (obj, type: string) => {
 
 function removeFromChangedVariables(variable: string): void {
   const changedVariables = JSON.parse(localStorage.getItem('changed-variables') || '[]');
-  console.log('changed variables', changedVariables);
   const filteredVariables = changedVariables.filter((v: string) => v !== variable);
-  console.log('filtered variables', filteredVariables);
   localStorage.setItem('changed-variables', JSON.stringify(filteredVariables));
 }
 function addToChangedVariables(variable: string): void {
@@ -52,13 +50,11 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
   const selectedVariablesAreAppliedVariables = selectedVariables?.type === 'applied';
 
   const isInEditMode = useEditModeContext();
-  const urlPathFromBase = `${projectName}/${hostname}`;
 
-  // todo: mrknout jestli to s tím changed-variables nejde vyřešit nějak líp, s tím že tam na začátku nic není ale po smazání všech změn tam zůstane [], tak aby to bylo konzistentní
   const handleEditorChange = (newEditorValue) => {
-    const localStorageChangedVariablesKey = `${urlPathFromBase}/${hostDetails.inventoryType}/${selectedVariables.type}`;
-    const localStorageNewVariablesKey = `${localStorageChangedVariablesKey}/variables-new`;
-    const localStorageOldVariablesKey = `${localStorageChangedVariablesKey}/variables-old`;
+    const localStorageChangedVariablesKey = selectedVariables.pathInProject;
+    const localStorageNewVariablesKey = `${localStorageChangedVariablesKey}-new`;
+    const localStorageOldVariablesKey = `${localStorageChangedVariablesKey}-old`;
     const oldVariables = localStorage.getItem(localStorageOldVariablesKey);
     const newVariables = JSON.stringify(parse(newEditorValue));
     if (oldVariables === newVariables) {
@@ -69,13 +65,12 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
       addToChangedVariables(localStorageChangedVariablesKey);
     }
   };
-
   useEffect(() => {
     hostDetailsByInventoryType.forEach((detail) => {
       detail.variables
         .filter((variable) => variable.type !== 'applied')
         .forEach((variable) => {
-          const localStorageVariablesPath = `${urlPathFromBase}/${detail.inventoryType}/${variable.type}/variables-old`;
+          const localStorageVariablesPath = `${variable.pathInProject}-old`;
           if (!localStorage.getItem(localStorageVariablesPath)) {
             localStorage.setItem(localStorageVariablesPath, JSON.stringify(variable.values));
           }
