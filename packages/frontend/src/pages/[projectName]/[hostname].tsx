@@ -1,28 +1,29 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { getHostDetails } from '@frontend/utils';
 import Editor from '@monaco-editor/react';
-import { useState } from 'react';
 import { Breadcrumbs } from '@mui/material';
 import Link from 'next/link';
-import { useEditModeContext } from '@frontend/pages/context';
-import { stringify } from 'yaml';
-import { parse } from 'yaml';
+import { parse, stringify } from 'yaml';
+import {
+  useCodeChangesContext,
+  useCodeChangesDispatchContext,
+} from '@frontend/pages/providers/context';
+import {
+  addHostDetailsByInventory,
+  HostDetails,
+  showHostDetails,
+  showVariables,
+  updateHostDetailsByInventoryType,
+} from '@frontend/pages/providers/reducer';
+
 interface HostPageProps {
+  hostDetailsByInventoryType: HostDetails[];
   hostname: string;
   projectName: string;
-  hostDetailsByInventoryType: hostDetails[];
 }
 
-interface hostDetails {
-  inventoryType: string;
-  groupName: string;
-  commonVars?: any;
-  groupVars?: any;
-  hostVars?: any;
-}
-
-const getVariablesByType = (obj, type: string) => {
+const getVariablesByType = (obj: any, type: string) => {
   const variablesArray = obj.variables;
   for (let i = 0; i < variablesArray.length; i++) {
     if (variablesArray[i].type === type) {
@@ -32,51 +33,61 @@ const getVariablesByType = (obj, type: string) => {
   return null;
 };
 
-function removeFromChangedVariables(variable: string): void {
-  const changedVariables = JSON.parse(localStorage.getItem('changed-variables') || '[]');
-  const filteredVariables = changedVariables.filter((v: string) => v !== variable);
-  localStorage.setItem('changed-variables', JSON.stringify(filteredVariables));
-}
-function addToChangedVariables(variable: string): void {
-  const changedVariables: string[] = JSON.parse(localStorage.getItem('changed-variables') || '[]');
-  changedVariables.push(variable);
-
-  localStorage.setItem('changed-variables', JSON.stringify(changedVariables));
-}
 const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: HostPageProps) => {
-  const [hostDetails, setHostDetails] = useState(hostDetailsByInventoryType[0]);
-  const [selectedVariables, setSelectedVariables] = useState(hostDetails.variables[0]);
+  const {
+    isInEditMode,
+    hostDetails,
+    selectedVariables,
+    hostDetailsByInventoryType: contextHostDetailsByInventoryType,
+  } = useCodeChangesContext();
+  const dispatch = useCodeChangesDispatchContext();
+
   const selectedVariablesPathInProject = selectedVariables?.pathInProject;
   const selectedVariablesAreAppliedVariables = selectedVariables?.type === 'applied';
 
-  const isInEditMode = useEditModeContext();
-
-  const handleEditorChange = (newEditorValue) => {
-    const localStorageChangedVariablesKey = selectedVariables.pathInProject;
-    const localStorageNewVariablesKey = `${localStorageChangedVariablesKey}-new`;
-    const localStorageOldVariablesKey = `${localStorageChangedVariablesKey}-old`;
-    const oldVariables = localStorage.getItem(localStorageOldVariablesKey);
-    const newVariables = JSON.stringify(parse(newEditorValue));
-    if (oldVariables === newVariables) {
-      localStorage.removeItem(localStorageNewVariablesKey);
-      removeFromChangedVariables(localStorageChangedVariablesKey);
-    } else {
-      localStorage.setItem(localStorageNewVariablesKey, newVariables);
-      addToChangedVariables(localStorageChangedVariablesKey);
-    }
-  };
   useEffect(() => {
-    hostDetailsByInventoryType.forEach((detail) => {
-      detail.variables
-        .filter((variable) => variable.type !== 'applied')
-        .forEach((variable) => {
-          const localStorageVariablesPath = `${variable.pathInProject}-old`;
-          if (!localStorage.getItem(localStorageVariablesPath)) {
-            localStorage.setItem(localStorageVariablesPath, JSON.stringify(variable.values));
-          }
-        });
-    });
+    dispatch(addHostDetailsByInventory(hostDetailsByInventoryType));
+    dispatch(showHostDetails(hostDetailsByInventoryType[0]));
+    dispatch(showVariables(hostDetailsByInventoryType[0].variables[0]));
   }, []);
+
+  const handleEditorChange = (newEditorValue: string) => {
+    const updatedContextHostDetails = contextHostDetailsByInventoryType.map((hostDetail) => {
+      if (hostDetail.inventoryType === hostDetails?.inventoryType) {
+        return {
+          ...hostDetail,
+          variables: hostDetail.variables.map((variable) => {
+            if (variable.pathInProject === selectedVariables.pathInProject) {
+              return { ...variable, values: parse(newEditorValue) };
+            } else {
+              return variable;
+            }
+          }),
+        };
+      } else {
+        return hostDetail;
+      }
+    });
+    const updatedHostDetails = {
+      ...hostDetails,
+      variables: hostDetails?.variables.map((variable) => {
+        if (variable.pathInProject === selectedVariables.pathInProject) {
+          return { ...variable, values: parse(newEditorValue) };
+        } else {
+          return variable;
+        }
+      }),
+    };
+
+    const updatedSelectedVariables = { ...selectedVariables, values: parse(newEditorValue) };
+    dispatch(showHostDetails(updatedHostDetails));
+    dispatch(showVariables(updatedSelectedVariables));
+    dispatch(addHostDetailsByInventory(updatedContextHostDetails));
+  };
+
+  console.log('ContextHostDetailsByInventoryType', contextHostDetailsByInventoryType);
+  console.log('hostDetails', hostDetails);
+  console.log('selectedVariables', selectedVariables);
 
   return (
     <>
@@ -90,7 +101,7 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
           </Breadcrumbs>
           <Box>
             <Typography sx={{ fontWeight: 'bold' }}>Server group</Typography>
-            <Typography>{hostDetails.groupName}</Typography>
+            <Typography>{hostDetails?.groupName}</Typography>
           </Box>
           <Box>
             <Typography sx={{ fontWeight: 'bold' }}>Inventory</Typography>
@@ -102,12 +113,12 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
                 if (newHostDetails !== null) {
                   const type = selectedVariables.type;
                   const newVariables = getVariablesByType(newHostDetails, type);
-                  setHostDetails(newHostDetails);
-                  setSelectedVariables(newVariables || newHostDetails.variables[0]);
+                  dispatch(showHostDetails(newHostDetails));
+                  dispatch(showVariables(newVariables || newHostDetails.variables[0]));
                 }
               }}
             >
-              {hostDetailsByInventoryType.map((hostDetail) => {
+              {contextHostDetailsByInventoryType.map((hostDetail) => {
                 const inventoryType = hostDetail.inventoryType;
                 return (
                   <ToggleButton key={inventoryType} value={hostDetail} size="small">
@@ -126,11 +137,11 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
                 exclusive
                 onChange={(_event, newCurrentHostVariables) => {
                   if (newCurrentHostVariables !== null) {
-                    setSelectedVariables(newCurrentHostVariables);
+                    dispatch(showVariables(newCurrentHostVariables));
                   }
                 }}
               >
-                {hostDetails.variables.map((variableObj) => {
+                {hostDetails?.variables.map((variableObj) => {
                   const variablesType = variableObj.type;
                   return (
                     <ToggleButton size="small" key={variablesType} value={variableObj}>
@@ -142,7 +153,7 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
             </Box>
           )}
         </Stack>
-        {Object.keys(selectedVariables.values).length > 0 ? (
+        {Object.keys(selectedVariables?.values || []).length > 0 ? (
           <Stack direction="column" flexGrow={1}>
             <div>{selectedVariablesPathInProject}</div>
             <Editor
@@ -150,6 +161,7 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
               defaultLanguage="yaml"
               value={stringify(selectedVariables.values)}
               onChange={handleEditorChange}
+              path={selectedVariablesPathInProject}
             />
           </Stack>
         ) : (

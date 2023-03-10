@@ -1,4 +1,4 @@
-import type { AppProps } from 'next/app';
+import type { NextComponentType, NextPageContext } from 'next';
 import { QueryClientProvider, QueryClient } from 'react-query';
 import { createEmotionCache, theme } from '@frontend/utils/styling';
 import { CacheProvider, EmotionCache } from '@emotion/react';
@@ -7,27 +7,32 @@ import { Button, ThemeProvider, Toolbar } from '@mui/material';
 import { AppBar, Box } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import Link from 'next/link';
-import { NextComponentType, NextPageContext } from 'next';
-import '../styles/globals.css';
-import AppProvider from './AppProvider';
-import { useEditModeContext, useEditModeSetterContext } from '@frontend/pages/context';
+import {
+  useCodeChangesContext,
+  useCodeChangesDispatchContext,
+} from '@frontend/pages/providers/context';
+import { switchMode } from '@frontend/pages/providers/reducer';
 import EditIcon from '@mui/icons-material/Edit';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import GitHubIcon from '@mui/icons-material/GitHub';
+import CodeChangesProvider from './providers/CodeChangesProvider';
+import { AppProps } from 'next/app';
 
 const queryClient = new QueryClient();
 
 const clientSideEmotionCache = createEmotionCache();
 
 interface MyAppProps extends AppProps {
-  Component: NextComponentType<NextPageContext, any, any>;
-  pageProps?: any;
+  Component: NextComponentType<NextPageContext, any, Record<string, unknown>>;
+  pageProps: Record<string, unknown>;
   emotionCache?: EmotionCache;
 }
 
 const AppBarResolver = () => {
-  const isInEditMode = useEditModeContext();
-  const setIsInEditMode = useEditModeSetterContext();
+  const context = useCodeChangesContext();
+  const dispatch = useCodeChangesDispatchContext();
+  const isInEditMode = context.isInEditMode;
+
   return (
     <>
       <AppBar>
@@ -38,7 +43,7 @@ const AppBarResolver = () => {
           <Button
             startIcon={isInEditMode ? <EditIcon /> : <LibraryBooksIcon />}
             color="inherit"
-            onClick={() => setIsInEditMode(!isInEditMode)}
+            onClick={() => dispatch(switchMode())}
           >
             {isInEditMode ? 'Edit mode' : 'Read mode'}
           </Button>
@@ -56,7 +61,7 @@ const App = ({ Component, pageProps, emotionCache = clientSideEmotionCache }: My
   <CacheProvider value={emotionCache}>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
-        <AppProvider>
+        <CodeChangesProvider>
           <Head>
             <meta name="viewport" content="initial-scale=1, width=device-width" />
             <title>Ansible manager</title>
@@ -65,7 +70,7 @@ const App = ({ Component, pageProps, emotionCache = clientSideEmotionCache }: My
           <Box sx={{ mx: 5, mt: 4, mb: 4 }}>
             <Component {...pageProps} />
           </Box>
-        </AppProvider>
+        </CodeChangesProvider>
       </ThemeProvider>
     </QueryClientProvider>
   </CacheProvider>
