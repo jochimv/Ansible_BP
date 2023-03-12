@@ -17,6 +17,7 @@ import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import CodeChangesProvider from './providers/CodeChangesProvider';
 import { AppProps } from 'next/app';
+import '@frontend/styles/globals.css';
 
 const queryClient = new QueryClient();
 

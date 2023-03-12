@@ -1,4 +1,5 @@
 import keyMirror from 'keymirror';
+import { parse } from 'yaml';
 
 export interface HostDetails {
   inventoryType: string;
@@ -25,9 +26,10 @@ interface CodeChangesAction {
 export const actionTypes = keyMirror({
   SWITCH_MODE: null,
   ADD_HOST_DETAILS_BY_INVENTORY_TYPE: null,
-  UPDATE_HOST_DETAILS_BY_INVENTORY_TYPE: null,
   SHOW_HOST_DETAILS: null,
   SHOW_VARIABLES: null,
+  INITIALIZE_EDITOR: null,
+  UPDATE_VARIABLES: null,
 });
 export const initialState: CodeChangesState = {
   isInEditMode: false,
@@ -36,50 +38,6 @@ export const initialState: CodeChangesState = {
   selectedVariables: undefined,
 };
 
-/*function updateValues(arr, variables, newValues) {
-  return arr.map((obj) => {
-    const matchingVar = obj.variables.find(
-      (v) => v.pathInProject === variables.pathInProject && v.type === variables.type,
-    );
-    if (matchingVar) {
-      return {
-        ...obj,
-        variables: obj.variables.map((v) => {
-          if (v === matchingVar) {
-            return {
-              ...v,
-              values: {
-                ...v.values,
-                ...newValues,
-              },
-            };
-          } else {
-            return v;
-          }
-        }),
-      };
-    } else {
-      return obj;
-    }
-  });
-}*/
-const update = (hostDetailsByInventoryType, hostDetails, selectedVariables, newValues) => {
-  return hostDetailsByInventoryType.map((host) => {
-    if (host.inventoryType === hostDetails.inventoryType) {
-      const updatedVariables = host.variables.map((variable) => {
-        if (
-          variable.type === selectedVariables.type &&
-          variable.pathInProject === selectedVariables.pathInProject
-        ) {
-          return { ...variable, values: newValues };
-        }
-        return variable;
-      });
-      return { ...host, variables: updatedVariables };
-    }
-    return host;
-  });
-};
 export const codeChangesReducer = (
   state = initialState,
   action: CodeChangesAction,
@@ -93,10 +51,67 @@ export const codeChangesReducer = (
       return { ...state, hostDetails: action.payload };
     case actionTypes.SHOW_VARIABLES:
       return { ...state, selectedVariables: action.payload };
+    case actionTypes.INITIALIZE_EDITOR: {
+      const hostDetailsByInventoryType = action.payload;
+      const hostDetails = hostDetailsByInventoryType[0];
+      const selectedVariables = hostDetails.variables[0];
+      return { ...state, hostDetailsByInventoryType, hostDetails, selectedVariables };
+    }
+    case actionTypes.UPDATE_VARIABLES: {
+      const updatedHostDetailsByInventoryType = state.hostDetailsByInventoryType.map(
+        (hostDetail) => {
+          if (hostDetail.inventoryType === state.hostDetails?.inventoryType) {
+            return {
+              ...hostDetail,
+              variables: hostDetail.variables.map((variable) => {
+                if (variable.pathInProject === state.selectedVariables.pathInProject) {
+                  return { ...variable, values: parse(action.payload) };
+                } else {
+                  return variable;
+                }
+              }),
+            };
+          } else {
+            return hostDetail;
+          }
+        },
+      );
+      console.log('------------hostDetailsByInventoryType--------------');
+      console.log(JSON.stringify(state.hostDetailsByInventoryType));
+      console.log(JSON.stringify(updatedHostDetailsByInventoryType));
+
+      const updatedHostDetails = {
+        ...state.hostDetails,
+        variables: state.hostDetails?.variables.map((variable) => {
+          if (variable.pathInProject === state.selectedVariables.pathInProject) {
+            return { ...variable, values: parse(action.payload) };
+          } else {
+            return variable;
+          }
+        }),
+      };
+      console.log('------------hostDetails--------------');
+      console.log(JSON.stringify(state.hostDetails));
+      console.log(JSON.stringify(updatedHostDetails));
+      const updatedSelectedVariables = {
+        ...state.selectedVariables,
+        values: parse(action.payload),
+      };
+      console.log('------------selectedVariables--------------');
+      console.log(JSON.stringify(state.selectedVariables));
+      console.log(JSON.stringify(updatedSelectedVariables));
+      return {
+        ...state,
+        selectedVariables: updatedSelectedVariables,
+        hostDetails: updatedHostDetails,
+        hostDetailsByInventoryType: updatedHostDetailsByInventoryType,
+      };
+    }
     default:
       return state;
   }
 };
+
 export const switchMode = (): CodeChangesAction => ({ type: actionTypes.SWITCH_MODE });
 
 export const addHostDetailsByInventory = (payload: any): CodeChangesAction => ({
@@ -104,8 +119,8 @@ export const addHostDetailsByInventory = (payload: any): CodeChangesAction => ({
   payload,
 });
 
-export const updateHostDetailsByInventoryType = (payload: any): CodeChangesAction => ({
-  type: actionTypes.UPDATE_HOST_DETAILS_BY_INVENTORY_TYPE,
+export const updateVariables = (payload: any): CodeChangesAction => ({
+  type: actionTypes.UPDATE_VARIABLES,
   payload,
 });
 
@@ -116,5 +131,10 @@ export const showHostDetails = (payload: any): CodeChangesAction => ({
 
 export const showVariables = (payload: any): CodeChangesAction => ({
   type: actionTypes.SHOW_VARIABLES,
+  payload,
+});
+
+export const initializeEditor = (payload: any): CodeChangesAction => ({
+  type: actionTypes.INITIALIZE_EDITOR,
   payload,
 });

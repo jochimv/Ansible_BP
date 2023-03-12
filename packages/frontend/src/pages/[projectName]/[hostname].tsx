@@ -1,20 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Box, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { getHostDetails } from '@frontend/utils';
 import Editor from '@monaco-editor/react';
 import { Breadcrumbs } from '@mui/material';
 import Link from 'next/link';
-import { parse, stringify } from 'yaml';
+import { stringify } from 'yaml';
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
 } from '@frontend/pages/providers/context';
 import {
-  addHostDetailsByInventory,
   HostDetails,
+  initializeEditor,
   showHostDetails,
   showVariables,
-  updateHostDetailsByInventoryType,
+  updateVariables,
 } from '@frontend/pages/providers/reducer';
 
 interface HostPageProps {
@@ -46,48 +46,12 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
   const selectedVariablesAreAppliedVariables = selectedVariables?.type === 'applied';
 
   useEffect(() => {
-    dispatch(addHostDetailsByInventory(hostDetailsByInventoryType));
-    dispatch(showHostDetails(hostDetailsByInventoryType[0]));
-    dispatch(showVariables(hostDetailsByInventoryType[0].variables[0]));
+    dispatch(initializeEditor(hostDetailsByInventoryType));
   }, []);
 
-  const handleEditorChange = (newEditorValue: string) => {
-    const updatedContextHostDetails = contextHostDetailsByInventoryType.map((hostDetail) => {
-      if (hostDetail.inventoryType === hostDetails?.inventoryType) {
-        return {
-          ...hostDetail,
-          variables: hostDetail.variables.map((variable) => {
-            if (variable.pathInProject === selectedVariables.pathInProject) {
-              return { ...variable, values: parse(newEditorValue) };
-            } else {
-              return variable;
-            }
-          }),
-        };
-      } else {
-        return hostDetail;
-      }
-    });
-    const updatedHostDetails = {
-      ...hostDetails,
-      variables: hostDetails?.variables.map((variable) => {
-        if (variable.pathInProject === selectedVariables.pathInProject) {
-          return { ...variable, values: parse(newEditorValue) };
-        } else {
-          return variable;
-        }
-      }),
-    };
-
-    const updatedSelectedVariables = { ...selectedVariables, values: parse(newEditorValue) };
-    dispatch(showHostDetails(updatedHostDetails));
-    dispatch(showVariables(updatedSelectedVariables));
-    dispatch(addHostDetailsByInventory(updatedContextHostDetails));
+  const handleEditorChange = (newEditorValue: string | null) => {
+    dispatch(updateVariables(newEditorValue));
   };
-
-  console.log('ContextHostDetailsByInventoryType', contextHostDetailsByInventoryType);
-  console.log('hostDetails', hostDetails);
-  console.log('selectedVariables', selectedVariables);
 
   return (
     <>
@@ -107,7 +71,6 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
             <Typography sx={{ fontWeight: 'bold' }}>Inventory</Typography>
             <ToggleButtonGroup
               orientation="horizontal"
-              value={hostDetails}
               exclusive
               onChange={(_event, newHostDetails) => {
                 if (newHostDetails !== null) {
@@ -121,37 +84,44 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
               {contextHostDetailsByInventoryType.map((hostDetail) => {
                 const inventoryType = hostDetail.inventoryType;
                 return (
-                  <ToggleButton key={inventoryType} value={hostDetail} size="small">
+                  <ToggleButton
+                    disabled={hostDetail.inventoryType === hostDetails?.inventoryType}
+                    key={inventoryType}
+                    value={hostDetail}
+                    size="small"
+                  >
                     {inventoryType}
                   </ToggleButton>
                 );
               })}
             </ToggleButtonGroup>
           </Box>
-          {selectedVariablesPathInProject && (
-            <Box>
-              <Typography sx={{ fontWeight: 'bold' }}>Variables</Typography>
-              <ToggleButtonGroup
-                orientation="horizontal"
-                value={selectedVariables}
-                exclusive
-                onChange={(_event, newCurrentHostVariables) => {
-                  if (newCurrentHostVariables !== null) {
-                    dispatch(showVariables(newCurrentHostVariables));
-                  }
-                }}
-              >
-                {hostDetails?.variables.map((variableObj) => {
-                  const variablesType = variableObj.type;
-                  return (
-                    <ToggleButton size="small" key={variablesType} value={variableObj}>
-                      {variablesType}
-                    </ToggleButton>
-                  );
-                })}
-              </ToggleButtonGroup>
-            </Box>
-          )}
+          <Box>
+            <Typography sx={{ fontWeight: 'bold' }}>Variables</Typography>
+            <ToggleButtonGroup
+              orientation="horizontal"
+              exclusive
+              onChange={(_event, newCurrentHostVariables) => {
+                if (newCurrentHostVariables !== null) {
+                  dispatch(showVariables(newCurrentHostVariables));
+                }
+              }}
+            >
+              {hostDetails?.variables.map((variableObj) => {
+                const variablesType = variableObj.type;
+                return (
+                  <ToggleButton
+                    disabled={variableObj.pathInProject === selectedVariables.pathInProject}
+                    size="small"
+                    key={variablesType}
+                    value={variableObj}
+                  >
+                    {variablesType}
+                  </ToggleButton>
+                );
+              })}
+            </ToggleButtonGroup>
+          </Box>
         </Stack>
         {Object.keys(selectedVariables?.values || []).length > 0 ? (
           <Stack direction="column" flexGrow={1}>
