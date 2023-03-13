@@ -4,7 +4,6 @@ import { getHostDetails } from '@frontend/utils';
 import Editor from '@monaco-editor/react';
 import { Breadcrumbs } from '@mui/material';
 import Link from 'next/link';
-import { stringify } from 'yaml';
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,

@@ -1,4 +1,5 @@
 import keyMirror from 'keymirror';
+import { parse as parseYaml, stringify } from 'yaml';
 
 export interface HostDetails {
   inventoryType: string;
@@ -57,33 +58,53 @@ export const codeChangesReducer = (
       return { ...state, hostDetailsByInventoryType, hostDetails, selectedVariables };
     }
     case actionTypes.UPDATE_VARIABLES: {
+      const updatedVariablesSelectedOnly = state.hostDetails?.variables.map((variable) => {
+        if (variable.pathInProject === state.selectedVariables.pathInProject) {
+          return { ...variable, values: action.payload };
+        } else {
+          return variable;
+        }
+      });
+
+      const updatedVariablesAll = updatedVariablesSelectedOnly?.map((variable) => {
+        if (variable.type === 'applied') {
+          const commonVariables = updatedVariablesSelectedOnly?.find(
+            (variable) => variable.type === 'common',
+          );
+          const groupVariables = updatedVariablesSelectedOnly?.find(
+            (variable) => variable.type === 'group',
+          );
+          const hostVariables = updatedVariablesSelectedOnly?.find(
+            (variable) => variable.type === 'host',
+          );
+
+          const appliedVariables = {
+            ...(commonVariables && parseYaml(commonVariables.values)),
+            ...(groupVariables && parseYaml(groupVariables.values)),
+            ...(hostVariables && parseYaml(hostVariables.values)),
+          };
+          return { ...variable, values: stringify(appliedVariables) };
+        } else {
+          return variable;
+        }
+      });
+
       const updatedHostDetailsByInventoryType = state.hostDetailsByInventoryType.map(
         (hostDetail) => {
           if (hostDetail.inventoryType === state.hostDetails?.inventoryType) {
             return {
               ...hostDetail,
-              variables: hostDetail.variables.map((variable) => {
-                if (variable.pathInProject === state.selectedVariables.pathInProject) {
-                  return { ...variable, values: action.payload };
-                } else {
-                  return variable;
-                }
-              }),
+              variables: updatedVariablesAll,
             };
           } else {
             return hostDetail;
           }
         },
       );
+
       const updatedHostDetails = {
         ...state.hostDetails,
-        variables: state.hostDetails?.variables.map((variable) => {
-          if (variable.pathInProject === state.selectedVariables.pathInProject) {
-            return { ...variable, values: action.payload };
-          } else {
-            return variable;
-          }
-        }),
+        variables: updatedVariablesAll,
       };
       const updatedSelectedVariables = {
         ...state.selectedVariables,
