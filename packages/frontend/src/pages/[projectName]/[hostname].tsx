@@ -1,5 +1,13 @@
 import { useEffect } from 'react';
-import { Box, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Snackbar,
+  Stack,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from '@mui/material';
 import { getHostDetails } from '@frontend/utils';
 import Editor from '@monaco-editor/react';
 import { Breadcrumbs } from '@mui/material';
@@ -15,6 +23,7 @@ import {
   showVariables,
   updateVariables,
 } from '@frontend/pages/providers/reducer';
+import { patchConsoleError } from 'next/dist/client/components/react-dev-overlay/internal/helpers/hydration-error-info';
 
 interface HostPageProps {
   hostDetailsByInventoryType: HostDetails[];
@@ -30,6 +39,17 @@ const getVariablesByType = (obj: any, type: string) => {
     }
   }
   return null;
+};
+
+const formatErrorMessage = (message: string): JSX.Element => {
+  const lines = message.split('\n');
+  return (
+    <div>
+      {lines.map((line) => (
+        <div>{line || '\u00A0'}</div>
+      ))}
+    </div>
+  );
 };
 
 const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: HostPageProps) => {
@@ -122,7 +142,7 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
             </ToggleButtonGroup>
           </Box>
         </Stack>
-        {Object.keys(selectedVariables?.values || []).length > 0 ? (
+        {selectedVariables?.values ? (
           <Stack direction="column" flexGrow={1}>
             <div>{selectedVariablesPathInProject}</div>
             <Editor
@@ -135,6 +155,11 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
           </Stack>
         ) : (
           <Typography>No variables found</Typography>
+        )}
+        {selectedVariables?.error && (
+          <Snackbar open>
+            <Alert severity="error">{formatErrorMessage(selectedVariables.error)}</Alert>
+          </Snackbar>
         )}
       </Stack>
     </>

@@ -58,36 +58,55 @@ export const codeChangesReducer = (
       return { ...state, hostDetailsByInventoryType, hostDetails, selectedVariables };
     }
     case actionTypes.UPDATE_VARIABLES: {
+      let error: any;
+      try {
+        parseYaml(action.payload);
+      } catch (e) {
+        error = e.message;
+      }
+
+      const updatedSelectedVariables = {
+        ...state.selectedVariables,
+        error,
+        values: action.payload,
+      };
+
       const updatedVariablesSelectedOnly = state.hostDetails?.variables.map((variable) => {
         if (variable.pathInProject === state.selectedVariables.pathInProject) {
-          return { ...variable, values: action.payload };
+          return updatedSelectedVariables;
         } else {
           return variable;
         }
       });
 
-      const updatedVariablesAll = updatedVariablesSelectedOnly?.map((variable) => {
-        if (variable.type === 'applied') {
-          const commonVariables = updatedVariablesSelectedOnly?.find(
-            (variable) => variable.type === 'common',
-          );
-          const groupVariables = updatedVariablesSelectedOnly?.find(
-            (variable) => variable.type === 'group',
-          );
-          const hostVariables = updatedVariablesSelectedOnly?.find(
-            (variable) => variable.type === 'host',
-          );
+      const updatedVariablesAll = error
+        ? updatedVariablesSelectedOnly
+        : updatedVariablesSelectedOnly?.map((variable) => {
+            if (variable.type === 'applied') {
+              const commonVariables = updatedVariablesSelectedOnly?.find(
+                (variable) => variable.type === 'common',
+              );
+              const groupVariables = updatedVariablesSelectedOnly?.find(
+                (variable) => variable.type === 'group',
+              );
+              const hostVariables = updatedVariablesSelectedOnly?.find(
+                (variable) => variable.type === 'host',
+              );
 
-          const appliedVariables = {
-            ...(commonVariables && parseYaml(commonVariables.values)),
-            ...(groupVariables && parseYaml(groupVariables.values)),
-            ...(hostVariables && parseYaml(hostVariables.values)),
-          };
-          return { ...variable, values: stringify(appliedVariables) };
-        } else {
-          return variable;
-        }
-      });
+              try {
+                const appliedVariables = {
+                  ...(commonVariables && parseYaml(commonVariables.values)),
+                  ...(groupVariables && parseYaml(groupVariables.values)),
+                  ...(hostVariables && parseYaml(hostVariables.values)),
+                };
+                return { ...variable, values: stringify(appliedVariables) };
+              } catch (e) {
+                return variable;
+              }
+            } else {
+              return variable;
+            }
+          });
 
       const updatedHostDetailsByInventoryType = state.hostDetailsByInventoryType.map(
         (hostDetail) => {
@@ -106,10 +125,7 @@ export const codeChangesReducer = (
         ...state.hostDetails,
         variables: updatedVariablesAll,
       };
-      const updatedSelectedVariables = {
-        ...state.selectedVariables,
-        values: action.payload,
-      };
+
       return {
         ...state,
         selectedVariables: updatedSelectedVariables,
