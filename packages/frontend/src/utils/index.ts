@@ -1,6 +1,6 @@
 import { readdirSync, statSync, readFileSync, accessSync, constants } from 'fs';
 import { parse as parseIni } from 'ini';
-import { parse as parseYaml } from 'yaml';
+import { parse as parseYaml, stringify } from 'yaml';
 import { extname, join } from 'path';
 import { ProjectsHosts } from '@backend/types';
 
@@ -172,7 +172,7 @@ const getCommonVariablesObj = (filePath) => {
   return {
     type: 'common',
     pathInProject: removeAnsibleReposPathFromPath(filePath),
-    values: parseYamlFile(filePath),
+    values: readFileSync(filePath, 'utf-8'),
   };
 };
 
@@ -194,7 +194,7 @@ export const getHostDetails = (projectName: string, hostName: string) => {
         hostVariables = {
           type: 'host',
           pathInProject: removeAnsibleReposPathFromPath(hostVarsFilePath),
-          values: parseYamlFile(hostVarsFilePath),
+          values: readFileSync(hostVarsFilePath, 'utf-8'),
         };
         variables.push(hostVariables);
       }
@@ -208,7 +208,7 @@ export const getHostDetails = (projectName: string, hostName: string) => {
         groupVariables = {
           type: 'group',
           pathInProject: removeAnsibleReposPathFromPath(groupVarsFilePath),
-          values: parseYamlFile(groupVarsFilePath),
+          values: readFileSync(groupVarsFilePath, 'utf-8'),
         };
         variables.push(groupVariables);
       }
@@ -226,11 +226,15 @@ export const getHostDetails = (projectName: string, hostName: string) => {
         variables.push(commonVariables);
       }
       const appliedVariables = {
-        ...(commonVariables && commonVariables.values),
-        ...(groupVariables && groupVariables.values),
-        ...(hostVariables && hostVariables.values),
+        ...(commonVariables && parseYaml(commonVariables.values)),
+        ...(groupVariables && parseYaml(groupVariables.values)),
+        ...(hostVariables && parseYaml(hostVariables.values)),
       };
-      variables.unshift({ type: 'applied', pathInProject: 'Read only', values: appliedVariables });
+      variables.unshift({
+        type: 'applied',
+        pathInProject: 'Read only',
+        values: stringify(appliedVariables),
+      });
       projectHostDetails.push({
         inventoryType,
         groupName,

@@ -129,7 +129,7 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
             <Editor
               options={{ readOnly: selectedVariablesAreAppliedVariables || !isInEditMode }}
               defaultLanguage="yaml"
-              value={stringify(selectedVariables.values)}
+              value={selectedVariables.values}
               onChange={handleEditorChange}
               path={selectedVariablesPathInProject}
             />
@@ -147,5 +147,11 @@ export default HostDetailsPage;
 export async function getServerSideProps(context: any) {
   const { hostname, projectName } = context.query;
   const hostDetailsByInventoryType = getHostDetails(projectName, hostname);
-  return { props: { hostname, projectName, hostDetailsByInventoryType } };
+  return {
+    props: {
+      hostname,
+      projectName,
+      hostDetailsByInventoryType,
+    },
+  };
 }

@@ -1,5 +1,4 @@
 import keyMirror from 'keymirror';
-import { parse } from 'yaml';
 
 export interface HostDetails {
   inventoryType: string;
@@ -65,7 +64,7 @@ export const codeChangesReducer = (
               ...hostDetail,
               variables: hostDetail.variables.map((variable) => {
                 if (variable.pathInProject === state.selectedVariables.pathInProject) {
-                  return { ...variable, values: parse(action.payload) };
+                  return { ...variable, values: action.payload };
                 } else {
                   return variable;
                 }
@@ -76,30 +75,20 @@ export const codeChangesReducer = (
           }
         },
       );
-      console.log('------------hostDetailsByInventoryType--------------');
-      console.log(JSON.stringify(state.hostDetailsByInventoryType));
-      console.log(JSON.stringify(updatedHostDetailsByInventoryType));
-
       const updatedHostDetails = {
         ...state.hostDetails,
         variables: state.hostDetails?.variables.map((variable) => {
           if (variable.pathInProject === state.selectedVariables.pathInProject) {
-            return { ...variable, values: parse(action.payload) };
+            return { ...variable, values: action.payload };
           } else {
             return variable;
           }
         }),
       };
-      console.log('------------hostDetails--------------');
-      console.log(JSON.stringify(state.hostDetails));
-      console.log(JSON.stringify(updatedHostDetails));
       const updatedSelectedVariables = {
         ...state.selectedVariables,
-        values: parse(action.payload),
+        values: action.payload,
       };
-      console.log('------------selectedVariables--------------');
-      console.log(JSON.stringify(state.selectedVariables));
-      console.log(JSON.stringify(updatedSelectedVariables));
       return {
         ...state,
         selectedVariables: updatedSelectedVariables,
