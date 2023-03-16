@@ -18,6 +18,7 @@ interface CodeChangesState {
   hostDetailsByInventoryType: HostDetails[];
   hostDetails?: HostDetails;
   selectedVariables: any;
+  oldHostDetailsByInventoryType: HostDetails[];
 }
 interface CodeChangesAction {
   type: string;
@@ -30,12 +31,19 @@ export const actionTypes = keyMirror({
   SHOW_VARIABLES: null,
   INITIALIZE_EDITOR: null,
   UPDATE_VARIABLES: null,
+  CREATE_DIFF: null,
 });
 export const initialState: CodeChangesState = {
   isInEditMode: false,
   hostDetailsByInventoryType: [],
   hostDetails: undefined,
   selectedVariables: undefined,
+  oldHostDetailsByInventoryType: [],
+
+  oldDiff: undefined,
+  newDiff: undefined,
+  oldVars: [],
+  newVars: [],
 };
 
 export const codeChangesReducer = (
@@ -51,11 +59,41 @@ export const codeChangesReducer = (
       return { ...state, hostDetails: action.payload };
     case actionTypes.SHOW_VARIABLES:
       return { ...state, selectedVariables: action.payload };
+    case actionTypes.CREATE_DIFF: {
+      const newVars = state.hostDetailsByInventoryType
+        .map((hostDetail) => {
+          return hostDetail.variables.filter(
+            (hostDetail) => hostDetail.updated && hostDetail.type !== 'applied',
+          );
+        })
+        .flat();
+      const oldVars = state.oldHostDetailsByInventoryType
+        .map((hostDetail) => {
+          return hostDetail.variables.filter((variable) =>
+            newVars.some((updatedVar) => updatedVar.pathInProject === variable.pathInProject),
+          );
+        })
+        .flat();
+
+      return {
+        ...state,
+        newVars,
+        oldVars,
+        oldDiff: oldVars[0],
+        newDiff: newVars[0],
+      };
+    }
     case actionTypes.INITIALIZE_EDITOR: {
       const hostDetailsByInventoryType = action.payload;
       const hostDetails = hostDetailsByInventoryType[0];
       const selectedVariables = hostDetails.variables[0];
-      return { ...state, hostDetailsByInventoryType, hostDetails, selectedVariables };
+      return {
+        ...state,
+        hostDetailsByInventoryType,
+        hostDetails,
+        selectedVariables,
+        oldHostDetailsByInventoryType: hostDetailsByInventoryType,
+      };
     }
     case actionTypes.UPDATE_VARIABLES: {
       let error: any;
@@ -68,6 +106,7 @@ export const codeChangesReducer = (
       const updatedSelectedVariables = {
         ...state.selectedVariables,
         error,
+        updated: true,
         values: action.payload,
       };
 
@@ -79,6 +118,7 @@ export const codeChangesReducer = (
         }
       });
 
+      console.log('executing update variables');
       const updatedVariablesAll = error
         ? updatedVariablesSelectedOnly
         : updatedVariablesSelectedOnly?.map((variable) => {
@@ -99,8 +139,17 @@ export const codeChangesReducer = (
                   ...(groupVariables && parseYaml(groupVariables.values)),
                   ...(hostVariables && parseYaml(hostVariables.values)),
                 };
-                return { ...variable, values: stringify(appliedVariables) };
+
+                const stringifiedAppliedVariables = stringify(appliedVariables).trim();
+                const appliedVariablesToShow =
+                  stringifiedAppliedVariables === '{}' ? '' : stringifiedAppliedVariables;
+
+                return {
+                  ...variable,
+                  values: appliedVariablesToShow,
+                };
               } catch (e) {
+                console.log(`error caught, returning variable. ${e.message}`);
                 return variable;
               }
             } else {
@@ -138,6 +187,9 @@ export const codeChangesReducer = (
   }
 };
 
+export const createDiff = (): CodeChangesAction => ({
+  type: actionTypes.CREATE_DIFF,
+});
 export const switchMode = (): CodeChangesAction => ({ type: actionTypes.SWITCH_MODE });
 
 export const addHostDetailsByInventory = (payload: any): CodeChangesAction => ({

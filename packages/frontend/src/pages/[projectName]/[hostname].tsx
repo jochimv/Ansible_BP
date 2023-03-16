@@ -23,7 +23,6 @@ import {
   showVariables,
   updateVariables,
 } from '@frontend/pages/providers/reducer';
-import { patchConsoleError } from 'next/dist/client/components/react-dev-overlay/internal/helpers/hydration-error-info';
 
 interface HostPageProps {
   hostDetailsByInventoryType: HostDetails[];
@@ -45,8 +44,8 @@ const formatErrorMessage = (message: string): JSX.Element => {
   const lines = message.split('\n');
   return (
     <div>
-      {lines.map((line) => (
-        <div>{line || '\u00A0'}</div>
+      {lines.map((line, index) => (
+        <div key={index}>{line || '\u00A0'}</div>
       ))}
     </div>
   );
@@ -64,6 +63,8 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
   const selectedVariablesPathInProject = selectedVariables?.pathInProject;
   const selectedVariablesAreAppliedVariables = selectedVariables?.type === 'applied';
 
+  console.log(JSON.stringify(contextHostDetailsByInventoryType));
+  console.log(selectedVariables?.values);
   useEffect(() => {
     dispatch(initializeEditor(hostDetailsByInventoryType));
   }, []);
@@ -142,7 +143,7 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
             </ToggleButtonGroup>
           </Box>
         </Stack>
-        {selectedVariables?.values ? (
+        {selectedVariables?.values !== undefined ? (
           <Stack direction="column" flexGrow={1}>
             <div>{selectedVariablesPathInProject}</div>
             <Editor
@@ -150,7 +151,8 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
               defaultLanguage="yaml"
               value={selectedVariables.values}
               onChange={handleEditorChange}
-              path={selectedVariablesPathInProject}
+              // fix multi-model editor when you delete one of the variables completely and applied variables are not updated.
+              path={selectedVariables.values ? selectedVariablesPathInProject : undefined}
             />
           </Stack>
         ) : (
