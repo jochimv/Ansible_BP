@@ -1,5 +1,4 @@
-import TreeView from '@mui/lab/TreeView';
-import TreeItem from '@mui/lab/TreeItem';
+import { TreeView, TreeItem } from '@mui/lab';
 import { Folder, Description } from '@mui/icons-material';
 import { useCodeChangesContext, useCodeChangesDispatchContext } from '../context/context';
 import { showDiff } from '../context/reducer';
@@ -36,7 +35,13 @@ const renderTree = (nodes, path: string, dispatch) => {
         nodeId={newPath}
         label={nodeName}
         onClick={isLeaf ? () => dispatch(showDiff(newPath)) : undefined}
-        icon={isLeaf ? <Description /> : <Folder />}
+        icon={
+          isLeaf ? (
+            <Description sx={{ color: 'primary.main' }} />
+          ) : (
+            <Folder sx={{ color: 'gray' }} />
+          )
+        }
       >
         {renderTree(children, newPath, dispatch)}
       </TreeItem>

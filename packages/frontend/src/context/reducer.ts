@@ -32,6 +32,8 @@ interface CodeChangesState {
   hostDetails?: HostDetails;
   selectedVariables: any;
   oldHostDetailsByInventoryType: HostDetails[];
+  hosts: any[];
+  oldHosts: any[];
 }
 interface CodeChangesAction {
   type: string;
@@ -47,6 +49,8 @@ export const actionTypes = keyMirror({
   SHOW_DIFF: null,
 });
 export const initialState: CodeChangesState = {
+  hosts: [],
+  oldHosts: [],
   isInEditMode: false,
   hostDetailsByInventoryType: [],
   hostDetails: undefined,
@@ -70,12 +74,12 @@ export const codeChangesReducer = (
     case actionTypes.SHOW_VARIABLES:
       return { ...state, selectedVariables: action.payload };
     case actionTypes.CREATE_DIFF: {
-      const newVars = state.hostDetailsByInventoryType.flatMap((hostDetail) => {
+      const newVars = state.hosts.flat().flatMap((hostDetail) => {
         return hostDetail.variables.filter(
           (hostDetail) => hostDetail.updated && hostDetail.type !== 'applied',
         );
       });
-      const oldVars = state.oldHostDetailsByInventoryType.flatMap((hostDetail) => {
+      const oldVars = state.oldHosts.flat().flatMap((hostDetail) => {
         return hostDetail.variables.filter((variable) =>
           newVars.some((updatedVar) => updatedVar.pathInProject === variable.pathInProject),
         );
@@ -105,9 +109,18 @@ export const codeChangesReducer = (
       const hostDetailsByInventoryType = action.payload;
       const hostDetails = hostDetailsByInventoryType[0];
       const selectedVariables = hostDetails.variables[0];
+
+      const isAlreadyInHosts = state.oldHosts.find(
+        (host) => JSON.stringify(host) === JSON.stringify(hostDetailsByInventoryType),
+      );
+
       return {
         ...state,
         hostDetailsByInventoryType,
+        oldHosts: isAlreadyInHosts
+          ? state.oldHosts
+          : [...state.oldHosts, hostDetailsByInventoryType],
+        hosts: isAlreadyInHosts ? state.hosts : [...state.hosts, hostDetailsByInventoryType],
         hostDetails,
         selectedVariables,
         oldHostDetailsByInventoryType: hostDetailsByInventoryType,
@@ -200,11 +213,23 @@ export const codeChangesReducer = (
         variables: updatedVariablesAll,
       };
 
+      const updatedHosts = state.hosts.map((hostDetailsByInventoryType) => {
+        if (
+          hostDetailsByInventoryType[0]?.variables[1]?.pathInProject ===
+          updatedHostDetailsByInventoryType[0]?.variables[1]?.pathInProject
+        ) {
+          return updatedHostDetailsByInventoryType;
+        } else {
+          return hostDetailsByInventoryType;
+        }
+      });
+
       return {
         ...state,
         selectedVariables: updatedSelectedVariables,
         hostDetails: updatedHostDetails,
         hostDetailsByInventoryType: updatedHostDetailsByInventoryType,
+        hosts: updatedHosts,
       };
     }
     default:
