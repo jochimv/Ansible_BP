@@ -12,17 +12,14 @@ import { getHostDetails } from '@frontend/utils';
 import Editor from '@monaco-editor/react';
 import { Breadcrumbs } from '@mui/material';
 import Link from 'next/link';
-import {
-  useCodeChangesContext,
-  useCodeChangesDispatchContext,
-} from '@frontend/pages/providers/context';
+import { useCodeChangesContext, useCodeChangesDispatchContext } from '@frontend/context/context';
 import {
   HostDetails,
   initializeEditor,
   showHostDetails,
   showVariables,
   updateVariables,
-} from '@frontend/pages/providers/reducer';
+} from '@frontend/context/reducer';
 
 interface HostPageProps {
   hostDetailsByInventoryType: HostDetails[];

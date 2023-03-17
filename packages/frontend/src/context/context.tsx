@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { initialState } from '@frontend/pages/providers/reducer';
+import { initialState } from '@frontend/context/reducer';
 
 export const CodeChangesContext = createContext(initialState);
 export const CodeChangesDispatchContext = createContext(console.log);

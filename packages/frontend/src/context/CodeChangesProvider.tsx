@@ -1,7 +1,7 @@
 import { useReducer, ReactNode } from 'react';
 
-import { CodeChangesContext, CodeChangesDispatchContext } from '@frontend/pages/providers/context';
-import { initialState, codeChangesReducer } from '@frontend/pages/providers/reducer';
+import { CodeChangesContext, CodeChangesDispatchContext } from '@frontend/context/context';
+import { initialState, codeChangesReducer } from '@frontend/context/reducer';
 
 interface CodeChangesProviderProps {
   children: ReactNode;

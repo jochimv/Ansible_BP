@@ -1,9 +1,9 @@
 import { DiffEditor } from '@monaco-editor/react';
 import { Stack } from '@mui/material';
-import { useCodeChangesContext, useCodeChangesDispatchContext } from '../providers/context';
+import { useCodeChangesContext, useCodeChangesDispatchContext } from '../../context/context';
 import { useEffect } from 'react';
-import { createDiff } from '../providers/reducer';
-import FileTree from './FileTree';
+import { createDiff } from '../../context/reducer';
+import FileTree from '../../components/FileTree';
 
 const GitPage = () => {
   const dispatch = useCodeChangesDispatchContext();

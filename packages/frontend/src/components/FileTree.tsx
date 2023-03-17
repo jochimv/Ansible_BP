@@ -1,8 +1,8 @@
 import TreeView from '@mui/lab/TreeView';
 import TreeItem from '@mui/lab/TreeItem';
 import { Folder, Description } from '@mui/icons-material';
-import { useCodeChangesContext, useCodeChangesDispatchContext } from '../providers/context';
-import { showDiff } from '../providers/reducer';
+import { useCodeChangesContext, useCodeChangesDispatchContext } from '../context/context';
+import { showDiff } from '../context/reducer';
 
 const buildTree = (paths: string[]) => {
   const tree = {};
