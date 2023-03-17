@@ -32,6 +32,7 @@ export const actionTypes = keyMirror({
   INITIALIZE_EDITOR: null,
   UPDATE_VARIABLES: null,
   CREATE_DIFF: null,
+  SHOW_DIFF: null,
 });
 export const initialState: CodeChangesState = {
   isInEditMode: false,
@@ -59,6 +60,7 @@ export const codeChangesReducer = (
       return { ...state, hostDetails: action.payload };
     case actionTypes.SHOW_VARIABLES:
       return { ...state, selectedVariables: action.payload };
+
     case actionTypes.CREATE_DIFF: {
       const newVars = state.hostDetailsByInventoryType
         .map((hostDetail) => {
@@ -81,6 +83,18 @@ export const codeChangesReducer = (
         oldVars,
         oldDiff: oldVars[0],
         newDiff: newVars[0],
+      };
+    }
+    case actionTypes.SHOW_DIFF: {
+      const { oldVars, newVars } = state;
+      const newSelectedDiffPath = action.payload;
+
+      const oldDiff = oldVars.find((variable) => variable.pathInProject === newSelectedDiffPath);
+      const newDiff = newVars.find((variable) => variable.pathInProject === newSelectedDiffPath);
+      return {
+        ...state,
+        oldDiff,
+        newDiff,
       };
     }
     case actionTypes.INITIALIZE_EDITOR: {
@@ -118,7 +132,6 @@ export const codeChangesReducer = (
         }
       });
 
-      console.log('executing update variables');
       const updatedVariablesAll = error
         ? updatedVariablesSelectedOnly
         : updatedVariablesSelectedOnly?.map((variable) => {
@@ -149,7 +162,6 @@ export const codeChangesReducer = (
                   values: appliedVariablesToShow,
                 };
               } catch (e) {
-                console.log(`error caught, returning variable. ${e.message}`);
                 return variable;
               }
             } else {
@@ -204,6 +216,11 @@ export const updateVariables = (payload: any): CodeChangesAction => ({
 
 export const showHostDetails = (payload: any): CodeChangesAction => ({
   type: actionTypes.SHOW_HOST_DETAILS,
+  payload,
+});
+
+export const showDiff = (payload: any): CodeChangesAction => ({
+  type: actionTypes.SHOW_DIFF,
   payload,
 });
 
