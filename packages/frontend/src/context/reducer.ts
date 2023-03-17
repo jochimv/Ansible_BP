@@ -1,5 +1,18 @@
 import keyMirror from 'keymirror';
 import { parse as parseYaml, stringify } from 'yaml';
+import { omit } from 'ramda';
+
+function findVariableByPathInProject(oldHostDetailsByInventoryType, path) {
+  for (let i = 0; i < oldHostDetailsByInventoryType.length; i++) {
+    const variables = oldHostDetailsByInventoryType[i].variables;
+    for (let j = 0; j < variables.length; j++) {
+      if (variables[j].pathInProject === path) {
+        return variables[j];
+      }
+    }
+  }
+  return null;
+}
 
 export interface HostDetails {
   inventoryType: string;
@@ -39,7 +52,6 @@ export const initialState: CodeChangesState = {
   hostDetails: undefined,
   selectedVariables: undefined,
   oldHostDetailsByInventoryType: [],
-
   oldDiff: undefined,
   newDiff: undefined,
   oldVars: [],
@@ -57,7 +69,6 @@ export const codeChangesReducer = (
       return { ...state, hostDetails: action.payload };
     case actionTypes.SHOW_VARIABLES:
       return { ...state, selectedVariables: action.payload };
-
     case actionTypes.CREATE_DIFF: {
       const newVars = state.hostDetailsByInventoryType.flatMap((hostDetail) => {
         return hostDetail.variables.filter(
@@ -110,13 +121,22 @@ export const codeChangesReducer = (
         error = e.message;
       }
 
-      const updatedSelectedVariables = {
+      let updatedSelectedVariables = omit(['updated'], {
         ...state.selectedVariables,
         error,
-        updated: true,
         values: action.payload,
-      };
+      });
 
+      const originalSelectedVariables = findVariableByPathInProject(
+        state.oldHostDetailsByInventoryType,
+        state.selectedVariables.pathInProject,
+      );
+
+      updatedSelectedVariables = {
+        ...updatedSelectedVariables,
+        updated:
+          JSON.stringify(updatedSelectedVariables) !== JSON.stringify(originalSelectedVariables),
+      };
       const updatedVariablesSelectedOnly = state.hostDetails?.variables.map((variable) => {
         if (variable.pathInProject === state.selectedVariables.pathInProject) {
           return updatedSelectedVariables;

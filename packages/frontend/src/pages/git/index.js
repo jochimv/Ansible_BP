@@ -7,7 +7,7 @@ import FileTree from '../../components/FileTree';
 
 const GitPage = () => {
   const dispatch = useCodeChangesDispatchContext();
-  const { oldDiff, newDiff, oldVars, newVars } = useCodeChangesContext();
+  const { oldDiff, newDiff } = useCodeChangesContext();
   useEffect(() => {
     dispatch(createDiff());
   }, []);
