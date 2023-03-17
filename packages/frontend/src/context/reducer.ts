@@ -2,12 +2,18 @@ import keyMirror from 'keymirror';
 import { parse as parseYaml, stringify } from 'yaml';
 import { omit } from 'ramda';
 
-function findVariableByPathInProject(oldHostDetailsByInventoryType, path) {
+function findVariableByPathInProject(oldHostDetailsByInventoryType, path, projectNameArg) {
   for (let i = 0; i < oldHostDetailsByInventoryType.length; i++) {
-    const variables = oldHostDetailsByInventoryType[i].variables;
-    for (let j = 0; j < variables.length; j++) {
-      if (variables[j].pathInProject === path) {
-        return variables[j];
+    const { hostDetailsByInventoryType, projectName } = oldHostDetailsByInventoryType[i];
+    if (projectName === projectNameArg) {
+      for (let j = 0; i < hostDetailsByInventoryType.length; j++) {
+        const { variables } = hostDetailsByInventoryType[j];
+        for (let k = 0; k < variables.length; k++) {
+          const isTargetVariable = variables[k].pathInProject === path;
+          if (isTargetVariable) {
+            return variables[k];
+          }
+        }
       }
     }
   }
@@ -74,7 +80,7 @@ export const codeChangesReducer = (
     case actionTypes.SHOW_VARIABLES:
       return { ...state, selectedVariables: action.payload };
     case actionTypes.CREATE_DIFF: {
-      const newVars = state.hosts.flat().flatMap((hostDetail) => {
+      /*const newVars = state.hosts.flat().flatMap((hostDetail) => {
         return hostDetail.variables.filter(
           (hostDetail) => hostDetail.updated && hostDetail.type !== 'applied',
         );
@@ -83,6 +89,27 @@ export const codeChangesReducer = (
         return hostDetail.variables.filter((variable) =>
           newVars.some((updatedVar) => updatedVar.pathInProject === variable.pathInProject),
         );
+      });*/
+      const newVars: any[] = [];
+      state.hosts.forEach((host) => {
+        host.hostDetailsByInventoryType.forEach((hostDetail) => {
+          hostDetail.variables.forEach((variable) => {
+            if (variable.updated && variable.type !== 'applied') {
+              newVars.push(variable);
+            }
+          });
+        });
+      });
+
+      const oldVars: any[] = [];
+      state.oldHosts.forEach((host) => {
+        host.hostDetailsByInventoryType.forEach((hostDetail) => {
+          hostDetail.variables.forEach((variable) => {
+            if (newVars.some((updatedVar) => updatedVar.pathInProject === variable.pathInProject)) {
+              oldVars.push(variable);
+            }
+          });
+        });
       });
 
       return {
@@ -106,30 +133,35 @@ export const codeChangesReducer = (
       };
     }
     case actionTypes.INITIALIZE_EDITOR: {
-      const hostDetailsByInventoryType = action.payload;
+      const { hostDetailsByInventoryType, projectName } = action.payload;
       const hostDetails = hostDetailsByInventoryType[0];
       const selectedVariables = hostDetails.variables[0];
-
+      /*
       const isAlreadyInHosts = state.oldHosts.find(
         (host) => JSON.stringify(host) === JSON.stringify(hostDetailsByInventoryType),
-      );
+      );*/
+      const isAlreadyInHosts = state.oldHosts.find((host) => host.projectName === projectName);
 
       return {
         ...state,
         hostDetailsByInventoryType,
         oldHosts: isAlreadyInHosts
           ? state.oldHosts
-          : [...state.oldHosts, hostDetailsByInventoryType],
-        hosts: isAlreadyInHosts ? state.hosts : [...state.hosts, hostDetailsByInventoryType],
+          : [...state.oldHosts, { projectName, hostDetailsByInventoryType }],
+        hosts: isAlreadyInHosts
+          ? state.hosts
+          : [...state.hosts, { projectName, hostDetailsByInventoryType }],
         hostDetails,
         selectedVariables,
         oldHostDetailsByInventoryType: hostDetailsByInventoryType,
       };
     }
     case actionTypes.UPDATE_VARIABLES: {
+      const { newEditorValue, projectName } = action.payload;
+
       let error: any;
       try {
-        parseYaml(action.payload);
+        parseYaml(newEditorValue);
       } catch (e) {
         error = e.message;
       }
@@ -137,12 +169,13 @@ export const codeChangesReducer = (
       let updatedSelectedVariables = omit(['updated'], {
         ...state.selectedVariables,
         error,
-        values: action.payload,
+        values: newEditorValue,
       });
 
       const originalSelectedVariables = findVariableByPathInProject(
         state.oldHostDetailsByInventoryType,
         state.selectedVariables.pathInProject,
+        projectName,
       );
 
       updatedSelectedVariables = {
@@ -179,6 +212,7 @@ export const codeChangesReducer = (
                   ...(hostVariables && parseYaml(hostVariables.values)),
                 };
 
+                // prevent monaco editor bug
                 const stringifiedAppliedVariables = stringify(appliedVariables).trim();
                 const appliedVariablesToShow =
                   stringifiedAppliedVariables === '{}' ? '' : stringifiedAppliedVariables;
@@ -214,11 +248,8 @@ export const codeChangesReducer = (
       };
 
       const updatedHosts = state.hosts.map((hostDetailsByInventoryType) => {
-        if (
-          hostDetailsByInventoryType[0]?.variables[1]?.pathInProject ===
-          updatedHostDetailsByInventoryType[0]?.variables[1]?.pathInProject
-        ) {
-          return updatedHostDetailsByInventoryType;
+        if (hostDetailsByInventoryType.projectName === projectName) {
+          return { projectName, hostDetailsByInventoryType: updatedHostDetailsByInventoryType };
         } else {
           return hostDetailsByInventoryType;
         }

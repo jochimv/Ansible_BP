@@ -61,11 +61,11 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
   const selectedVariablesAreAppliedVariables = selectedVariables?.type === 'applied';
 
   useEffect(() => {
-    dispatch(initializeEditor(hostDetailsByInventoryType));
+    dispatch(initializeEditor({ hostDetailsByInventoryType, projectName }));
   }, []);
 
   const handleEditorChange = (newEditorValue: string | null) => {
-    dispatch(updateVariables(newEditorValue));
+    dispatch(updateVariables({ newEditorValue, projectName }));
   };
 
   return (

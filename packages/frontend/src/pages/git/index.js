@@ -9,8 +9,6 @@ const GitPage = () => {
   const dispatch = useCodeChangesDispatchContext();
   const { oldDiff, newDiff, oldVars, newVars } = useCodeChangesContext();
 
-  console.log(`newVars: ${JSON.stringify(newVars)}`);
-
   useEffect(() => {
     dispatch(createDiff());
   }, []);
