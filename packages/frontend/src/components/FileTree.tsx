@@ -21,7 +21,7 @@ const buildTree = (paths: string[]) => {
   return tree;
 };
 
-const renderTree = (nodes, path: string) => {
+const renderTree = (nodes, path: string, dispatch) => {
   if (Object.keys(nodes).length === 0) {
     return;
   }
@@ -29,8 +29,6 @@ const renderTree = (nodes, path: string) => {
   return Object.entries(nodes).map(([nodeName, children]) => {
     const newPath = `${path}\\${nodeName}`;
     const isLeaf = Object.keys(children).length === 0;
-
-    const dispatch = useCodeChangesDispatchContext();
 
     return (
       <TreeItem
@@ -40,7 +38,7 @@ const renderTree = (nodes, path: string) => {
         onClick={isLeaf ? () => dispatch(showDiff(newPath)) : undefined}
         icon={isLeaf ? <Description /> : <Folder />}
       >
-        {renderTree(children, newPath)}
+        {renderTree(children, newPath, dispatch)}
       </TreeItem>
     );
   });
@@ -48,6 +46,7 @@ const renderTree = (nodes, path: string) => {
 
 const FileTree = () => {
   const { oldVars } = useCodeChangesContext();
+  const dispatch = useCodeChangesDispatchContext();
   const paths = oldVars.map((oldVars) => oldVars.pathInProject);
   const treeData = buildTree(paths);
 
@@ -57,7 +56,7 @@ const FileTree = () => {
       defaultExpandIcon={<Folder />}
       defaultEndIcon={<Description />}
     >
-      {renderTree(treeData, '')}
+      {renderTree(treeData, '', dispatch)}
     </TreeView>
   );
 };

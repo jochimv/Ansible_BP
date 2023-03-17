@@ -56,12 +56,9 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
     hostDetailsByInventoryType: contextHostDetailsByInventoryType,
   } = useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();
-
   const selectedVariablesPathInProject = selectedVariables?.pathInProject;
   const selectedVariablesAreAppliedVariables = selectedVariables?.type === 'applied';
 
-  console.log(JSON.stringify(contextHostDetailsByInventoryType));
-  console.log(selectedVariables?.values);
   useEffect(() => {
     dispatch(initializeEditor(hostDetailsByInventoryType));
   }, []);

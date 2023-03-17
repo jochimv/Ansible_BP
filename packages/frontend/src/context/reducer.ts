@@ -26,7 +26,6 @@ interface CodeChangesAction {
 }
 export const actionTypes = keyMirror({
   SWITCH_MODE: null,
-  ADD_HOST_DETAILS_BY_INVENTORY_TYPE: null,
   SHOW_HOST_DETAILS: null,
   SHOW_VARIABLES: null,
   INITIALIZE_EDITOR: null,
@@ -54,28 +53,22 @@ export const codeChangesReducer = (
   switch (action.type) {
     case actionTypes.SWITCH_MODE:
       return { ...state, isInEditMode: !state.isInEditMode };
-    case actionTypes.ADD_HOST_DETAILS_BY_INVENTORY_TYPE:
-      return { ...state, hostDetailsByInventoryType: action.payload };
     case actionTypes.SHOW_HOST_DETAILS:
       return { ...state, hostDetails: action.payload };
     case actionTypes.SHOW_VARIABLES:
       return { ...state, selectedVariables: action.payload };
 
     case actionTypes.CREATE_DIFF: {
-      const newVars = state.hostDetailsByInventoryType
-        .map((hostDetail) => {
-          return hostDetail.variables.filter(
-            (hostDetail) => hostDetail.updated && hostDetail.type !== 'applied',
-          );
-        })
-        .flat();
-      const oldVars = state.oldHostDetailsByInventoryType
-        .map((hostDetail) => {
-          return hostDetail.variables.filter((variable) =>
-            newVars.some((updatedVar) => updatedVar.pathInProject === variable.pathInProject),
-          );
-        })
-        .flat();
+      const newVars = state.hostDetailsByInventoryType.flatMap((hostDetail) => {
+        return hostDetail.variables.filter(
+          (hostDetail) => hostDetail.updated && hostDetail.type !== 'applied',
+        );
+      });
+      const oldVars = state.oldHostDetailsByInventoryType.flatMap((hostDetail) => {
+        return hostDetail.variables.filter((variable) =>
+          newVars.some((updatedVar) => updatedVar.pathInProject === variable.pathInProject),
+        );
+      });
 
       return {
         ...state,
@@ -203,11 +196,6 @@ export const createDiff = (): CodeChangesAction => ({
   type: actionTypes.CREATE_DIFF,
 });
 export const switchMode = (): CodeChangesAction => ({ type: actionTypes.SWITCH_MODE });
-
-export const addHostDetailsByInventory = (payload: any): CodeChangesAction => ({
-  type: actionTypes.ADD_HOST_DETAILS_BY_INVENTORY_TYPE,
-  payload,
-});
 
 export const updateVariables = (payload: any): CodeChangesAction => ({
   type: actionTypes.UPDATE_VARIABLES,

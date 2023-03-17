@@ -8,22 +8,12 @@ import FileTree from '../../components/FileTree';
 const GitPage = () => {
   const dispatch = useCodeChangesDispatchContext();
   const { oldDiff, newDiff, oldVars, newVars } = useCodeChangesContext();
-
-  console.log(oldDiff, newDiff, oldVars, newVars);
-
   useEffect(() => {
     dispatch(createDiff());
   }, []);
-
   return (
     <Stack direction="row">
-      <FileTree
-        paths={[
-          '\\ansible-elk\\inventories\\dev\\group_vars\\all\\common.yml',
-          '\\ansible-elk\\inventories\\dev\\group_vars\\all\\hello.yml',
-          '\\ansible-elk\\inventories\\dev\\host_vars\\foo.yml',
-        ]}
-      />
+      <FileTree />
       <DiffEditor
         defaultLanguage="yml"
         original={oldDiff?.values}
