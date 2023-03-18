@@ -2,9 +2,9 @@ import keyMirror from 'keymirror';
 import { parse as parseYaml, stringify } from 'yaml';
 import { omit } from 'ramda';
 
-function findVariableByPathInProject(oldHostDetailsByInventoryType, path, projectNameArg) {
-  for (let i = 0; i < oldHostDetailsByInventoryType.length; i++) {
-    const { hostDetailsByInventoryType, projectName } = oldHostDetailsByInventoryType[i];
+function findVariableByPathInProject(hosts, path, projectNameArg) {
+  for (let i = 0; i < hosts.length; i++) {
+    const { hostDetailsByInventoryType, projectName } = hosts[i];
     if (projectName === projectNameArg) {
       for (let j = 0; i < hostDetailsByInventoryType.length; j++) {
         const { variables } = hostDetailsByInventoryType[j];
@@ -18,6 +18,42 @@ function findVariableByPathInProject(oldHostDetailsByInventoryType, path, projec
     }
   }
   return null;
+}
+
+interface VariableObject {
+  type: string;
+  pathInProject: string;
+  values: string;
+  updated?: boolean;
+}
+
+interface HostDetails {
+  inventoryType: string;
+  groupName: string;
+  variables: VariableObject[];
+}
+
+interface Project {
+  projectName: string;
+  hostDetailsByInventoryType: HostDetails[];
+}
+
+function replaceVariable(projects: Project[], replacement: VariableObject): Project[] {
+  return projects.map((project) => {
+    const updatedHostDetails = project.hostDetailsByInventoryType.map((hostDetail) => {
+      const updatedVariables = hostDetail.variables.map((variable) => {
+        if (
+          variable.type === replacement.type &&
+          variable.pathInProject === replacement.pathInProject
+        ) {
+          return replacement;
+        }
+        return variable;
+      });
+      return { ...hostDetail, variables: updatedVariables };
+    });
+    return { ...project, hostDetailsByInventoryType: updatedHostDetails };
+  });
 }
 
 export interface HostDetails {
@@ -53,6 +89,7 @@ export const actionTypes = keyMirror({
   UPDATE_VARIABLES: null,
   CREATE_DIFF: null,
   SHOW_DIFF: null,
+  ROLLBACK: null,
 });
 export const initialState: CodeChangesState = {
   hosts: [],
@@ -80,16 +117,6 @@ export const codeChangesReducer = (
     case actionTypes.SHOW_VARIABLES:
       return { ...state, selectedVariables: action.payload };
     case actionTypes.CREATE_DIFF: {
-      /*const newVars = state.hosts.flat().flatMap((hostDetail) => {
-        return hostDetail.variables.filter(
-          (hostDetail) => hostDetail.updated && hostDetail.type !== 'applied',
-        );
-      });
-      const oldVars = state.oldHosts.flat().flatMap((hostDetail) => {
-        return hostDetail.variables.filter((variable) =>
-          newVars.some((updatedVar) => updatedVar.pathInProject === variable.pathInProject),
-        );
-      });*/
       const newVars: any[] = [];
       state.hosts.forEach((host) => {
         host.hostDetailsByInventoryType.forEach((hostDetail) => {
@@ -136,10 +163,6 @@ export const codeChangesReducer = (
       const { hostDetailsByInventoryType, projectName } = action.payload;
       const hostDetails = hostDetailsByInventoryType[0];
       const selectedVariables = hostDetails.variables[0];
-      /*
-      const isAlreadyInHosts = state.oldHosts.find(
-        (host) => JSON.stringify(host) === JSON.stringify(hostDetailsByInventoryType),
-      );*/
       const isAlreadyInHosts = state.oldHosts.find((host) => host.projectName === projectName);
 
       return {
@@ -154,6 +177,29 @@ export const codeChangesReducer = (
         hostDetails,
         selectedVariables,
         oldHostDetailsByInventoryType: hostDetailsByInventoryType,
+      };
+    }
+    case actionTypes.ROLLBACK: {
+      const { pathInProject } = action.payload;
+
+      const updatedOldVars = state.oldVars.filter(
+        (variable) => variable.pathInProject !== pathInProject,
+      );
+      const updatedNewVars = state.newVars.filter(
+        (variable) => variable.pathInProject !== pathInProject,
+      );
+
+      const projectName = pathInProject.split('\\')[1];
+      const oldVar = findVariableByPathInProject(state.oldHosts, pathInProject, projectName);
+      const updatedHosts = replaceVariable(state.hosts, oldVar);
+
+      return {
+        ...state,
+        oldVars: updatedOldVars,
+        newVars: updatedNewVars,
+        oldDiff: updatedOldVars[0],
+        newDiff: updatedNewVars[0],
+        hosts: updatedHosts,
       };
     }
     case actionTypes.UPDATE_VARIABLES: {
@@ -270,6 +316,11 @@ export const codeChangesReducer = (
 
 export const createDiff = (): CodeChangesAction => ({
   type: actionTypes.CREATE_DIFF,
+});
+
+export const rollback = (payload: any): CodeChangesAction => ({
+  type: actionTypes.ROLLBACK,
+  payload,
 });
 export const switchMode = (): CodeChangesAction => ({ type: actionTypes.SWITCH_MODE });
 
