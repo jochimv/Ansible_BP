@@ -145,8 +145,7 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
               defaultLanguage="yaml"
               value={selectedVariables.values}
               onChange={handleEditorChange}
-              // fix multi-model editor when you delete one of the variables completely and applied variables are not updated.
-              path={selectedVariables.values ? selectedVariablesPathInProject : undefined}
+              // avoid multi-model editor, it as it causes bugs: when you delete one of the variables completely and applied variables are not updated, and also shows outdated selectedVariables when switching between different hosts
             />
           </Stack>
         ) : (
