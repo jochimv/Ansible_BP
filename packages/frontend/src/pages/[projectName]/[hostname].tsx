@@ -54,7 +54,6 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
     hostDetails,
     selectedVariables,
     hostDetailsByInventoryType: contextHostDetailsByInventoryType,
-    hosts,
   } = useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();
   const selectedVariablesPathInProject = selectedVariables?.pathInProject;
