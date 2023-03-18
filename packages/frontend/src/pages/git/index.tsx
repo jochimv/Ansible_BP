@@ -2,15 +2,17 @@ import { DiffEditor } from '@monaco-editor/react';
 import { Stack, Typography, Button } from '@mui/material';
 import { Replay as ReplayIcon, Send as SendIcon } from '@mui/icons-material';
 import { useCodeChangesContext, useCodeChangesDispatchContext } from '../../context/context';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { createDiff, rollback } from '../../context/reducer';
 import FileTree from '../../components/FileTree';
+import CommitModal from '@frontend/components/CommitModal';
 
 const stackPropsIfNoChanges = {
   alignItems: 'center',
   justifyContent: 'center',
 };
 const GitPage = () => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const dispatch = useCodeChangesDispatchContext();
   const { oldDiff, newDiff, oldVars, newVars } = useCodeChangesContext();
   useEffect(() => {
@@ -22,7 +24,8 @@ const GitPage = () => {
         <>
           <Stack direction="column">
             <Stack direction="row">
-              <Button startIcon={<SendIcon />} color="success">
+              <CommitModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />
+              <Button startIcon={<SendIcon />} color="success" onClick={() => setIsModalOpen(true)}>
                 Commit
               </Button>
               <Button
