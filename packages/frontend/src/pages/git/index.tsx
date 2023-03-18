@@ -1,6 +1,10 @@
 import { DiffEditor } from '@monaco-editor/react';
 import { Stack, Typography, Button } from '@mui/material';
-import { Replay as ReplayIcon, Send as SendIcon } from '@mui/icons-material';
+import {
+  Replay as ReplayIcon,
+  Send as SendIcon,
+  CodeOff as CodeOffIcon,
+} from '@mui/icons-material';
 import { useCodeChangesContext, useCodeChangesDispatchContext } from '../../context/context';
 import { useEffect, useState } from 'react';
 import { createDiff, rollback } from '../../context/reducer';
@@ -47,7 +51,10 @@ const GitPage = () => {
           />
         </>
       ) : (
-        <Typography variant="h3">No changes</Typography>
+        <Stack direction="column" alignItems="center">
+          <CodeOffIcon sx={{ width: 50, height: 50 }} />
+          <Typography variant="h3">No changes</Typography>
+        </Stack>
       )}
     </Stack>
   );

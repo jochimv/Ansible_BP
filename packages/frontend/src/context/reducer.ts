@@ -2,7 +2,7 @@ import keyMirror from 'keymirror';
 import { parse as parseYaml, stringify } from 'yaml';
 import { omit } from 'ramda';
 
-function findVariableByPathInProject(hosts, path, projectNameArg) {
+const findVariableByPathInProject = (hosts, path: string, projectNameArg: string) => {
   for (let i = 0; i < hosts.length; i++) {
     const { hostDetailsByInventoryType, projectName } = hosts[i];
     if (projectName === projectNameArg) {
@@ -18,8 +18,7 @@ function findVariableByPathInProject(hosts, path, projectNameArg) {
     }
   }
   return null;
-}
-
+};
 interface VariableObject {
   type: string;
   pathInProject: string;
@@ -138,7 +137,6 @@ export const codeChangesReducer = (
           });
         });
       });
-
       return {
         ...state,
         newVars,
@@ -204,7 +202,6 @@ export const codeChangesReducer = (
     }
     case actionTypes.UPDATE_VARIABLES: {
       const { newEditorValue, projectName } = action.payload;
-
       let error: any;
       try {
         parseYaml(newEditorValue);
@@ -217,9 +214,8 @@ export const codeChangesReducer = (
         error,
         values: newEditorValue,
       });
-
       const originalSelectedVariables = findVariableByPathInProject(
-        state.oldHostDetailsByInventoryType,
+        state.oldHosts,
         state.selectedVariables.pathInProject,
         projectName,
       );
