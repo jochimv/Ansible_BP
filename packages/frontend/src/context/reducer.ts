@@ -2,9 +2,9 @@ import keyMirror from 'keymirror';
 import { parse as parseYaml, stringify } from 'yaml';
 import { omit } from 'ramda';
 
-const findVariableByPathInProject = (hosts, path: string, projectNameArg: string) => {
-  for (let i = 0; i < hosts.length; i++) {
-    const { hostDetailsByInventoryType, projectName } = hosts[i];
+const findVariableByPathInProject = (updatedProjects, path: string, projectNameArg: string) => {
+  for (let i = 0; i < updatedProjects.length; i++) {
+    const { hostDetailsByInventoryType, projectName } = updatedProjects[i];
     if (projectName === projectNameArg) {
       for (let j = 0; j < hostDetailsByInventoryType.length; j++) {
         const { variables } = hostDetailsByInventoryType[j];
@@ -39,19 +39,24 @@ interface Project {
 
 function replaceVariable(projects: Project[], replacement: VariableObject): Project[] {
   return projects.map((project) => {
-    const updatedHostDetails = project.hostDetailsByInventoryType.map((hostDetail) => {
-      const updatedVariables = hostDetail.variables.map((variable) => {
-        if (
-          variable.type === replacement.type &&
-          variable.pathInProject === replacement.pathInProject
-        ) {
-          return replacement;
-        }
-        return variable;
-      });
-      return { ...hostDetail, variables: updatedVariables };
-    });
-    return { ...project, hostDetailsByInventoryType: updatedHostDetails };
+    const updatedSelectedHostDetailsByInventoryType = project.hostDetailsByInventoryType.map(
+      (hostDetail) => {
+        const updatedVariables = hostDetail.variables.map((variable) => {
+          if (
+            variable.type === replacement.type &&
+            variable.pathInProject === replacement.pathInProject
+          ) {
+            return replacement;
+          }
+          return variable;
+        });
+        return { ...hostDetail, variables: updatedVariables };
+      },
+    );
+    return {
+      ...project,
+      hostDetailsByInventoryType: updatedSelectedHostDetailsByInventoryType,
+    };
   });
 }
 
@@ -69,12 +74,11 @@ export interface Variable {
 
 interface CodeChangesState {
   isInEditMode: boolean;
-  hostDetailsByInventoryType: HostDetails[];
-  hostDetails?: HostDetails;
+  selectedHostDetailsByInventoryType: HostDetails[];
+  selectedHostDetails?: HostDetails;
   selectedVariables: any;
-  oldHostDetailsByInventoryType: HostDetails[];
-  hosts: any[];
-  oldHosts: any[];
+  updatedProjects: any[];
+  originalProjects: any[];
 }
 interface CodeChangesAction {
   type: string;
@@ -91,16 +95,15 @@ export const actionTypes = keyMirror({
   ROLLBACK: null,
 });
 export const initialState: CodeChangesState = {
-  hosts: [],
-  oldHosts: [],
+  updatedProjects: [],
+  originalProjects: [],
   isInEditMode: false,
-  hostDetailsByInventoryType: [],
-  hostDetails: undefined,
+  selectedHostDetails: undefined,
   selectedVariables: undefined,
-  oldHostDetailsByInventoryType: [],
-  oldDiff: undefined,
+  selectedHostDetailsByInventoryType: [],
+  originalDiff: undefined,
   newDiff: undefined,
-  oldVars: [],
+  originalVars: [],
   newVars: [],
 };
 
@@ -112,12 +115,12 @@ export const codeChangesReducer = (
     case actionTypes.SWITCH_MODE:
       return { ...state, isInEditMode: !state.isInEditMode };
     case actionTypes.SHOW_HOST_DETAILS:
-      return { ...state, hostDetails: action.payload };
+      return { ...state, selectedHostDetails: action.payload };
     case actionTypes.SHOW_VARIABLES:
       return { ...state, selectedVariables: action.payload };
     case actionTypes.CREATE_DIFF: {
       const newVars: any[] = [];
-      state.hosts.forEach((host) => {
+      state.updatedProjects.forEach((host) => {
         host.hostDetailsByInventoryType.forEach((hostDetail) => {
           hostDetail.variables.forEach((variable) => {
             if (variable.updated && variable.type !== 'applied') {
@@ -127,12 +130,12 @@ export const codeChangesReducer = (
         });
       });
 
-      const oldVars: any[] = [];
-      state.oldHosts.forEach((host) => {
+      const originalVars: any[] = [];
+      state.originalProjects.forEach((host) => {
         host.hostDetailsByInventoryType.forEach((hostDetail) => {
           hostDetail.variables.forEach((variable) => {
             if (newVars.some((updatedVar) => updatedVar.pathInProject === variable.pathInProject)) {
-              oldVars.push(variable);
+              originalVars.push(variable);
             }
           });
         });
@@ -140,47 +143,51 @@ export const codeChangesReducer = (
       return {
         ...state,
         newVars,
-        oldVars,
-        oldDiff: oldVars[0],
+        originalVars,
+        originalDiff: originalVars[0],
         newDiff: newVars[0],
-      };
-    }
-    case actionTypes.SHOW_DIFF: {
-      const { oldVars, newVars } = state;
-      const newSelectedDiffPath = action.payload;
-
-      const oldDiff = oldVars.find((variable) => variable.pathInProject === newSelectedDiffPath);
-      const newDiff = newVars.find((variable) => variable.pathInProject === newSelectedDiffPath);
-      return {
-        ...state,
-        oldDiff,
-        newDiff,
       };
     }
     case actionTypes.INITIALIZE_EDITOR: {
       const { hostDetailsByInventoryType, projectName } = action.payload;
-      const hostDetails = hostDetailsByInventoryType[0];
-      const selectedVariables = hostDetails.variables[0];
-      const isAlreadyInHosts = state.oldHosts.find((host) => host.projectName === projectName);
+      const selectedHostDetails = hostDetailsByInventoryType[0];
+      const selectedVariables = selectedHostDetails.variables[0];
+      const isAlreadyInOriginalProjects = state.originalProjects.find(
+        (host) => host.projectName === projectName,
+      );
 
       return {
         ...state,
-        hostDetailsByInventoryType,
-        oldHosts: isAlreadyInHosts
-          ? state.oldHosts
-          : [...state.oldHosts, { projectName, hostDetailsByInventoryType }],
-        hosts: isAlreadyInHosts
-          ? state.hosts
-          : [...state.hosts, { projectName, hostDetailsByInventoryType }],
-        hostDetails,
+        selectedHostDetailsByInventoryType: hostDetailsByInventoryType,
+        originalProjects: isAlreadyInOriginalProjects
+          ? state.originalProjects
+          : [...state.originalProjects, { projectName, hostDetailsByInventoryType }],
+        updatedProjects: isAlreadyInOriginalProjects
+          ? state.updatedProjects
+          : [...state.updatedProjects, { projectName, hostDetailsByInventoryType }],
+        selectedHostDetails,
         selectedVariables,
-        oldHostDetailsByInventoryType: hostDetailsByInventoryType,
+      };
+    }
+    case actionTypes.SHOW_DIFF: {
+      const { originalVars, newVars } = state;
+      const newSelectedDiffPath = action.payload;
+
+      const originalDiff = originalVars.find(
+        (variable) => variable.pathInProject === newSelectedDiffPath,
+      );
+      const newDiff = newVars.find((variable) => variable.pathInProject === newSelectedDiffPath);
+
+      return {
+        ...state,
+        originalDiff,
+        newDiff,
       };
     }
     case actionTypes.ROLLBACK: {
       const { pathInProject } = action.payload;
 
-      const updatedOldVars = state.oldVars.filter(
+      const updatedOriginalVars = state.originalVars.filter(
         (variable) => variable.pathInProject !== pathInProject,
       );
       const updatedNewVars = state.newVars.filter(
@@ -188,16 +195,20 @@ export const codeChangesReducer = (
       );
 
       const projectName = pathInProject.split('\\')[1];
-      const oldVar = findVariableByPathInProject(state.oldHosts, pathInProject, projectName);
-      const updatedHosts = replaceVariable(state.hosts, oldVar);
+      const originalVars = findVariableByPathInProject(
+        state.originalProjects,
+        pathInProject,
+        projectName,
+      );
+      const updatedProjects = replaceVariable(state.updatedProjects, originalVars);
 
       return {
         ...state,
-        oldVars: updatedOldVars,
+        originalVars: updatedOriginalVars,
         newVars: updatedNewVars,
-        oldDiff: updatedOldVars[0],
+        originalDiff: updatedOriginalVars[0],
         newDiff: updatedNewVars[0],
-        hosts: updatedHosts,
+        updatedProjects,
       };
     }
     case actionTypes.UPDATE_VARIABLES: {
@@ -215,7 +226,7 @@ export const codeChangesReducer = (
         values: newEditorValue,
       });
       const originalSelectedVariables = findVariableByPathInProject(
-        state.oldHosts,
+        state.originalProjects,
         state.selectedVariables.pathInProject,
         projectName,
       );
@@ -225,7 +236,7 @@ export const codeChangesReducer = (
         updated:
           JSON.stringify(updatedSelectedVariables) !== JSON.stringify(originalSelectedVariables),
       };
-      const updatedVariablesSelectedOnly = state.hostDetails?.variables.map((variable) => {
+      const updatedVariablesSelectedOnly = state.selectedHostDetails?.variables.map((variable) => {
         if (variable.pathInProject === state.selectedVariables.pathInProject) {
           return updatedSelectedVariables;
         } else {
@@ -271,9 +282,9 @@ export const codeChangesReducer = (
             }
           });
 
-      const updatedHostDetailsByInventoryType = state.hostDetailsByInventoryType.map(
+      const updatedHostDetailsByInventoryType = state.selectedHostDetailsByInventoryType.map(
         (hostDetail) => {
-          if (hostDetail.inventoryType === state.hostDetails?.inventoryType) {
+          if (hostDetail.inventoryType === state.selectedHostDetails?.inventoryType) {
             return {
               ...hostDetail,
               variables: updatedVariablesAll,
@@ -284,12 +295,12 @@ export const codeChangesReducer = (
         },
       );
 
-      const updatedHostDetails = {
-        ...state.hostDetails,
+      const updatedSelectedHostDetails = {
+        ...state.selectedHostDetails,
         variables: updatedVariablesAll,
       };
 
-      const updatedHosts = state.hosts.map((hostDetailsByInventoryType) => {
+      const updatedProjects = state.updatedProjects.map((hostDetailsByInventoryType) => {
         if (hostDetailsByInventoryType.projectName === projectName) {
           return { projectName, hostDetailsByInventoryType: updatedHostDetailsByInventoryType };
         } else {
@@ -300,9 +311,9 @@ export const codeChangesReducer = (
       return {
         ...state,
         selectedVariables: updatedSelectedVariables,
-        hostDetails: updatedHostDetails,
+        selectedHostDetails: updatedSelectedHostDetails,
         hostDetailsByInventoryType: updatedHostDetailsByInventoryType,
-        hosts: updatedHosts,
+        updatedProjects,
       };
     }
     default:

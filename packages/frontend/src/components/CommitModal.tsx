@@ -21,7 +21,7 @@ const CommitModal = ({ open, onClose: handleClose }: Props) => {
   const [isChecked, setIsChecked] = useState(false);
 
   const handleCommit = () => {
-    console.log();
+    // logic
     handleClose();
   };
 

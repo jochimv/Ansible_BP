@@ -18,13 +18,18 @@ const stackPropsIfNoChanges = {
 const GitPage = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const dispatch = useCodeChangesDispatchContext();
-  const { oldDiff, newDiff } = useCodeChangesContext();
+  const { originalDiff, newDiff } = useCodeChangesContext();
   useEffect(() => {
     dispatch(createDiff());
   }, []);
   return (
-    <Stack direction="row" flexGrow={1} height="100%" {...(oldDiff ? {} : stackPropsIfNoChanges)}>
-      {oldDiff ? (
+    <Stack
+      direction="row"
+      flexGrow={1}
+      height="100%"
+      {...(originalDiff ? {} : stackPropsIfNoChanges)}
+    >
+      {originalDiff ? (
         <>
           <Stack direction="column">
             <Stack direction="row">
@@ -44,7 +49,7 @@ const GitPage = () => {
           </Stack>
           <DiffEditor
             language="yml"
-            original={oldDiff?.values}
+            original={originalDiff?.values}
             modified={newDiff?.values}
             height="500px"
             options={{ readOnly: true }}

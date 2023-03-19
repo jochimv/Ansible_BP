@@ -29,7 +29,6 @@ const renderTree = (nodes, path: string, dispatch) => {
   return Object.entries(nodes).map(([nodeName, children]) => {
     const newPath = `${path}\\${nodeName}`;
     const isLeaf = Object.keys(children).length === 0;
-    console.log('node path:', newPath);
     return (
       <TreeItem
         key={newPath}
@@ -66,15 +65,14 @@ function getPathHierarchy(path) {
 }
 
 const FileTree = () => {
-  const { oldVars, oldDiff } = useCodeChangesContext();
+  const { originalVars, originalDiff } = useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();
-  const paths = oldVars.map((oldVars) => oldVars.pathInProject);
+  const paths = originalVars.map((originalVar) => originalVar.pathInProject);
   const treeData = buildTree(paths);
-  const selectedNodeId = oldDiff.pathInProject || paths[0];
+  const selectedNodeId = originalDiff.pathInProject || paths[0];
 
   const allPaths = paths.flatMap((path) => getPathHierarchy(path));
   const [expanded, setExpanded] = useState<string[]>(allPaths);
-
   const handleToggle = (event, nodeIds: string[]) => {
     setExpanded(nodeIds);
   };

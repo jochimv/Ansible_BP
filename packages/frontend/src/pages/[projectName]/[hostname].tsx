@@ -51,9 +51,9 @@ const formatErrorMessage = (message: string): JSX.Element => {
 const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: HostPageProps) => {
   const {
     isInEditMode,
-    hostDetails,
+    selectedHostDetails,
     selectedVariables,
-    hostDetailsByInventoryType: contextHostDetailsByInventoryType,
+    selectedHostDetailsByInventoryType: contextHostDetailsByInventoryType,
   } = useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();
   const selectedVariablesPathInProject = selectedVariables?.pathInProject;
@@ -79,19 +79,19 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
           </Breadcrumbs>
           <Box>
             <Typography sx={{ fontWeight: 'bold' }}>Server group</Typography>
-            <Typography>{hostDetails?.groupName}</Typography>
+            <Typography>{selectedHostDetails?.groupName}</Typography>
           </Box>
           <Box>
             <Typography sx={{ fontWeight: 'bold' }}>Inventory</Typography>
             <ToggleButtonGroup
               orientation="horizontal"
               exclusive
-              onChange={(_event, newHostDetails) => {
-                if (newHostDetails !== null) {
+              onChange={(_event, newSelectedHostDetails) => {
+                if (newSelectedHostDetails !== null) {
                   const type = selectedVariables.type;
-                  const newVariables = getVariablesByType(newHostDetails, type);
-                  dispatch(showHostDetails(newHostDetails));
-                  dispatch(showVariables(newVariables || newHostDetails.variables[0]));
+                  const newVariables = getVariablesByType(newSelectedHostDetails, type);
+                  dispatch(showHostDetails(newSelectedHostDetails));
+                  dispatch(showVariables(newVariables || newSelectedHostDetails.variables[0]));
                 }
               }}
             >
@@ -99,7 +99,7 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
                 const inventoryType = hostDetail.inventoryType;
                 return (
                   <ToggleButton
-                    disabled={hostDetail.inventoryType === hostDetails?.inventoryType}
+                    disabled={hostDetail.inventoryType === selectedHostDetails?.inventoryType}
                     key={inventoryType}
                     value={hostDetail}
                     size="small"
@@ -121,7 +121,7 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
                 }
               }}
             >
-              {hostDetails?.variables.map((variableObj) => {
+              {selectedHostDetails?.variables.map((variableObj) => {
                 const variablesType = variableObj.type;
                 return (
                   <ToggleButton
