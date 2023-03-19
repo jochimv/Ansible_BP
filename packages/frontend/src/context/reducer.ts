@@ -6,7 +6,7 @@ const findVariableByPathInProject = (hosts, path: string, projectNameArg: string
   for (let i = 0; i < hosts.length; i++) {
     const { hostDetailsByInventoryType, projectName } = hosts[i];
     if (projectName === projectNameArg) {
-      for (let j = 0; i < hostDetailsByInventoryType.length; j++) {
+      for (let j = 0; j < hostDetailsByInventoryType.length; j++) {
         const { variables } = hostDetailsByInventoryType[j];
         for (let k = 0; k < variables.length; k++) {
           const isTargetVariable = variables[k].pathInProject === path;

@@ -18,7 +18,7 @@ const stackPropsIfNoChanges = {
 const GitPage = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const dispatch = useCodeChangesDispatchContext();
-  const { oldDiff, newDiff, oldVars, newVars } = useCodeChangesContext();
+  const { oldDiff, newDiff } = useCodeChangesContext();
   useEffect(() => {
     dispatch(createDiff());
   }, []);
