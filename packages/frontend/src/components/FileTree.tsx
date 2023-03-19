@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { TreeView, TreeItem } from '@mui/lab';
 import { Folder, Description } from '@mui/icons-material';
 import { useCodeChangesContext, useCodeChangesDispatchContext } from '../context/context';
@@ -28,7 +29,7 @@ const renderTree = (nodes, path: string, dispatch) => {
   return Object.entries(nodes).map(([nodeName, children]) => {
     const newPath = `${path}\\${nodeName}`;
     const isLeaf = Object.keys(children).length === 0;
-
+    console.log('node path:', newPath);
     return (
       <TreeItem
         key={newPath}
@@ -49,15 +50,41 @@ const renderTree = (nodes, path: string, dispatch) => {
   });
 };
 
+function getPathHierarchy(path) {
+  const parts = path.split('\\');
+  const result = [];
+
+  let currentPath = '';
+
+  for (let i = 0; i < parts.length; i++) {
+    currentPath += parts[i];
+    result.push(currentPath);
+    currentPath += '\\';
+  }
+
+  return result;
+}
+
 const FileTree = () => {
-  const { oldVars } = useCodeChangesContext();
+  const { oldVars, oldDiff } = useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();
   const paths = oldVars.map((oldVars) => oldVars.pathInProject);
   const treeData = buildTree(paths);
+  const selectedNodeId = oldDiff.pathInProject || paths[0];
+
+  const allPaths = paths.flatMap((path) => getPathHierarchy(path));
+  const [expanded, setExpanded] = useState<string[]>(allPaths);
+
+  const handleToggle = (event, nodeIds: string[]) => {
+    setExpanded(nodeIds);
+  };
 
   return (
     <TreeView
+      expanded={expanded}
+      selected={selectedNodeId}
       defaultCollapseIcon={<Folder open />}
+      onNodeToggle={handleToggle}
       defaultExpandIcon={<Folder />}
       defaultEndIcon={<Description />}
     >
