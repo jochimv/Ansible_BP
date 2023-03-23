@@ -67,6 +67,7 @@ function getPathHierarchy(path) {
 const FileTree = () => {
   const { originalVars, originalDiff } = useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();
+  // todo: problém je v tom, že po načtení není načtený project ani host do něj. Čili když upravím jednu věc a pak druhou v jiném projektu, nenačte se v git page
   const paths = originalVars.map((originalVar) => originalVar.pathInProject);
   const treeData = buildTree(paths);
   const selectedNodeId = originalDiff.pathInProject || paths[0];

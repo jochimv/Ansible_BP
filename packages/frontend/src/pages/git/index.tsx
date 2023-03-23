@@ -18,7 +18,10 @@ const stackPropsIfNoChanges = {
 const GitPage = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const dispatch = useCodeChangesDispatchContext();
-  const { originalDiff, newDiff } = useCodeChangesContext();
+  const { originalDiff, updatedDiff } = useCodeChangesContext();
+  // todo - když si popřepínám mezi common variables a applied variables, updated je v pohodě. Problém nastává,
+  // todo - když přepnu do diff editoru, protože originalDiff je false a updatedDiff je true
+
   useEffect(() => {
     dispatch(createDiff());
   }, []);
@@ -40,7 +43,7 @@ const GitPage = () => {
               <Button
                 startIcon={<ReplayIcon />}
                 color="error"
-                onClick={() => dispatch(rollback(newDiff))}
+                onClick={() => dispatch(rollback(updatedDiff))}
               >
                 Rollback
               </Button>
@@ -50,7 +53,7 @@ const GitPage = () => {
           <DiffEditor
             language="yml"
             original={originalDiff?.values}
-            modified={newDiff?.values}
+            modified={updatedDiff?.values}
             height="500px"
             options={{ readOnly: true }}
           />

@@ -155,7 +155,7 @@ const removeAnsibleReposPathFromPath = (filePath: string): string => {
   return filePath.slice(ansibleReposPath.length);
 };
 
-function extractBeforeColon(str) {
+function extractBeforeColon(str: string) {
   // find the index of the first colon in the string
   const colonIndex = str.indexOf(':');
 
@@ -168,11 +168,13 @@ function extractBeforeColon(str) {
   }
 }
 
-const getCommonVariablesObj = (filePath) => {
+const getCommonVariablesObj = (filePath: string) => {
   return {
     type: 'common',
     pathInProject: removeAnsibleReposPathFromPath(filePath),
-    values: readFileSync(filePath, 'utf-8'),
+    // prevents bug when readFileSync puts \r\n as a new line character, whereas stringify from 'yaml' puts only \n. Then the diff editor shows empty diff as a result if unfixed.
+    values: readFileSync(filePath, 'utf-8').replace(/\r\n/g, '\n'),
+    // don't put "updated" key here as it causes original and updated variables not to match
   };
 };
 
@@ -195,6 +197,7 @@ export const getHostDetails = (projectName: string, hostName: string) => {
           type: 'host',
           pathInProject: removeAnsibleReposPathFromPath(hostVarsFilePath),
           values: readFileSync(hostVarsFilePath, 'utf-8'),
+          updated: false,
         };
         variables.push(hostVariables);
       }
@@ -209,6 +212,7 @@ export const getHostDetails = (projectName: string, hostName: string) => {
           type: 'group',
           pathInProject: removeAnsibleReposPathFromPath(groupVarsFilePath),
           values: readFileSync(groupVarsFilePath, 'utf-8'),
+          updated: false,
         };
         variables.push(groupVariables);
       }
@@ -234,6 +238,7 @@ export const getHostDetails = (projectName: string, hostName: string) => {
         type: 'applied',
         pathInProject: 'Read only',
         values: stringify(appliedVariables),
+        updated: false,
       });
       projectHostDetails.push({
         inventoryType,

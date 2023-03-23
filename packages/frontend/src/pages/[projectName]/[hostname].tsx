@@ -53,20 +53,26 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
     isInEditMode,
     selectedHostDetails,
     selectedVariables,
-    selectedHostDetailsByInventoryType: contextHostDetailsByInventoryType,
+    selectedHostDetailsByInventoryType,
   } = useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();
-  const selectedVariablesPathInProject = selectedVariables?.pathInProject;
-  const selectedVariablesAreAppliedVariables = selectedVariables?.type === 'applied';
 
   useEffect(() => {
-    dispatch(initializeEditor({ hostDetailsByInventoryType, projectName }));
+    // todo - common variables nejsou sdílené v rámci inventory a group variables nejsou sdílené s ostatními členy skupiny. Když jsou editovány na jednom místě, nejsou zeditovány na místech ostatních. Tohle lze vyzkoušet na node "kibana"
+    // todo - integrace na react query. Problém je v tom, že se bere info ze static props, a tím pádem se soubory z backendu zpracovávají zbytečně když už existují v kontextu.
+    // todo - taky by byla fajn udělat integrace na local storage, aby se projekty načetly i při reloadu stránky
+    dispatch(
+      initializeEditor({
+        hostDetailsByInventoryType,
+        projectName,
+        hostname,
+      }),
+    );
   }, []);
 
-  const handleEditorChange = (newEditorValue: string | null) => {
-    dispatch(updateVariables({ newEditorValue, projectName }));
+  const handleEditorChange = (newEditorValue: string | undefined) => {
+    dispatch(updateVariables({ newEditorValue, projectName, hostname }));
   };
-
   return (
     <>
       <Stack direction="row" sx={{ height: '100%' }}>
@@ -95,7 +101,7 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
                 }
               }}
             >
-              {contextHostDetailsByInventoryType.map((hostDetail) => {
+              {selectedHostDetailsByInventoryType?.map((hostDetail) => {
                 const inventoryType = hostDetail.inventoryType;
                 return (
                   <ToggleButton
@@ -139,18 +145,21 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
         </Stack>
         {selectedVariables?.values !== undefined ? (
           <Stack direction="column" flexGrow={1}>
-            <div>{selectedVariablesPathInProject}</div>
+            <div>{selectedVariables?.pathInProject}</div>
             <Editor
-              options={{ readOnly: selectedVariablesAreAppliedVariables || !isInEditMode }}
-              defaultLanguage="yaml"
+              options={{ readOnly: selectedVariables?.type === 'applied' || !isInEditMode }}
+              language="yaml"
               value={selectedVariables.values}
               onChange={handleEditorChange}
               // avoid multi-model editor, it as it causes bugs: when you delete one of the variables completely and applied variables are not updated, and also shows outdated selectedVariables when switching between different hosts
+              // Taktéž se při multi-model editoru applied variables nezobrazí správně po změně jiných variables
+              //path={selectedVariables?.pathInProject}
             />
           </Stack>
         ) : (
           <Typography>No variables found</Typography>
         )}
+
         {selectedVariables?.error && (
           <Snackbar open>
             <Alert severity="error">{formatErrorMessage(selectedVariables.error)}</Alert>
