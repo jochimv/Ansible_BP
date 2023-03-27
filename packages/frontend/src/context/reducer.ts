@@ -107,6 +107,17 @@ interface Project {
   hosts: Host[];
 }
 
+function hasErrorKey(hostDetailsByInventoryType) {
+  for (const hostDetails of hostDetailsByInventoryType) {
+    for (const variable of hostDetails.variables) {
+      if (variable.error !== undefined) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 function replaceVariableInProjectsArray(
   newVariable: HostVariable,
   projects: Project[],
@@ -166,6 +177,22 @@ export const initialState: CodeChangesState = {
   updatedVars: [],
 };
 
+function getUpdatedVars(updatedProjects: Project[]) {
+  const updatedVars: any[] = [];
+  updatedProjects?.forEach((updatedProject: Project) => {
+    updatedProject.hosts.forEach((host: Host) => {
+      host.hostDetailsByInventoryType.forEach((hostDetailByInventoryType: HostDetails) => {
+        hostDetailByInventoryType.variables.forEach((variable: HostVariable) => {
+          if (variable.updated && variable.type !== 'applied') {
+            updatedVars.push(variable);
+          }
+        });
+      });
+    });
+  });
+  return updatedVars;
+}
+
 export const codeChangesReducer = (
   state = initialState,
   action: CodeChangesAction,
@@ -178,18 +205,7 @@ export const codeChangesReducer = (
     case actionTypes.SHOW_VARIABLES:
       return { ...state, selectedVariables: action.payload };
     case actionTypes.CREATE_DIFF: {
-      const updatedVars: any[] = [];
-      state.updatedProjects?.forEach((updatedProject: Project) => {
-        updatedProject.hosts.forEach((host: Host) => {
-          host.hostDetailsByInventoryType.forEach((hostDetailByInventoryType: HostDetails) => {
-            hostDetailByInventoryType.variables.forEach((variable: HostVariable) => {
-              if (variable.updated && variable.type !== 'applied') {
-                updatedVars.push(variable);
-              }
-            });
-          });
-        });
-      });
+      const updatedVars = getUpdatedVars(state.updatedProjects);
 
       const originalVars: any[] = [];
       state.originalProjects?.forEach((originalProject: Project) => {
@@ -254,22 +270,23 @@ export const codeChangesReducer = (
         selectedHostDetails = hostDetailsByInventoryType[0];
         selectedVariables = selectedHostDetails.variables[0];
 
-        const project = state.originalProjects.find(
+        const originalProject = state.originalProjects.find(
           (originalProject: Project) => originalProject.projectName === projectName,
         );
-        const hostPresentInProject = !!project?.hosts.find(
+        const hostPresentInOriginalProject = !!originalProject?.hosts.find(
           (host: Host) => host.hostname === hostname,
         );
 
-        let updatedOriginalProjects: Project[];
+        let updatedOriginalProjects: Project[] = [];
+        let updatedUpdatedProjects: Project[] = [];
         // if the project is not there at all, add it
-        if (!project) {
+        if (!originalProject) {
           updatedOriginalProjects = [
             ...state.originalProjects,
             { projectName, hosts: [{ hostname, hostDetailsByInventoryType }] },
           ];
-          // if the project is present, but host is not inside the project, add the host there
-        } else if (project && !hostPresentInProject) {
+          // if the project is present, but host is not inside the project, add the host there. common vars or group vars could be updated via another host, thats why we need to map hostDetailsByInventoryType to search for already updated variables
+        } else if (originalProject && !hostPresentInOriginalProject) {
           updatedOriginalProjects = state.originalProjects.map((originalProject: Project) => {
             if (originalProject.projectName === projectName) {
               return {
@@ -280,6 +297,125 @@ export const codeChangesReducer = (
               return originalProject;
             }
           });
+
+          const updatedVars = getUpdatedVars(state.updatedProjects);
+
+          let incomingHostDetailsByInventoryTypeVariablesWereUpdated;
+
+          const updatedHostDetailsByInventoryType = hostDetailsByInventoryType.map(
+            (hostDetailByInventoryType) => {
+              return {
+                ...hostDetailByInventoryType,
+                variables: hostDetailByInventoryType.variables.map((variable) => {
+                  const updatedVar = updatedVars.find((updatedVar) => {
+                    return updatedVar.pathInProject === variable.pathInProject;
+                  });
+                  if (updatedVar) {
+                    incomingHostDetailsByInventoryTypeVariablesWereUpdated = true;
+                    return updatedVar;
+                  }
+                  return variable;
+                }),
+              };
+            },
+          );
+
+          let updatedHostDetailsByInventoryTypeAll = updatedHostDetailsByInventoryType;
+          if (incomingHostDetailsByInventoryTypeVariablesWereUpdated) {
+            updatedHostDetailsByInventoryTypeAll = updatedHostDetailsByInventoryType.map(
+              (updatedHostDetailByInventoryType) => {
+                return {
+                  ...updatedHostDetailByInventoryType,
+                  variables: updatedHostDetailByInventoryType.variables.map((variable) => {
+                    if (variable.type === 'applied') {
+                      const commonVariables = updatedHostDetailByInventoryType.variables.find(
+                        (variable) => variable.type === 'common',
+                      );
+                      const groupVariables = updatedHostDetailByInventoryType.variables.find(
+                        (variable) => variable.type === 'group',
+                      );
+                      const hostVariables = updatedHostDetailByInventoryType.variables.find(
+                        (variable) => variable.type === 'host',
+                      );
+
+                      try {
+                        const appliedVariables = {
+                          ...(commonVariables && parseYaml(commonVariables.values)),
+                          ...(groupVariables && parseYaml(groupVariables.values)),
+                          ...(hostVariables && parseYaml(hostVariables.values)),
+                        };
+
+                        // prevent monaco editor showing {}
+                        const stringifiedAppliedVariables = stringify(appliedVariables);
+                        const appliedVariablesToShow =
+                          stringifiedAppliedVariables === '{}\n' ? '' : stringifiedAppliedVariables;
+
+                        const updatedAppliedVariables = omit(['updated'], {
+                          ...variable,
+                          values: appliedVariablesToShow,
+                        });
+
+                        const originalAppliedVariables = findAppliedVariableObject(
+                          state.originalProjects,
+                          projectName,
+                          hostname,
+                          state.selectedHostDetails?.inventoryType,
+                        );
+
+                        return {
+                          ...updatedAppliedVariables,
+                          updated:
+                            JSON.stringify(updatedAppliedVariables) !==
+                            JSON.stringify(originalAppliedVariables),
+                        };
+                      } catch (e) {
+                        return variable;
+                      }
+                    } else {
+                      return variable;
+                    }
+                  }),
+                };
+              },
+            );
+
+            const updatedProject = state.updatedProjects.find(
+              (updatedProject) => updatedProject.projectName === projectName,
+            );
+            const hostPresentInUpdatedProject = !!updatedProject?.hosts.find(
+              (host: Host) => host.hostname === hostname,
+            );
+
+            if (!updatedProject) {
+              console.log('this should not happen, because the project was already updated');
+              updatedUpdatedProjects = [
+                ...state.originalProjects,
+                {
+                  projectName,
+                  hosts: [
+                    { hostname, hostDetailsByInventoryType: updatedHostDetailsByInventoryTypeAll },
+                  ],
+                },
+              ];
+            } else if (updatedProject && !hostPresentInUpdatedProject) {
+              updatedUpdatedProjects = state.updatedProjects.map((updatedProject: Project) => {
+                if (updatedProject.projectName === projectName) {
+                  return {
+                    ...updatedProject,
+                    hosts: [
+                      ...updatedProject.hosts,
+                      {
+                        hostname,
+                        hostDetailsByInventoryType: updatedHostDetailsByInventoryTypeAll,
+                      },
+                    ],
+                  };
+                }
+              });
+            } else {
+              updatedUpdatedProjects = state.updatedProjects;
+            }
+          }
         } else {
           updatedOriginalProjects = state.originalProjects;
         }
@@ -288,6 +424,7 @@ export const codeChangesReducer = (
           ...state,
           selectedHostDetailsByInventoryType,
           originalProjects: updatedOriginalProjects,
+          updatedProjects: updatedUpdatedProjects,
           selectedHostDetails,
           selectedVariables,
         };
@@ -353,6 +490,7 @@ export const codeChangesReducer = (
         error,
         values: newEditorValue,
       });
+      // try to find the new selectedVariables inside original project to see if they the variable was updated (done for git)
       const originalSelectedVariables: HostVariable | undefined = findVariableObject(
         state.originalProjects,
         state.selectedVariables.pathInProject,
@@ -366,7 +504,8 @@ export const codeChangesReducer = (
           JSON.stringify(updatedSelectedVariables) !== JSON.stringify(originalSelectedVariables),
       };
 
-      const updatedVariablesSelectedOnly = state.selectedHostDetails?.variables.map(
+      // update variables chosen in editor
+      let updatedVariablesSelectedOnly = state.selectedHostDetails?.variables.map(
         (variable: HostVariable) => {
           if (variable.pathInProject === state.selectedVariables.pathInProject) {
             return updatedSelectedVariables;
@@ -376,6 +515,7 @@ export const codeChangesReducer = (
         },
       );
 
+      // updated variables all - meaning including applied variables
       const updatedVariablesAll = error
         ? updatedVariablesSelectedOnly
         : updatedVariablesSelectedOnly?.map((variable) => {
@@ -397,8 +537,34 @@ export const codeChangesReducer = (
                   ...(hostVariables && parseYaml(hostVariables.values)),
                 };
 
+                if ('0' in appliedVariables) {
+                  updatedVariablesSelectedOnly = state.selectedHostDetails?.variables.map(
+                    (variable: HostVariable) => {
+                      if (
+                        variable.pathInProject === state.selectedVariables.pathInProject &&
+                        variable.type !== 'applied'
+                      ) {
+                        return { ...updatedSelectedVariables, error: 'Unfinished key' };
+                      } else {
+                        return variable;
+                      }
+                    },
+                  );
+                  updatedSelectedVariables = {
+                    ...updatedSelectedVariables,
+                    ...(updatedSelectedVariables.type !== 'applied' && { error: 'Unfinished key' }),
+                  };
+
+                  throw new Error();
+                }
                 // prevent monaco editor showing {}
+                // todo - tady je chyba, jelikož když do common vars například zadám jen nějaký klíč, nevyhodí to error, ale v applied se to ukáže fakt divně
                 const stringifiedAppliedVariables = stringify(appliedVariables);
+                console.log('appliedVariables: ', JSON.stringify(appliedVariables));
+                console.log(
+                  'stringifiedAppliedVariables: ',
+                  JSON.stringify(stringifiedAppliedVariables),
+                );
                 const appliedVariablesToShow =
                   stringifiedAppliedVariables === '{}\n' ? '' : stringifiedAppliedVariables;
 
@@ -413,7 +579,6 @@ export const codeChangesReducer = (
                   hostname,
                   state.selectedHostDetails?.inventoryType,
                 );
-
                 return {
                   ...updatedAppliedVariables,
                   updated:
@@ -445,24 +610,121 @@ export const codeChangesReducer = (
         variables: updatedVariablesAll,
       };
 
-      const isInUpdatedProjects = state.updatedProjects?.find(
+      const updatedProjectExistsInState = state.updatedProjects?.find(
         (project) => project.projectName === projectName,
       );
       let updatedProjects;
-      if (isInUpdatedProjects) {
+      if (updatedProjectExistsInState) {
         updatedProjects = state.updatedProjects.map((project) => {
           if (project.projectName === projectName) {
             return {
               projectName,
               hosts: project.hosts.map((host) => {
-                if (host.hostname === hostname) {
-                  return {
-                    hostname,
-                    hostDetailsByInventoryType: updatedSelectedHostDetailsByInventoryType,
-                  };
-                } else {
-                  return host;
-                }
+                return {
+                  ...host,
+                  hostDetailsByInventoryType: host.hostDetailsByInventoryType.map(
+                    (hostDetailByInventoryType) => {
+                      return {
+                        ...hostDetailByInventoryType,
+                        variables: hostDetailByInventoryType.variables.map((variable) => {
+                          if (variable.pathInProject === updatedSelectedVariables.pathInProject) {
+                            return updatedSelectedVariables;
+                          } else if (variable.type === 'applied') {
+                            const updatedVariableIsInCurrentHostDetailByInventoryType =
+                              !!hostDetailByInventoryType.variables.find(
+                                (variable) =>
+                                  variable.pathInProject === updatedSelectedVariables.pathInProject,
+                              );
+
+                            const commonVariables =
+                              updatedVariableIsInCurrentHostDetailByInventoryType &&
+                              updatedSelectedVariables.type === 'common'
+                                ? updatedSelectedVariables
+                                : hostDetailByInventoryType.variables?.find(
+                                    (variable) => variable.type === 'common',
+                                  );
+
+                            const groupVariables =
+                              updatedVariableIsInCurrentHostDetailByInventoryType &&
+                              updatedSelectedVariables.type === 'group'
+                                ? updatedSelectedVariables
+                                : hostDetailByInventoryType.variables?.find(
+                                    (variable) => variable.type === 'group',
+                                  );
+                            const hostVariables = hostDetailByInventoryType.variables?.find(
+                              (variable) => variable.type === 'host',
+                            );
+
+                            try {
+                              const appliedVariables = {
+                                ...(commonVariables && parseYaml(commonVariables.values)),
+                                ...(groupVariables && parseYaml(groupVariables.values)),
+                                ...(hostVariables && parseYaml(hostVariables.values)),
+                              };
+
+                              if ('0' in appliedVariables) {
+                                updatedVariablesSelectedOnly =
+                                  state.selectedHostDetails?.variables.map(
+                                    (variable: HostVariable) => {
+                                      if (
+                                        variable.pathInProject ===
+                                          state.selectedVariables.pathInProject &&
+                                        variable.type !== 'applied'
+                                      ) {
+                                        return {
+                                          ...updatedSelectedVariables,
+                                          error: 'Unfinished key',
+                                        };
+                                      } else {
+                                        return variable;
+                                      }
+                                    },
+                                  );
+                                updatedSelectedVariables = {
+                                  ...updatedSelectedVariables,
+                                  ...(updatedSelectedVariables.type !== 'applied' && {
+                                    error: 'Unfinished key',
+                                  }),
+                                };
+
+                                throw new Error();
+                              }
+
+                              // prevent monaco editor showing {}
+                              const stringifiedAppliedVariables = stringify(appliedVariables);
+                              const appliedVariablesToShow =
+                                stringifiedAppliedVariables === '{}\n'
+                                  ? ''
+                                  : stringifiedAppliedVariables;
+
+                              const updatedAppliedVariables = omit(['updated'], {
+                                ...variable,
+                                values: appliedVariablesToShow,
+                              });
+
+                              const originalAppliedVariables = findAppliedVariableObject(
+                                state.originalProjects,
+                                projectName,
+                                hostname,
+                                state.selectedHostDetails?.inventoryType,
+                              );
+                              return {
+                                ...updatedAppliedVariables,
+                                updated:
+                                  JSON.stringify(updatedAppliedVariables) !==
+                                  JSON.stringify(originalAppliedVariables),
+                              };
+                            } catch (e) {
+                              return variable;
+                            }
+                          } else {
+                            return variable;
+                          }
+                        }),
+                      };
+                    },
+                  ),
+                };
               }),
             };
           } else {
