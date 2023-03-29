@@ -107,17 +107,6 @@ interface Project {
   hosts: Host[];
 }
 
-function hasErrorKey(hostDetailsByInventoryType) {
-  for (const hostDetails of hostDetailsByInventoryType) {
-    for (const variable of hostDetails.variables) {
-      if (variable.error !== undefined) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 function replaceVariableInProjectsArray(
   newVariable: HostVariable,
   projects: Project[],
@@ -127,12 +116,54 @@ function replaceVariableInProjectsArray(
     hosts: project.hosts.map((host: Host) => ({
       ...host,
       hostDetailsByInventoryType: host.hostDetailsByInventoryType.map(
-        (hostDetails: HostDetails) => ({
-          ...hostDetails,
-          variables: hostDetails.variables.map((variable: HostVariable) =>
-            variable.pathInProject === newVariable.pathInProject ? newVariable : variable,
-          ),
-        }),
+        (hostDetails: HostDetails) => {
+          let hostDetailVariablesChanged;
+          const updatedVariables = hostDetails.variables.map((variable) => {
+            if (variable.pathInProject === newVariable.pathInProject) {
+              hostDetailVariablesChanged = true;
+              return newVariable;
+            } else {
+              return variable;
+            }
+          });
+
+          let updatedVariablesAll = updatedVariables;
+          if (hostDetailVariablesChanged) {
+            updatedVariablesAll = updatedVariables.map((variable) => {
+              if (variable.type === 'applied') {
+                const commonVariables = updatedVariables.find(
+                  (variable) => variable.type === 'common',
+                );
+                const groupVariables = updatedVariables.find(
+                  (variable) => variable.type === 'group',
+                );
+                const hostVariables = updatedVariables.find((variable) => variable.type === 'host');
+
+                const appliedVariables = {
+                  ...(commonVariables && parseYaml(commonVariables.values)),
+                  ...(groupVariables && parseYaml(groupVariables.values)),
+                  ...(hostVariables && parseYaml(hostVariables.values)),
+                };
+
+                const stringifiedAppliedVariables = stringify(appliedVariables);
+                const appliedVariablesToShow =
+                  stringifiedAppliedVariables === '{}\n' ? '' : stringifiedAppliedVariables;
+
+                return {
+                  ...variable,
+                  values: appliedVariablesToShow,
+                };
+              } else {
+                return variable;
+              }
+            });
+          }
+
+          return {
+            ...hostDetails,
+            variables: updatedVariablesAll,
+          };
+        },
       ),
     })),
   }));
@@ -462,7 +493,6 @@ export const codeChangesReducer = (
       );
 
       const updatedProjects = replaceVariableInProjectsArray(originalVar, state.updatedProjects);
-
       return {
         ...state,
         originalVars: updatedOriginalVars,
@@ -558,13 +588,7 @@ export const codeChangesReducer = (
                   throw new Error();
                 }
                 // prevent monaco editor showing {}
-                // todo - tady je chyba, jelikož když do common vars například zadám jen nějaký klíč, nevyhodí to error, ale v applied se to ukáže fakt divně
                 const stringifiedAppliedVariables = stringify(appliedVariables);
-                console.log('appliedVariables: ', JSON.stringify(appliedVariables));
-                console.log(
-                  'stringifiedAppliedVariables: ',
-                  JSON.stringify(stringifiedAppliedVariables),
-                );
                 const appliedVariablesToShow =
                   stringifiedAppliedVariables === '{}\n' ? '' : stringifiedAppliedVariables;
 
