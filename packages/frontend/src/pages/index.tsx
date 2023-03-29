@@ -1,16 +1,19 @@
-import React, { useState } from 'react';
-import { Autocomplete, TextField, AutocompleteRenderInputParams } from '@mui/material';
+import React from 'react';
+import { Autocomplete, TextField, AutocompleteRenderInputParams, Stack } from '@mui/material';
 import { getProjectsHosts } from '@frontend/utils';
 import { useRouter } from 'next/router';
+import { useCodeChangesContext, useCodeChangesDispatchContext } from '@frontend/context/context';
+import { selectProject } from '@frontend/context/reducer';
 
 const HomePage = ({ projectHosts }) => {
-  const [selectedProjectName, setSelectedProjectName] = useState();
   const projectNames = projectHosts.map((projectHost) => projectHost.project);
 
   const router = useRouter();
+  const { selectedProjectName } = useCodeChangesContext();
+  const dispatch = useCodeChangesDispatchContext();
 
   return (
-    <>
+    <Stack spacing={3}>
       <Autocomplete
         renderInput={(params: AutocompleteRenderInputParams) => (
           <TextField {...params} label="Vyhledat projekt" />
@@ -19,10 +22,10 @@ const HomePage = ({ projectHosts }) => {
         sx={{ width: 300 }}
         id="projects"
         onChange={(event, newValue: string) => {
-          setSelectedProjectName(newValue);
+          dispatch(selectProject(newValue));
         }}
+        value={selectedProjectName ?? null}
       />
-
       <Autocomplete
         id="servers"
         disabled={!selectedProjectName}
@@ -38,7 +41,7 @@ const HomePage = ({ projectHosts }) => {
           router.push(`/${selectedProjectName}/${newValue}`);
         }}
       />
-    </>
+    </Stack>
   );
 };
 

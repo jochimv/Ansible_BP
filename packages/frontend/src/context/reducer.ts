@@ -170,6 +170,7 @@ function replaceVariableInProjectsArray(
 }
 
 interface CodeChangesState {
+  selectedProjectName: string | undefined;
   isInEditMode: boolean;
   selectedHostDetailsByInventoryType: HostDetails[] | undefined;
   selectedHostDetails?: HostDetails | undefined;
@@ -194,6 +195,7 @@ export const actionTypes = keyMirror({
   CREATE_DIFF: null,
   SHOW_DIFF: null,
   ROLLBACK: null,
+  SELECT_PROJECT: null,
 });
 export const initialState: CodeChangesState = {
   updatedProjects: [],
@@ -206,6 +208,7 @@ export const initialState: CodeChangesState = {
   updatedDiff: undefined,
   originalVars: [],
   updatedVars: [],
+  selectedProjectName: undefined,
 };
 
 function getUpdatedVars(updatedProjects: Project[]) {
@@ -229,6 +232,8 @@ export const codeChangesReducer = (
   action: CodeChangesAction,
 ): CodeChangesState => {
   switch (action.type) {
+    case actionTypes.SELECT_PROJECT:
+      return { ...state, selectedProjectName: action.payload };
     case actionTypes.SWITCH_MODE:
       return { ...state, isInEditMode: !state.isInEditMode };
     case actionTypes.SHOW_HOST_DETAILS:
@@ -837,5 +842,10 @@ export const showVariables = (payload: any): CodeChangesAction => ({
 
 export const initializeEditor = (payload: any): CodeChangesAction => ({
   type: actionTypes.INITIALIZE_EDITOR,
+  payload,
+});
+
+export const selectProject = (payload: any): CodeChangesAction => ({
+  type: actionTypes.SELECT_PROJECT,
   payload,
 });

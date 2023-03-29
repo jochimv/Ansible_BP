@@ -3,7 +3,7 @@ import { QueryClientProvider, QueryClient } from 'react-query';
 import { createEmotionCache, theme } from '@frontend/utils/styling';
 import { CacheProvider, EmotionCache } from '@emotion/react';
 import Head from 'next/head';
-import { Button, ThemeProvider, Toolbar } from '@mui/material';
+import { Badge, Button, ThemeProvider, Toolbar } from '@mui/material';
 import { AppBar, Box } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import Link from 'next/link';
@@ -26,16 +26,53 @@ interface MyAppProps extends AppProps {
   emotionCache?: EmotionCache;
 }
 
-const AppBarResolver = () => {
-  const context = useCodeChangesContext();
-  const dispatch = useCodeChangesDispatchContext();
-  const isInEditMode = context.isInEditMode;
+function countUpdatedVariables(arr, projectName) {
+  let count = 0;
+  const countedPaths = new Set();
 
+  arr.forEach(({ projectName: proj, hosts }) => {
+    if (proj === projectName) {
+      hosts.forEach(({ hostDetailsByInventoryType }) => {
+        hostDetailsByInventoryType.forEach(({ variables }) => {
+          variables.forEach(({ type, pathInProject, updated }) => {
+            if (type !== 'applied' && updated) {
+              if (!countedPaths.has(pathInProject)) {
+                countedPaths.add(pathInProject);
+                count++;
+              }
+            }
+          });
+        });
+      });
+    }
+  });
+
+  return count;
+}
+
+const AppBarResolver = () => {
+  const { isInEditMode, selectedProjectName, updatedProjects, updatedVars } =
+    useCodeChangesContext();
+  const dispatch = useCodeChangesDispatchContext();
+
+  const numberOfUpdatedFiles = countUpdatedVariables(updatedProjects, selectedProjectName);
   return (
     <>
       <AppBar>
         <Toolbar sx={{ justifyContent: 'flex-end' }}>
-          <Button color="inherit" startIcon={<GitHubIcon />} component={Link} href="/git">
+          <Button color="inherit">
+            {selectedProjectName ? selectedProjectName : 'No project selected'}
+          </Button>
+          <Button
+            color="inherit"
+            startIcon={
+              <Badge badgeContent={numberOfUpdatedFiles} color="warning">
+                <GitHubIcon />
+              </Badge>
+            }
+            component={Link}
+            href="/git"
+          >
             Git
           </Button>
           <Button
