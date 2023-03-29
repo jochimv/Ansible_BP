@@ -18,15 +18,27 @@ interface Props {
 
 const CommitModal = ({ open, onClose: handleClose }: Props) => {
   const [commitMessage, setCommitMessage] = useState<string>('');
-  const [isChecked, setIsChecked] = useState(false);
+  //const [isAmendChecked, setIsAmendChecked] = useState(false);
+  //const [isAmendDisabled, setIsAmendDisabled] = useState(false);
+  const [branchName, setBranchName] = useState<string>('');
+  //const [isNoMessageEditChecked, setIsNoMessageEditChecked] = useState(false);
 
   const handleCommit = () => {
     // logic
     handleClose();
   };
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCommitMessageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setCommitMessage(event.target.value);
+  };
+  const handleBranchNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    /*if (event.target.value !== '') {
+      setIsAmendDisabled(true);
+      setIsAmendChecked(false);
+    } else {
+      setIsAmendDisabled(false);
+    }*/
+    setBranchName(event.target.value);
   };
 
   return (
@@ -35,6 +47,7 @@ const CommitModal = ({ open, onClose: handleClose }: Props) => {
         <DialogTitle>Commit Message</DialogTitle>
         <DialogContent>
           <TextField
+            //disabled={isNoMessageEditChecked}
             autoFocus
             margin="dense"
             id="commit-message"
@@ -43,20 +56,47 @@ const CommitModal = ({ open, onClose: handleClose }: Props) => {
             fullWidth
             variant="standard"
             value={commitMessage}
-            onChange={handleInputChange}
+            onChange={handleCommitMessageChange}
+          />
+          <TextField
+            margin="dense"
+            id="branch-name"
+            label="Enter a branch name"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={branchName}
+            onChange={handleBranchNameChange}
           />
         </DialogContent>
         <DialogActions>
+          {/*{isAmendChecked && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={isNoMessageEditChecked}
+                  onChange={(event) => {
+                    setIsNoMessageEditChecked(event.target.checked);
+                    setBranchName('');
+                  }}
+                  disabled={isAmendDisabled}
+                />
+              }
+              label="no message edit"
+            />
+          )}
+
           <FormControlLabel
             control={
               <Checkbox
-                checked={isChecked}
-                onChange={(event) => setIsChecked(event.target.checked)}
+                checked={isAmendChecked}
+                onChange={(event) => setIsAmendChecked(event.target.checked)}
+                disabled={isAmendDisabled}
               />
             }
             label="amend"
           />
-
+*/}
           <Button startIcon={<SendIcon />} onClick={handleCommit} color="success">
             Commit
           </Button>

@@ -344,8 +344,9 @@ export const codeChangesReducer = (
                   if (updatedVar) {
                     incomingHostDetailsByInventoryTypeVariablesWereUpdated = true;
                     return updatedVar;
+                  } else {
+                    return variable;
                   }
-                  return variable;
                 }),
               };
             },
@@ -418,7 +419,6 @@ export const codeChangesReducer = (
             );
 
             if (!updatedProject) {
-              console.log('this should not happen, because the project was already updated');
               updatedUpdatedProjects = [
                 ...state.originalProjects,
                 {
@@ -441,14 +441,19 @@ export const codeChangesReducer = (
                       },
                     ],
                   };
+                } else {
+                  return updatedProject;
                 }
               });
             } else {
               updatedUpdatedProjects = state.updatedProjects;
             }
+          } else {
+            updatedUpdatedProjects = state.updatedProjects;
           }
         } else {
           updatedOriginalProjects = state.originalProjects;
+          updatedUpdatedProjects = state.updatedProjects;
         }
 
         return {
@@ -520,7 +525,7 @@ export const codeChangesReducer = (
         error,
         values: newEditorValue,
       });
-      // try to find the new selectedVariables inside original project to see if they the variable was updated (done for git)
+      // try to find the new selectedVariables inside original project to see if the variable was updated (for git)
       const originalSelectedVariables: HostVariable | undefined = findVariableObject(
         state.originalProjects,
         state.selectedVariables.pathInProject,
@@ -634,11 +639,17 @@ export const codeChangesReducer = (
         variables: updatedVariablesAll,
       };
 
-      const updatedProjectExistsInState = state.updatedProjects?.find(
+      const updatedProjectInState = state.updatedProjects?.find(
         (project) => project.projectName === projectName,
       );
+      const updatedProjectExistsInState = !!updatedProjectInState;
+
+      const hostExistInUpdatedProject = updatedProjectInState?.hosts.find(
+        (host) => host.hostname === hostname,
+      );
+
       let updatedProjects;
-      if (updatedProjectExistsInState) {
+      if (updatedProjectExistsInState && hostExistInUpdatedProject) {
         updatedProjects = state.updatedProjects.map((project) => {
           if (project.projectName === projectName) {
             return {
@@ -750,6 +761,21 @@ export const codeChangesReducer = (
                   ),
                 };
               }),
+            };
+          } else {
+            return project;
+          }
+        });
+      } else if (updatedProjectInState && !hostExistInUpdatedProject) {
+        updatedProjects = state.updatedProjects.map((project) => {
+          if (project.projectName === projectName) {
+            return {
+              projectName,
+              // add a host with updated hostDetailsByInventoryType
+              hosts: [
+                ...project.hosts,
+                { hostname, hostDetailsByInventoryType: updatedSelectedHostDetailsByInventoryType },
+              ],
             };
           } else {
             return project;
