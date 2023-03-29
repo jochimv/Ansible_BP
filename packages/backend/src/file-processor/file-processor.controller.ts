@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { FileProcessorService } from './file-processor.service';
 
 @Controller()
@@ -11,5 +11,9 @@ export class FileProcessorController {
   @Get('projects')
   getProjectsHosts() {
     return this.fileProcessorService.getProjectsHosts();
+  }
+  @Post('commit')
+  commit(@Body() commitDto) {
+    return this.fileProcessorService.commit(commitDto);
   }
 }

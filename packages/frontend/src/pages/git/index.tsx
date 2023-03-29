@@ -21,7 +21,6 @@ const GitPage = () => {
   const { originalDiff, updatedDiff, updatedVars } = useCodeChangesContext();
   // todo - když si popřepínám mezi common variables a applied variables, updated je v pohodě. Problém nastává,
   // todo - když přepnu do diff editoru, protože originalDiff je false a updatedDiff je true
-  console.log('updatedVars: ', JSON.stringify(updatedVars));
   useEffect(() => {
     dispatch(createDiff());
   }, []);

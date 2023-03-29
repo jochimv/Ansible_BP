@@ -10,35 +10,35 @@ import {
   TextField,
 } from '@mui/material';
 import { Send as SendIcon, Close as CloseIcon } from '@mui/icons-material';
+import axios from 'axios';
+import { useMutation } from 'react-query';
+import { useCodeChangesContext } from '@frontend/context/context';
 
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
+const postCommitData = (data) => axios.post('http://localhost:4000/commit', data);
+const useCommit = () => useMutation(postCommitData);
+
 const CommitModal = ({ open, onClose: handleClose }: Props) => {
   const [commitMessage, setCommitMessage] = useState<string>('');
-  //const [isAmendChecked, setIsAmendChecked] = useState(false);
-  //const [isAmendDisabled, setIsAmendDisabled] = useState(false);
   const [branchName, setBranchName] = useState<string>('');
-  //const [isNoMessageEditChecked, setIsNoMessageEditChecked] = useState(false);
-
-  const handleCommit = () => {
-    // logic
-    handleClose();
-  };
 
   const handleCommitMessageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setCommitMessage(event.target.value);
   };
   const handleBranchNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    /*if (event.target.value !== '') {
-      setIsAmendDisabled(true);
-      setIsAmendChecked(false);
-    } else {
-      setIsAmendDisabled(false);
-    }*/
     setBranchName(event.target.value);
+  };
+
+  const { mutate, isLoading, isError } = useCommit();
+  const { updatedVars } = useCodeChangesContext();
+  const handleCommit = () => {
+    // todo - mutate with overwritten files
+    mutate({ commitMessage, branchName, updatedVars });
+    handleClose();
   };
 
   return (
@@ -97,7 +97,12 @@ const CommitModal = ({ open, onClose: handleClose }: Props) => {
             label="amend"
           />
 */}
-          <Button startIcon={<SendIcon />} onClick={handleCommit} color="success">
+          <Button
+            startIcon={<SendIcon />}
+            onClick={handleCommit}
+            onClick={handleCommit}
+            color="success"
+          >
             Commit
           </Button>
           <Button onClick={handleClose} startIcon={<CloseIcon />} color="error">

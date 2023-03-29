@@ -5,6 +5,10 @@ import { parse as parseYaml } from 'yaml';
 import { extname, join } from 'path';
 import { ProjectsHosts } from '../types';
 
+interface CommitDto {
+  message: string;
+  updatedContent: [];
+}
 @Injectable()
 export class FileProcessorService {
   private ansibleReposPath =
@@ -24,6 +28,11 @@ export class FileProcessorService {
     'group_vars',
     'host_vars',
   ];
+
+  commit(commitDto): void {
+    const { commitMessage, branchName, updatedVars } = commitDto;
+    console.log('commitDto on backend: ', JSON.stringify(commitDto));
+  }
 
   extractHostsFromIniFile(iniFileContent): string[] {
     const hosts = [];

@@ -74,8 +74,6 @@ const FileTree = () => {
 
   const allPaths = paths.flatMap((path) => getPathHierarchy(path));
   const [expanded, setExpanded] = useState<string[]>(allPaths);
-  console.log('originalVars: ', JSON.stringify(originalVars));
-  console.log('paths: ', JSON.stringify(paths));
 
   const handleToggle = (event, nodeIds: string[]) => {
     setExpanded(nodeIds);
