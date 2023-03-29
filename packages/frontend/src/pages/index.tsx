@@ -1,69 +1,52 @@
-import React from 'react';
-import {
-  Autocomplete,
-  TextField,
-  ListItemButton,
-  ListSubheader as MuiListSubheader,
-  ListItemText,
-  styled,
-  AutocompleteRenderGroupParams,
-  AutocompleteRenderInputParams,
-} from '@mui/material';
-import Link from 'next/link';
+import React, { useState } from 'react';
+import { Autocomplete, TextField, AutocompleteRenderInputParams } from '@mui/material';
 import { getProjectsHosts } from '@frontend/utils';
-import { ProjectsHosts } from '@backend/types';
-import { AutocompleteProjectHosts } from '@frontend/types';
-const ListSubheader = styled(MuiListSubheader)({
-  position: 'sticky',
-  top: '-8px',
-});
+import { useRouter } from 'next/router';
 
-const transformForAutocomplete = (arr: ProjectsHosts = []): AutocompleteProjectHosts[] => {
-  const autocompleteProjectHosts: AutocompleteProjectHosts[] = [];
-  arr.forEach((obj) => {
-    obj.hosts.forEach((host) => {
-      autocompleteProjectHosts.push({ project: obj.project, host });
-    });
-  });
-  return autocompleteProjectHosts;
-};
+const HomePage = ({ projectHosts }) => {
+  const [selectedProjectName, setSelectedProjectName] = useState();
+  const projectNames = projectHosts.map((projectHost) => projectHost.project);
 
-interface HomeProps {
-  autocompleteProjectsHosts: AutocompleteProjectHosts[];
-}
-const HomePage = ({ autocompleteProjectsHosts }: HomeProps) => {
+  const router = useRouter();
+
   return (
-    <Autocomplete
-      renderInput={(params: AutocompleteRenderInputParams) => (
-        <TextField {...params} label="Vyhledat server" />
-      )}
-      options={autocompleteProjectsHosts}
-      groupBy={(option) => option.project}
-      getOptionLabel={(option) => option.host}
-      sx={{ width: 300 }}
-      renderGroup={(params: AutocompleteRenderGroupParams) => {
-        // @ts-ignore
-        const group = params?.children?.map((param) => (
-          <ListItemButton key={param.key} component={Link} href={`/${params.group}/${param.key}`}>
-            <ListItemText primary={param.key} />
-          </ListItemButton>
-        ));
-        return (
-          <React.Fragment key={params.key}>
-            <ListSubheader>{params.group}</ListSubheader>
-            {group}
-          </React.Fragment>
-        );
-      }}
-    />
+    <>
+      <Autocomplete
+        renderInput={(params: AutocompleteRenderInputParams) => (
+          <TextField {...params} label="Vyhledat projekt" />
+        )}
+        options={projectNames}
+        sx={{ width: 300 }}
+        id="projects"
+        onChange={(event, newValue: string) => {
+          setSelectedProjectName(newValue);
+        }}
+      />
+
+      <Autocomplete
+        id="servers"
+        disabled={!selectedProjectName}
+        options={
+          projectHosts.find((projectHost) => projectHost.project === selectedProjectName)?.hosts ||
+          []
+        }
+        sx={{ width: 300 }}
+        renderInput={(params: AutocompleteRenderInputParams) => (
+          <TextField {...params} label="Vyhledat server" />
+        )}
+        onChange={(event, newValue) => {
+          router.push(`/${selectedProjectName}/${newValue}`);
+        }}
+      />
+    </>
   );
 };
 
 export async function getServerSideProps() {
-  const autocompleteProjectsHosts = transformForAutocomplete(getProjectsHosts());
+  const projectHosts = getProjectsHosts();
 
   return {
-    props: { autocompleteProjectsHosts },
+    props: { projectHosts },
   };
 }
 

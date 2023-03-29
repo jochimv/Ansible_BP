@@ -57,8 +57,6 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
     updatedProjects,
   } = useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();
-  console.log('updatedProjects: ', JSON.stringify(updatedProjects));
-  console.log('selectedVariables', JSON.stringify(selectedVariables));
 
   useEffect(() => {
     // todo - common variables nejsou sdílené v rámci inventory a group variables nejsou sdílené s ostatními členy skupiny. Když jsou editovány na jednom místě, nejsou zeditovány na místech ostatních. Tohle lze vyzkoušet na node "kibana"

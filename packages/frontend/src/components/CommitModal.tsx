@@ -36,7 +36,6 @@ const CommitModal = ({ open, onClose: handleClose }: Props) => {
   const { mutate, isLoading, isError } = useCommit();
   const { updatedVars } = useCodeChangesContext();
   const handleCommit = () => {
-    // todo - mutate with overwritten files
     mutate({ commitMessage, branchName, updatedVars });
     handleClose();
   };
@@ -47,7 +46,6 @@ const CommitModal = ({ open, onClose: handleClose }: Props) => {
         <DialogTitle>Commit Message</DialogTitle>
         <DialogContent>
           <TextField
-            //disabled={isNoMessageEditChecked}
             autoFocus
             margin="dense"
             id="commit-message"
