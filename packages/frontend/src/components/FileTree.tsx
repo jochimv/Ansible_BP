@@ -84,6 +84,7 @@ const FileTree = () => {
     setExpanded(nodeIds);
   };
 
+  console.log('selectedNodeId is ', selectedNodeId);
   return (
     <TreeView
       expanded={expanded}

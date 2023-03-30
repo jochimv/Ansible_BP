@@ -12,9 +12,11 @@ import { switchMode } from '@frontend/context/reducer';
 import EditIcon from '@mui/icons-material/Edit';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import GitHubIcon from '@mui/icons-material/GitHub';
+import ArchitectureIcon from '@mui/icons-material/Architecture';
 import CodeChangesProvider from '../context/CodeChangesProvider';
 import { AppProps } from 'next/app';
 import '@frontend/styles/globals.css';
+import { useRouter } from 'next/router';
 
 const queryClient = new QueryClient();
 
@@ -54,13 +56,18 @@ const AppBarResolver = () => {
   const { isInEditMode, selectedProjectName, updatedProjects, updatedVars } =
     useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();
+  const router = useRouter();
 
   const numberOfUpdatedFiles = countUpdatedVariables(updatedProjects, selectedProjectName);
   return (
     <>
       <AppBar>
         <Toolbar sx={{ justifyContent: 'flex-end' }}>
-          <Button color="inherit">
+          <Button
+            color="inherit"
+            onClick={() => router.push(`/${selectedProjectName}`)}
+            startIcon={<ArchitectureIcon />}
+          >
             {selectedProjectName ? selectedProjectName : 'No project selected'}
           </Button>
           <Button

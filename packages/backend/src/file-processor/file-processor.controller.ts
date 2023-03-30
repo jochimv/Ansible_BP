@@ -16,4 +16,9 @@ export class FileProcessorController {
   commit(@Body() commitDto) {
     return this.fileProcessorService.commit(commitDto);
   }
+
+  /*@Get('/:projectName')
+  getProjectDetails(@Param('projectName') projectName) {
+    return this.fileProcessorService.getProjectDetails(projectName);
+  }*/
 }

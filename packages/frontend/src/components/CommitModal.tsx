@@ -95,12 +95,7 @@ const CommitModal = ({ open, onClose: handleClose }: Props) => {
             label="amend"
           />
 */}
-          <Button
-            startIcon={<SendIcon />}
-            onClick={handleCommit}
-            onClick={handleCommit}
-            color="success"
-          >
+          <Button startIcon={<SendIcon />} onClick={handleCommit} color="success">
             Commit
           </Button>
           <Button onClick={handleClose} startIcon={<CloseIcon />} color="error">

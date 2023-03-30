@@ -22,6 +22,73 @@ const directoriesToIgnore = [
   'host_vars',
 ];
 
+export const getProjectDetails = (projectName: string): any[] => {
+  const projectPath = join(ansibleReposPath, projectName);
+  const inventoryFilesPaths = getInventoryFilesPaths(projectPath);
+  const projectDetails = [];
+
+  for (const inventoryFilePath of inventoryFilesPaths) {
+    const inventoryType = getLastPathSegment(getFileDirectory(inventoryFilePath));
+    const inventoryDirectoryPath = getFileDirectory(inventoryFilePath);
+    const fileContent = readFileSync(inventoryFilePath, 'utf-8');
+    const parsedIni = parseIni(fileContent);
+    const iniGroups = Object.keys(parsedIni);
+
+    const groupHosts = iniGroups.map((iniGroup: string) => {
+      return {
+        groupName: iniGroup,
+        hosts: Object.keys(parsedIni[iniGroup]).map((hostname: string) => {
+          const hostVarsFilePath = join(inventoryDirectoryPath, 'host_vars', `${hostname}.yml`);
+
+          let hostValues;
+          if (fileExists(hostVarsFilePath)) {
+            hostValues = readFileSync(hostVarsFilePath, 'utf-8');
+          }
+
+          const groupName = getGroupNameFromIniInventory(inventoryFilePath, hostname);
+          const baseGroupName = extractBeforeColon(groupName);
+
+          const groupVarsFilePath = join(
+            inventoryDirectoryPath,
+            'group_vars',
+            `${baseGroupName}.yml`,
+          );
+          let groupValues;
+          if (fileExists(groupVarsFilePath)) {
+            groupValues = readFileSync(groupVarsFilePath, 'utf-8');
+          }
+
+          const groupVarsDirectoryPath = join(inventoryDirectoryPath, 'group_vars');
+          const commonVarsFilePath = join(groupVarsDirectoryPath, 'all', 'common.yml');
+          const alternativeCommonVarsFilePath = join(groupVarsDirectoryPath, 'all.yml');
+
+          let commonValues;
+          if (fileExists(commonVarsFilePath)) {
+            commonValues = readFileSync(commonVarsFilePath, 'utf-8').replace(/\r\n/g, '\n');
+          } else if (fileExists(alternativeCommonVarsFilePath)) {
+            commonValues = readFileSync(alternativeCommonVarsFilePath, 'utf-8').replace(
+              /\r\n/g,
+              '\n',
+            );
+          }
+          const appliedVariables = {
+            ...(commonValues && parseYaml(commonValues)),
+            ...(groupValues && parseYaml(groupValues)),
+            ...(hostValues && parseYaml(hostValues)),
+          };
+
+          return {
+            hostname,
+            appliedVariables: stringify(appliedVariables),
+          };
+        }),
+      };
+    });
+    projectDetails.push({ inventoryType, groupHosts });
+  }
+  return projectDetails;
+};
+
 const extractHostsFromIniFile = (inventoryPath: string): string[] => {
   const hosts = [];
   const fileContent = readFileSync(inventoryPath, 'utf-8');
@@ -81,7 +148,6 @@ export const getProjectsHosts = (): ProjectsHosts => {
   for (const project of projects) {
     const projectPath = join(ansibleReposPath, project);
     const inventoryPaths = getInventoryFilesPaths(projectPath);
-
     const hosts = [];
     for (const inventoryPath of inventoryPaths) {
       const inventoryHosts = extractHostsFromInventory(inventoryPath);

@@ -19,8 +19,6 @@ const GitPage = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const dispatch = useCodeChangesDispatchContext();
   const { originalDiff, updatedDiff, updatedVars } = useCodeChangesContext();
-  // todo - když si popřepínám mezi common variables a applied variables, updated je v pohodě. Problém nastává,
-  // todo - když přepnu do diff editoru, protože originalDiff je false a updatedDiff je true
   useEffect(() => {
     dispatch(createDiff());
   }, []);

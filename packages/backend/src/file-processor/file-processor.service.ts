@@ -29,6 +29,10 @@ export class FileProcessorService {
     'host_vars',
   ];
 
+  /*getProjectDetails(projectName: string): any[] {
+    return [];
+  }
+*/
   commit(commitDto): void {
     const { commitMessage, branchName, updatedVars } = commitDto;
     console.log('commitDto on backend: ', JSON.stringify(commitDto));
