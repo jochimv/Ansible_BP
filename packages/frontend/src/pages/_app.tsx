@@ -17,6 +17,7 @@ import CodeChangesProvider from '../context/CodeChangesProvider';
 import { AppProps } from 'next/app';
 import '@frontend/styles/globals.css';
 import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 
 const queryClient = new QueryClient();
 
@@ -32,7 +33,7 @@ function countUpdatedVariables(arr, projectName) {
   let count = 0;
   const countedPaths = new Set();
 
-  arr.forEach(({ projectName: proj, hosts }) => {
+  arr?.forEach(({ projectName: proj, hosts }) => {
     if (proj === projectName) {
       hosts.forEach(({ hostDetailsByInventoryType }) => {
         hostDetailsByInventoryType.forEach(({ variables }) => {
@@ -53,8 +54,7 @@ function countUpdatedVariables(arr, projectName) {
 }
 
 const AppBarResolver = () => {
-  const { isInEditMode, selectedProjectName, updatedProjects, updatedVars } =
-    useCodeChangesContext();
+  const { isInEditMode, selectedProjectName, updatedProjects } = useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();
   const router = useRouter();
 
@@ -99,23 +99,45 @@ const AppBarResolver = () => {
   );
 };
 
-const App = ({ Component, pageProps, emotionCache = clientSideEmotionCache }: MyAppProps) => (
-  <CacheProvider value={emotionCache}>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <CodeChangesProvider>
-          <Head>
-            <meta name="viewport" content="initial-scale=1, width=device-width" />
-            <title>Ansible manager</title>
-          </Head>
-          <AppBarResolver />
-          <Box sx={{ mx: 5, mt: 4, mb: 4 }}>
-            <Component {...pageProps} />
-          </Box>
-        </CodeChangesProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
-  </CacheProvider>
-);
+const AutoSaveContextProvider = ({ children }) => {
+  const codeChangesContextData = useCodeChangesContext();
+  useEffect(() => {
+    window.addEventListener('beforeunload', () => handleBeforeUnload(codeChangesContextData));
+
+    // Cleanup the event listener when the component is unmounted
+    return () => {
+      window.removeEventListener('beforeunload', () => handleBeforeUnload(codeChangesContextData));
+    };
+  }, [codeChangesContextData]);
+  return <>{children}</>;
+};
+
+const handleBeforeUnload = (codeChangesContextData) => {
+  console.log('Putting data to codeChangesContextData: ', JSON.stringify(codeChangesContextData));
+  localStorage.setItem('codeChangesContextData', JSON.stringify(codeChangesContextData));
+};
+
+const App = ({ Component, pageProps, emotionCache = clientSideEmotionCache }: MyAppProps) => {
+  return (
+    <CacheProvider value={emotionCache}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>
+          <CodeChangesProvider>
+            <AutoSaveContextProvider>
+              <Head>
+                <meta name="viewport" content="initial-scale=1, width=device-width" />
+                <title>Ansible manager</title>
+              </Head>
+              <AppBarResolver />
+              <Box sx={{ mx: 5, mt: 4, mb: 4 }}>
+                <Component {...pageProps} />
+              </Box>
+            </AutoSaveContextProvider>
+          </CodeChangesProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </CacheProvider>
+  );
+};
 
 export default App;

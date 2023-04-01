@@ -170,17 +170,17 @@ function replaceVariableInProjectsArray(
 }
 
 interface CodeChangesState {
-  selectedProjectName: string | undefined;
+  selectedProjectName: string | null;
   isInEditMode: boolean;
-  selectedHostDetailsByInventoryType: HostDetails[] | undefined;
-  selectedHostDetails?: HostDetails | undefined;
+  selectedHostDetailsByInventoryType: HostDetails[] | null;
+  selectedHostDetails?: HostDetails | null;
   selectedVariables: any;
-  originalVars: HostVariable[] | undefined;
-  updatedVars: HostVariable[] | undefined;
+  originalVars: HostVariable[] | null;
+  updatedVars: HostVariable[] | null;
   updatedProjects: Project[];
   originalProjects: Project[];
-  originalDiff: HostVariable | undefined;
-  updatedDiff: HostVariable | undefined;
+  originalDiff: HostVariable | null;
+  updatedDiff: HostVariable | null;
 }
 interface CodeChangesAction {
   type: string;
@@ -196,19 +196,20 @@ export const actionTypes = keyMirror({
   SHOW_DIFF: null,
   ROLLBACK: null,
   SELECT_PROJECT: null,
+  INITIALIZE_CONTEXT: null,
 });
 export const initialState: CodeChangesState = {
   updatedProjects: [],
   originalProjects: [],
   isInEditMode: false,
-  selectedHostDetails: undefined,
-  selectedVariables: undefined,
+  selectedHostDetails: null,
+  selectedVariables: null,
   selectedHostDetailsByInventoryType: [],
-  originalDiff: undefined,
-  updatedDiff: undefined,
+  originalDiff: null,
+  updatedDiff: null,
   originalVars: [],
   updatedVars: [],
-  selectedProjectName: undefined,
+  selectedProjectName: null,
 };
 
 function getUpdatedVars(updatedProjects: Project[]) {
@@ -232,6 +233,8 @@ export const codeChangesReducer = (
   action: CodeChangesAction,
 ): CodeChangesState => {
   switch (action.type) {
+    case actionTypes.INITIALIZE_CONTEXT:
+      return action.payload;
     case actionTypes.SELECT_PROJECT:
       return { ...state, selectedProjectName: action.payload };
     case actionTypes.SWITCH_MODE:
@@ -847,7 +850,10 @@ export const initializeEditor = (payload: any): CodeChangesAction => ({
   type: actionTypes.INITIALIZE_EDITOR,
   payload,
 });
-
+export const initializeContext = (payload: any): CodeChangesAction => ({
+  type: actionTypes.INITIALIZE_CONTEXT,
+  payload,
+});
 export const selectProject = (payload: any): CodeChangesAction => ({
   type: actionTypes.SELECT_PROJECT,
   payload,
