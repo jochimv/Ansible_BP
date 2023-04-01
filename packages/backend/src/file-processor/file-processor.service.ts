@@ -4,11 +4,14 @@ import { parse as parseIni } from 'ini';
 import { parse as parseYaml } from 'yaml';
 import { extname, join } from 'path';
 import { ProjectsHosts } from '../types';
+import { writeFileSync } from 'fs';
+import { simpleGit } from 'simple-git';
 
-interface CommitDto {
-  message: string;
-  updatedContent: [];
+export interface CommitResponse {
+  error: string | boolean;
+  response?: any;
 }
+
 @Injectable()
 export class FileProcessorService {
   private ansibleReposPath =
@@ -29,13 +32,49 @@ export class FileProcessorService {
     'host_vars',
   ];
 
-  /*getProjectDetails(projectName: string): any[] {
-    return [];
-  }
-*/
-  commit(commitDto): void {
-    const { commitMessage, branchName, updatedVars } = commitDto;
-    console.log('commitDto on backend: ', JSON.stringify(commitDto));
+  // todo - dokončit pushování, nemám write access na repositáře
+  async commit(commitDto): Promise<CommitResponse> {
+    const { commitMessage, commitBranchName, projectName, updatedVars } = commitDto;
+    const repositoryPath = join(this.ansibleReposPath, projectName);
+    const git = simpleGit(repositoryPath);
+
+    let originalBranchName;
+    await git.branch(['--all'], (error, result) => {
+      if (error) {
+        console.log('Error during listing branches', error);
+      } else {
+        const { all: branchNames, branches } = result;
+        for (const branchName of branchNames) {
+          const { current, name } = branches[branchName];
+          if (current) {
+            originalBranchName = name;
+            break;
+          }
+        }
+      }
+    });
+
+    await git.checkoutBranch(commitBranchName, originalBranchName);
+    for (const updatedVar of updatedVars) {
+      const { pathInProject, values } = updatedVar;
+      const fullPath = join(this.ansibleReposPath, pathInProject);
+      writeFileSync(fullPath, values);
+      await git.add(fullPath);
+    }
+
+    await git.commit(commitMessage);
+
+    let detailedErrorMessage;
+    try {
+      const response = await git.push(['-u', 'origin', commitBranchName]);
+      console.log('Pushed successfully, response is: ', JSON.stringify(response));
+      await git.checkout(originalBranchName).deleteLocalBranch(commitBranchName, true);
+      return { error: false, response };
+    } catch (error) {
+      console.log('Could not push.');
+      await git.checkout(originalBranchName).deleteLocalBranch(commitBranchName, true);
+      return { error: `Failed to push: ${JSON.stringify(error)}` };
+    }
   }
 
   extractHostsFromIniFile(iniFileContent): string[] {
@@ -117,9 +156,5 @@ export class FileProcessorService {
       }
     }
     return inventoryFilesPaths;
-  }
-
-  getHostDetails(projectName, hostName) {
-    const projectPath = join(this.ansibleReposPath, projectName);
   }
 }
