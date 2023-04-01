@@ -28,8 +28,8 @@ export const getProjectDetails = (projectName: string): any[] => {
   const projectDetails = [];
 
   for (const inventoryFilePath of inventoryFilesPaths) {
-    const inventoryType = getLastPathSegment(getFileDirectory(inventoryFilePath));
-    const inventoryDirectoryPath = getFileDirectory(inventoryFilePath);
+    const inventoryType = getLastPathSegment(extractDirectoryPath(inventoryFilePath));
+    const inventoryDirectoryPath = extractDirectoryPath(inventoryFilePath);
     const fileContent = readFileSync(inventoryFilePath, 'utf-8');
     const parsedIni = parseIni(fileContent);
     const iniGroups = Object.keys(parsedIni);
@@ -187,7 +187,7 @@ const getInventoryFilesPaths = (dir: string): string[] => {
   return inventoryFilesPaths;
 };
 
-const getFileDirectory = (filePath: string): string => {
+const extractDirectoryPath = (filePath: string): string => {
   const parts = filePath.split('\\');
   parts.pop();
   return parts.join('\\');
@@ -252,7 +252,7 @@ export const getHostDetails = (projectName: string, hostName: string) => {
     const inventoryHosts = extractHostsFromInventory(inventoryFilePath);
     if (inventoryHosts.includes(hostName)) {
       const variables = [];
-      const inventoryDirectoryPath = getFileDirectory(inventoryFilePath);
+      const inventoryDirectoryPath = extractDirectoryPath(inventoryFilePath);
       const inventoryType = getLastPathSegment(inventoryDirectoryPath);
 
       const hostVarsFilePath = join(inventoryDirectoryPath, 'host_vars', `${hostName}.yml`);
@@ -262,7 +262,7 @@ export const getHostDetails = (projectName: string, hostName: string) => {
         hostVariables = {
           type: 'host',
           pathInProject: removeAnsibleReposPathFromPath(hostVarsFilePath),
-          values: readFileSync(hostVarsFilePath, 'utf-8'),
+          values: readFileSync(hostVarsFilePath, 'utf-8').replace(/\r\n/g, '\n'),
           updated: false,
         };
         variables.push(hostVariables);
@@ -277,7 +277,7 @@ export const getHostDetails = (projectName: string, hostName: string) => {
         groupVariables = {
           type: 'group',
           pathInProject: removeAnsibleReposPathFromPath(groupVarsFilePath),
-          values: readFileSync(groupVarsFilePath, 'utf-8'),
+          values: readFileSync(groupVarsFilePath, 'utf-8').replace(/\r\n/g, '\n'),
           updated: false,
         };
         variables.push(groupVariables);

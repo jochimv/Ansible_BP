@@ -531,11 +531,14 @@ export const codeChangesReducer = (
         values: newEditorValue,
       });
       // try to find the new selectedVariables inside original project to see if the variable was updated (for git)
-      const originalSelectedVariables: HostVariable | undefined = findVariableObject(
-        state.originalProjects,
-        state.selectedVariables.pathInProject,
-        projectName,
-        hostname,
+      const originalSelectedVariables: HostVariable | undefined = omit(
+        ['updated'],
+        findVariableObject(
+          state.originalProjects,
+          state.selectedVariables.pathInProject,
+          projectName,
+          hostname,
+        ),
       );
 
       updatedSelectedVariables = {
