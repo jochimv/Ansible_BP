@@ -2,6 +2,9 @@ import keyMirror from 'keymirror';
 import { parse as parseYaml, stringify } from 'yaml';
 import { omit } from 'ramda';
 
+// todo - bug - přepnutí na jeden projekt, tam edituju jeden soubor, přepnu na druhý projekt, edituju druhý soubor, přepnu na první, a už tam nemám ukázané žádné změny
+// todo - v DiffEditoru nefunguje auto expand na první soubor správně?
+// todo - ta integrace na local storage taky nějak blbne
 interface HostVariable {
   type: string;
   pathInProject: string;

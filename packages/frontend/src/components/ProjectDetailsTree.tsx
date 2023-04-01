@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { TreeView, TreeItem } from '@mui/lab';
-import StorageIcon from '@mui/icons-material/Storage';
+import { faServer } from '@fortawesome/free-solid-svg-icons';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 const ProjectDetailsTree = ({ data, onNodeSelected }) => {
   const [expanded, setExpanded] = useState<string[]>(['inventory-0', 'group-0-0']);
   const [selected, setSelected] = useState<string[]>(['host-0-0-0']);
@@ -35,7 +36,11 @@ const ProjectDetailsTree = ({ data, onNodeSelected }) => {
   const renderTree = (nodes) => {
     return (
       <TreeItem
-        icon={Array.isArray(nodes.children) ? undefined : <StorageIcon sx={{ color: 'gray' }} />}
+        icon={
+          Array.isArray(nodes.children) ? undefined : (
+            <FontAwesomeIcon icon={faServer} style={{ color: 'gray' }} />
+          )
+        }
         key={nodes.id}
         nodeId={nodes.id}
         label={nodes.name}

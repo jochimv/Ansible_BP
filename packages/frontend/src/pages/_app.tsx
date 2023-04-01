@@ -8,17 +8,19 @@ import { AppBar, Box } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import Link from 'next/link';
 import { useCodeChangesContext, useCodeChangesDispatchContext } from '@frontend/context/context';
-import { switchMode } from '@frontend/context/reducer';
+import { initializeContext, initialState, switchMode } from '@frontend/context/reducer';
 import EditIcon from '@mui/icons-material/Edit';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
-import GitHubIcon from '@mui/icons-material/GitHub';
-import ArchitectureIcon from '@mui/icons-material/Architecture';
+import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
 import CodeChangesProvider from '../context/CodeChangesProvider';
 import { AppProps } from 'next/app';
 import '@frontend/styles/globals.css';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExplosion } from '@fortawesome/free-solid-svg-icons';
+import { faGitAlt } from '@fortawesome/free-brands-svg-icons';
 const queryClient = new QueryClient();
 
 const clientSideEmotionCache = createEmotionCache();
@@ -29,11 +31,13 @@ interface MyAppProps extends AppProps {
   emotionCache?: EmotionCache;
 }
 
-function countUpdatedVariables(arr, projectName) {
+function countUpdatedVariables(projects, projectName) {
   let count = 0;
   const countedPaths = new Set();
 
-  arr?.forEach(({ projectName: proj, hosts }) => {
+  console.log('updatedProjects: ', JSON.stringify(projects));
+
+  projects?.forEach(({ projectName: proj, hosts }) => {
     if (proj === projectName) {
       hosts.forEach(({ hostDetailsByInventoryType }) => {
         hostDetailsByInventoryType.forEach(({ variables }) => {
@@ -65,16 +69,20 @@ const AppBarResolver = () => {
         <Toolbar sx={{ justifyContent: 'flex-end' }}>
           <Button
             color="inherit"
-            onClick={() => router.push(`/${selectedProjectName}`)}
-            startIcon={<ArchitectureIcon />}
+            onClick={() => {
+              dispatch(initializeContext(initialState));
+              localStorage.removeItem('codeChangesContextData');
+            }}
+            startIcon={<FontAwesomeIcon style={{ width: 18, height: 18 }} icon={faExplosion} />}
           >
-            {selectedProjectName ? selectedProjectName : 'No project selected'}
+            Clear all
           </Button>
+
           <Button
             color="inherit"
             startIcon={
               <Badge badgeContent={numberOfUpdatedFiles} color="warning">
-                <GitHubIcon />
+                <FontAwesomeIcon icon={faGitAlt} />
               </Badge>
             }
             component={Link}
@@ -88,6 +96,13 @@ const AppBarResolver = () => {
             onClick={() => dispatch(switchMode())}
           >
             {isInEditMode ? 'Edit mode' : 'Read mode'}
+          </Button>
+          <Button
+            color="inherit"
+            onClick={() => router.push(`/${selectedProjectName}`)}
+            startIcon={<FolderOutlinedIcon />}
+          >
+            {selectedProjectName ? selectedProjectName : 'No project selected'}
           </Button>
           <Button color="inherit" startIcon={<Search />} component={Link} href="/">
             Hledat
