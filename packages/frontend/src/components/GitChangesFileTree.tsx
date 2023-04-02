@@ -64,7 +64,7 @@ function getPathHierarchy(path) {
   return result;
 }
 
-const FileTree = () => {
+const GitChangesFileTree = () => {
   const { originalVars, originalDiff, selectedProjectName } = useCodeChangesContext();
 
   const dispatch = useCodeChangesDispatchContext();
@@ -98,4 +98,4 @@ const FileTree = () => {
   );
 };
 
-export default FileTree;
+export default GitChangesFileTree;

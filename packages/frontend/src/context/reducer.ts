@@ -2,7 +2,6 @@ import keyMirror from 'keymirror';
 import { parse as parseYaml, stringify } from 'yaml';
 import { omit } from 'ramda';
 
-// todo - bug - přepnutí na jeden projekt, tam edituju jeden soubor, přepnu na druhý projekt, edituju druhý soubor, přepnu na první, a už tam nemám ukázané žádné změny
 // todo - v DiffEditoru nefunguje auto expand na první soubor správně?
 // todo - ta integrace na local storage taky nějak blbne
 interface HostVariable {
@@ -299,7 +298,6 @@ export const codeChangesReducer = (
       if (selectedHostDetailsByInventoryType) {
         selectedHostDetails = selectedHostDetailsByInventoryType[0];
         selectedVariables = selectedHostDetails.variables[0];
-
         return {
           ...state,
           selectedHostDetailsByInventoryType,
@@ -327,6 +325,7 @@ export const codeChangesReducer = (
             ...state.originalProjects,
             { projectName, hosts: [{ hostname, hostDetailsByInventoryType }] },
           ];
+          updatedUpdatedProjects = state.updatedProjects;
           // if the project is present, but host is not inside the project, add the host there. common vars or group vars could be updated via another host, thats why we need to map hostDetailsByInventoryType to search for already updated variables
         } else if (originalProject && !hostPresentInOriginalProject) {
           updatedOriginalProjects = state.originalProjects.map((originalProject: Project) => {
@@ -430,6 +429,7 @@ export const codeChangesReducer = (
             );
 
             if (!updatedProject) {
+              // todo - je to tady? protože tam spreaduju originalProjects
               updatedUpdatedProjects = [
                 ...state.originalProjects,
                 {
@@ -466,7 +466,6 @@ export const codeChangesReducer = (
           updatedOriginalProjects = state.originalProjects;
           updatedUpdatedProjects = state.updatedProjects;
         }
-
         return {
           ...state,
           selectedHostDetailsByInventoryType,

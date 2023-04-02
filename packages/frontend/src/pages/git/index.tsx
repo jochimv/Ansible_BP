@@ -8,7 +8,7 @@ import {
 import { useCodeChangesContext, useCodeChangesDispatchContext } from '../../context/context';
 import { useEffect, useState } from 'react';
 import { createDiff, rollback } from '../../context/reducer';
-import FileTree from '../../components/FileTree';
+import GitChangesFileTree from '../../components/GitChangesFileTree';
 import CommitModal from '@frontend/components/CommitModal';
 
 const stackPropsIfNoChanges = {
@@ -45,7 +45,7 @@ const GitPage = () => {
                 Rollback
               </Button>
             </Stack>
-            <FileTree />
+            <GitChangesFileTree />
           </Stack>
           <DiffEditor
             language="yml"

@@ -35,8 +35,6 @@ function countUpdatedVariables(projects, projectName) {
   let count = 0;
   const countedPaths = new Set();
 
-  console.log('updatedProjects: ', JSON.stringify(projects));
-
   projects?.forEach(({ projectName: proj, hosts }) => {
     if (proj === projectName) {
       hosts.forEach(({ hostDetailsByInventoryType }) => {
@@ -128,7 +126,6 @@ const AutoSaveContextProvider = ({ children }) => {
 };
 
 const handleBeforeUnload = (codeChangesContextData) => {
-  console.log('Putting data to codeChangesContextData: ', JSON.stringify(codeChangesContextData));
   localStorage.setItem('codeChangesContextData', JSON.stringify(codeChangesContextData));
 };
 

@@ -43,7 +43,6 @@ const CommitModal = ({ open, onClose: handleClose }: Props) => {
 
   const { mutate, isLoading, reset } = useMutation(postCommitData, {
     onSuccess: (data) => setResponse(data.data),
-    onError: (data) => console.log(data),
   });
   const { updatedVars } = useCodeChangesContext();
   const handleCommit = () => {
@@ -89,12 +88,7 @@ const CommitModal = ({ open, onClose: handleClose }: Props) => {
             >
               Try again
             </Button>
-            <Button
-              color="error"
-              // todo - onExited
-              onClick={handleClose}
-              startIcon={<CloseIcon />}
-            >
+            <Button color="error" onClick={handleClose} startIcon={<CloseIcon />}>
               Close
             </Button>
           </DialogActions>
