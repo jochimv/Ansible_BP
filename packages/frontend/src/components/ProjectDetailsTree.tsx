@@ -32,7 +32,6 @@ const ProjectDetailsTree = ({ data, onNodeSelected }) => {
       }
     }
   };
-  w;
   const renderTree = (nodes) => {
     return (
       <TreeItem

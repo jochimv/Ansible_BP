@@ -19,7 +19,7 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExplosion } from '@fortawesome/free-solid-svg-icons';
+import { faBroom } from '@fortawesome/free-solid-svg-icons';
 import { faGitAlt } from '@fortawesome/free-brands-svg-icons';
 const queryClient = new QueryClient();
 
@@ -71,7 +71,7 @@ const AppBarResolver = () => {
               dispatch(initializeContext(initialState));
               localStorage.removeItem('codeChangesContextData');
             }}
-            startIcon={<FontAwesomeIcon style={{ width: 18, height: 18 }} icon={faExplosion} />}
+            startIcon={<FontAwesomeIcon style={{ width: 18, height: 18 }} icon={faBroom} />}
           >
             Clear all
           </Button>

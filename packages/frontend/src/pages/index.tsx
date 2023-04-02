@@ -9,7 +9,7 @@ const HomePage = ({ projectHosts }) => {
   const projectNames = projectHosts.map((projectHost) => projectHost.project);
 
   const router = useRouter();
-  const { selectedProjectName, updatedProjects } = useCodeChangesContext();
+  const { selectedProjectName } = useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();
   return (
     <Stack spacing={3}>
