@@ -46,7 +46,6 @@ const HomePage = ({ projectHosts }) => {
 
 export async function getServerSideProps() {
   const projectHosts = getProjectsHosts();
-
   return {
     props: { projectHosts },
   };

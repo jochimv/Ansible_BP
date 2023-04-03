@@ -20,6 +20,8 @@ import {
   showVariables,
   updateVariables,
 } from '@frontend/context/reducer';
+import HostNotFound from '@frontend/components/notFoundPages/HostNotFound';
+import ProjectNotFound from '@frontend/components/notFoundPages/ProjectNotFound';
 
 interface HostPageProps {
   hostDetailsByInventoryType: HostDetails[];
@@ -48,13 +50,24 @@ const formatErrorMessage = (message: string): JSX.Element => {
   );
 };
 
-const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: HostPageProps) => {
+const HostDetailsPage = ({
+  hostname,
+  projectName,
+  hostDetailsByInventoryType,
+  projectExists,
+  hostExists,
+}: HostPageProps) => {
+  if (!projectExists) {
+    return <ProjectNotFound />;
+  } else if (!hostExists) {
+    return <HostNotFound />;
+  }
+
   const {
     isInEditMode,
     selectedHostDetails,
     selectedVariables,
     selectedHostDetailsByInventoryType,
-    updatedProjects,
   } = useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();
 
@@ -73,6 +86,7 @@ const HostDetailsPage = ({ hostname, projectName, hostDetailsByInventoryType }: 
   const handleEditorChange = (newEditorValue: string | undefined) => {
     dispatch(updateVariables({ newEditorValue, projectName, hostname }));
   };
+
   return (
     <Stack direction="row" sx={{ height: '100%' }}>
       <Stack spacing={3}>
@@ -172,12 +186,17 @@ export default HostDetailsPage;
 
 export async function getServerSideProps(context: any) {
   const { hostname, projectName } = context.query;
-  const hostDetailsByInventoryType = getHostDetails(projectName, hostname);
+  const { hostDetailsByInventoryType, projectExists, hostExists } = getHostDetails(
+    projectName,
+    hostname,
+  );
   return {
     props: {
       hostname,
       projectName,
       hostDetailsByInventoryType,
+      projectExists,
+      hostExists,
     },
   };
 }

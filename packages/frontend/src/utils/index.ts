@@ -23,8 +23,12 @@ const directoriesToIgnore = [
   'host_vars',
 ];
 
-export const getProjectDetails = (projectName: string): any[] => {
+export const getProjectDetails = (projectName: string): any[] | boolean => {
   const projectPath = join(ansibleReposPath, projectName);
+  if (!fileOrDirectoryExists(projectName)) {
+    return false;
+  }
+
   const inventoryFilesPaths = getInventoryFilesPaths(projectPath);
   const projectDetails = [];
 
@@ -42,7 +46,7 @@ export const getProjectDetails = (projectName: string): any[] => {
           const hostVarsFilePath = join(inventoryDirectoryPath, 'host_vars', `${hostname}.yml`);
 
           let hostValues;
-          if (fileExists(hostVarsFilePath)) {
+          if (fileOrDirectoryExists(hostVarsFilePath)) {
             hostValues = readFileSync(hostVarsFilePath, 'utf-8');
           }
 
@@ -55,7 +59,7 @@ export const getProjectDetails = (projectName: string): any[] => {
             `${baseGroupName}.yml`,
           );
           let groupValues;
-          if (fileExists(groupVarsFilePath)) {
+          if (fileOrDirectoryExists(groupVarsFilePath)) {
             groupValues = readFileSync(groupVarsFilePath, 'utf-8');
           }
 
@@ -64,9 +68,9 @@ export const getProjectDetails = (projectName: string): any[] => {
           const alternativeCommonVarsFilePath = join(groupVarsDirectoryPath, 'all.yml');
 
           let commonValues;
-          if (fileExists(commonVarsFilePath)) {
+          if (fileOrDirectoryExists(commonVarsFilePath)) {
             commonValues = readFileSync(commonVarsFilePath, 'utf-8').replace(/\r\n/g, '\n');
-          } else if (fileExists(alternativeCommonVarsFilePath)) {
+          } else if (fileOrDirectoryExists(alternativeCommonVarsFilePath)) {
             commonValues = readFileSync(alternativeCommonVarsFilePath, 'utf-8').replace(
               /\r\n/g,
               '\n',
@@ -142,7 +146,8 @@ const isIni = (inventoryPath: string) => {
   const inventoryExtension = extname(inventoryPath);
   return inventoryExtension === '.ini' || inventoryExtension === '';
 };
-export const getProjectsHosts = (): ProjectsHosts => {
+
+export const getProjectsHosts = (): ProjectsHosts | boolean => {
   const projectsHosts = [];
   const projects = readdirSync(ansibleReposPath);
 
@@ -199,7 +204,7 @@ const getLastPathSegment = (path: string): string => {
   return segments[segments.length - 1]; // return the last segment
 };
 
-const fileExists = (path: string): boolean => {
+const fileOrDirectoryExists = (path: string): boolean => {
   try {
     accessSync(path, constants.F_OK);
     return true;
@@ -247,11 +252,19 @@ const getCommonVariablesObj = (filePath: string) => {
 
 export const getHostDetails = (projectName: string, hostName: string) => {
   const projectPath = join(ansibleReposPath, projectName);
+
+  if (!fileOrDirectoryExists(projectPath)) {
+    return { projectExists: false, hostDetailsByInventoryType: null, hostExists: false };
+  }
+
   const inventoryFilesPaths = getInventoryFilesPaths(projectPath);
-  const projectHostDetails = [];
+  const hostDetailsByInventoryType = [];
+  let hostExists = false;
   for (const inventoryFilePath of inventoryFilesPaths) {
     const inventoryHosts = extractHostsFromInventory(inventoryFilePath);
     if (inventoryHosts.includes(hostName)) {
+      hostExists = true;
+
       const variables = [];
       const inventoryDirectoryPath = extractDirectoryPath(inventoryFilePath);
       const inventoryType = getLastPathSegment(inventoryDirectoryPath);
@@ -259,7 +272,7 @@ export const getHostDetails = (projectName: string, hostName: string) => {
       const hostVarsFilePath = join(inventoryDirectoryPath, 'host_vars', `${hostName}.yml`);
 
       let hostVariables;
-      if (fileExists(hostVarsFilePath)) {
+      if (fileOrDirectoryExists(hostVarsFilePath)) {
         hostVariables = {
           type: 'host',
           pathInProject: removeAnsibleReposPathFromPath(hostVarsFilePath),
@@ -274,7 +287,7 @@ export const getHostDetails = (projectName: string, hostName: string) => {
 
       const groupVarsFilePath = join(inventoryDirectoryPath, 'group_vars', `${baseGroupName}.yml`);
       let groupVariables;
-      if (fileExists(groupVarsFilePath)) {
+      if (fileOrDirectoryExists(groupVarsFilePath)) {
         groupVariables = {
           type: 'group',
           pathInProject: removeAnsibleReposPathFromPath(groupVarsFilePath),
@@ -289,10 +302,10 @@ export const getHostDetails = (projectName: string, hostName: string) => {
       const alternativeCommonVarsFilePath = join(groupVarsDirectoryPath, 'all.yml');
 
       let commonVariables;
-      if (fileExists(commonVarsFilePath)) {
+      if (fileOrDirectoryExists(commonVarsFilePath)) {
         commonVariables = getCommonVariablesObj(commonVarsFilePath);
         variables.push(commonVariables);
-      } else if (fileExists(alternativeCommonVarsFilePath)) {
+      } else if (fileOrDirectoryExists(alternativeCommonVarsFilePath)) {
         commonVariables = getCommonVariablesObj(alternativeCommonVarsFilePath);
         variables.push(commonVariables);
       }
@@ -307,12 +320,13 @@ export const getHostDetails = (projectName: string, hostName: string) => {
         values: stringify(appliedVariables),
         updated: false,
       });
-      projectHostDetails.push({
+      hostDetailsByInventoryType.push({
         inventoryType,
         groupName,
         variables,
       });
+      break;
     }
   }
-  return projectHostDetails;
+  return { hostDetailsByInventoryType, hostExists, projectExists: true };
 };
