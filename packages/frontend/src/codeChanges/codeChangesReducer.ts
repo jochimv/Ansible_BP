@@ -2,8 +2,6 @@ import keyMirror from 'keymirror';
 import { parse as parseYaml, stringify } from 'yaml';
 import { omit } from 'ramda';
 
-// todo - v DiffEditoru nefunguje auto expand na první soubor správně?
-// todo - ta integrace na local storage taky nějak blbne
 interface HostVariable {
   type: string;
   pathInProject: string;
@@ -57,7 +55,7 @@ const findHostDetailsByInventoryType = (
   hostname: string,
   updatedProjects: Project[],
 ) => {
-  for (let i = 0; i < updatedProjects.length; i++) {
+  for (let i = 0; i < updatedProjects?.length; i++) {
     const project = updatedProjects[i];
     if (project.projectName === projectName) {
       for (let j = 0; j < project.hosts.length; j++) {
@@ -199,6 +197,9 @@ export const actionTypes = keyMirror({
   ROLLBACK: null,
   SELECT_PROJECT: null,
   INITIALIZE_CONTEXT: null,
+  CLEAR_ALL_UPDATES: null,
+  OPEN_COMMIT_MODAL: null,
+  CLOSE_COMMIT_MODAL: null,
 });
 export const initialState: CodeChangesState = {
   updatedProjects: [],
@@ -273,6 +274,22 @@ export const codeChangesReducer = (
         updatedDiff: updatedVars[0],
       };
     }
+    case actionTypes.CLEAR_ALL_UPDATES: {
+      return {
+        ...state,
+        originalDiff: null,
+        updatedDiff: null,
+        originalVars: state.originalVars?.filter(
+          (originalVar) => originalVar.pathInProject.split('\\')[1] !== state.selectedProjectName,
+        ),
+        updatedVars: state.updatedVars?.filter(
+          (updatedVar) => updatedVar.pathInProject.split('\\')[1] !== state.selectedProjectName,
+        ),
+        updatedProjects: state.updatedProjects?.filter(
+          (updatedProject) => updatedProject.projectName !== state.selectedProjectName,
+        ),
+      };
+    }
     case actionTypes.INITIALIZE_EDITOR: {
       const { hostDetailsByInventoryType, projectName, hostname } = action.payload;
 
@@ -310,7 +327,7 @@ export const codeChangesReducer = (
         selectedHostDetails = hostDetailsByInventoryType[0];
         selectedVariables = selectedHostDetails.variables[0];
 
-        const originalProject = state.originalProjects.find(
+        const originalProject = state.originalProjects?.find(
           (originalProject: Project) => originalProject.projectName === projectName,
         );
         const hostPresentInOriginalProject = !!originalProject?.hosts.find(
@@ -429,7 +446,6 @@ export const codeChangesReducer = (
             );
 
             if (!updatedProject) {
-              // todo - je to tady? protože tam spreaduju originalProjects
               updatedUpdatedProjects = [
                 ...state.originalProjects,
                 {
@@ -826,6 +842,8 @@ export const rollback = (payload: any): CodeChangesAction => ({
   type: actionTypes.ROLLBACK,
   payload,
 });
+
+export const clearAllUpdates = (): CodeChangesAction => ({ type: actionTypes.CLEAR_ALL_UPDATES });
 export const switchMode = (): CodeChangesAction => ({ type: actionTypes.SWITCH_MODE });
 
 export const updateVariables = (payload: any): CodeChangesAction => ({

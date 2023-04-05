@@ -7,12 +7,19 @@ import { Badge, Button, ThemeProvider, Toolbar } from '@mui/material';
 import { AppBar, Box } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import Link from 'next/link';
-import { useCodeChangesContext, useCodeChangesDispatchContext } from '@frontend/context/context';
-import { initializeContext, initialState, switchMode } from '@frontend/context/reducer';
+import {
+  useCodeChangesContext,
+  useCodeChangesDispatchContext,
+} from '@frontend/codeChanges/CodeChangesContext';
+import {
+  initializeContext,
+  initialState,
+  switchMode,
+} from '@frontend/codeChanges/codeChangesReducer';
 import EditIcon from '@mui/icons-material/Edit';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
-import CodeChangesProvider from '../context/CodeChangesProvider';
+import CodeChangesProvider from '../codeChanges/CodeChangesProvider';
 import { AppProps } from 'next/app';
 import '@frontend/styles/globals.css';
 import { useRouter } from 'next/router';
@@ -51,7 +58,6 @@ function countUpdatedVariables(projects, projectName) {
       });
     }
   });
-
   return count;
 }
 

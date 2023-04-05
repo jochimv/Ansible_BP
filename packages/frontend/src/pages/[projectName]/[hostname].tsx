@@ -12,14 +12,17 @@ import { getHostDetails } from '@frontend/utils';
 import Editor from '@monaco-editor/react';
 import { Breadcrumbs } from '@mui/material';
 import Link from 'next/link';
-import { useCodeChangesContext, useCodeChangesDispatchContext } from '@frontend/context/context';
+import {
+  useCodeChangesContext,
+  useCodeChangesDispatchContext,
+} from '@frontend/codeChanges/CodeChangesContext';
 import {
   HostDetails,
   initializeEditor,
   showHostDetails,
   showVariables,
   updateVariables,
-} from '@frontend/context/reducer';
+} from '@frontend/codeChanges/codeChangesReducer';
 import HostNotFound from '@frontend/components/notFoundPages/HostNotFound';
 import ProjectNotFound from '@frontend/components/notFoundPages/ProjectNotFound';
 
@@ -73,7 +76,6 @@ const HostDetailsPage = ({
 
   useEffect(() => {
     // todo - integrace na react query. Problém je v tom, že se bere info ze static props, a tím pádem se soubory z backendu zpracovávají zbytečně když už existují v kontextu.
-    // todo - taky by byla fajn udělat integrace na local storage, aby se projekty načetly i při reloadu stránky
     dispatch(
       initializeEditor({
         hostDetailsByInventoryType,

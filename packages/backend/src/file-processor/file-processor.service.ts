@@ -9,7 +9,7 @@ import { simpleGit } from 'simple-git';
 
 export interface CommitResponse {
   error: string | boolean;
-  response?: any;
+  pullRequestUrl?: any;
 }
 
 @Injectable()
@@ -64,12 +64,14 @@ export class FileProcessorService {
 
     await git.commit(commitMessage);
 
-    let detailedErrorMessage;
     try {
       const response = await git.push(['-u', 'origin', commitBranchName]);
       console.log('Pushed successfully, response is: ', JSON.stringify(response));
+      const pullRequestUrl = response.remoteMessages.all[1];
+      console.log('response: ', JSON.stringify(response));
+      console.log('pullRequestUrl: ', pullRequestUrl);
       await git.checkout(originalBranchName).deleteLocalBranch(commitBranchName, true);
-      return { error: false, response };
+      return { error: false, pullRequestUrl };
     } catch (error) {
       console.log('Could not push.');
       await git.checkout(originalBranchName).deleteLocalBranch(commitBranchName, true);

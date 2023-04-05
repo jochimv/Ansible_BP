@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { TreeView, TreeItem } from '@mui/lab';
-import { faServer } from '@fortawesome/free-solid-svg-icons';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { faServer } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 const ProjectDetailsTree = ({ data, onNodeSelected }) => {
   const [expanded, setExpanded] = useState<string[]>(['inventory-0', 'group-0-0']);

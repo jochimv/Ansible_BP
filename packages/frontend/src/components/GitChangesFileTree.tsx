@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { TreeView, TreeItem } from '@mui/lab';
 import { Folder, Description } from '@mui/icons-material';
-import { useCodeChangesContext, useCodeChangesDispatchContext } from '../context/context';
-import { showDiff } from '../context/reducer';
+import {
+  useCodeChangesContext,
+  useCodeChangesDispatchContext,
+} from '../codeChanges/CodeChangesContext';
+import { showDiff } from '../codeChanges/codeChangesReducer';
 
 const buildTree = (paths: string[]) => {
   const tree = {};
@@ -68,7 +71,6 @@ const GitChangesFileTree = () => {
   const { originalVars, originalDiff, selectedProjectName } = useCodeChangesContext();
 
   const dispatch = useCodeChangesDispatchContext();
-  // todo: problém je v tom, že po načtení není načtený project ani host do něj. Čili když upravím jednu věc a pak druhou v jiném projektu, nenačte se v git page
   const paths = originalVars
     .map((originalVar) => originalVar.pathInProject)
     // only show diff for the current project

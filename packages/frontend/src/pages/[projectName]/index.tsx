@@ -4,7 +4,6 @@ import { getProjectDetails } from '@frontend/utils';
 import ProjectDetailsTree from '@frontend/components/ProjectDetailsTree';
 import Editor from '@monaco-editor/react';
 import { useState } from 'react';
-import { FolderOffOutlined } from '@mui/icons-material';
 import ProjectNotFound from '@frontend/components/notFoundPages/ProjectNotFound';
 
 const convertData = (data) => {

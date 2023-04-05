@@ -2,26 +2,38 @@ import { DiffEditor } from '@monaco-editor/react';
 import { Stack, Typography, Button } from '@mui/material';
 import {
   Replay as ReplayIcon,
-  Send as SendIcon,
   CodeOff as CodeOffIcon,
+  Send as SendIcon,
 } from '@mui/icons-material';
-import { useCodeChangesContext, useCodeChangesDispatchContext } from '../../context/context';
-import { useEffect, useState } from 'react';
-import { createDiff, rollback } from '../../context/reducer';
+import {
+  useCodeChangesContext,
+  useCodeChangesDispatchContext,
+} from '../../codeChanges/CodeChangesContext';
+import React, { useEffect } from 'react';
+import { createDiff, rollback } from '../../codeChanges/codeChangesReducer';
 import GitChangesFileTree from '../../components/GitChangesFileTree';
-import CommitModal from '@frontend/components/CommitModal';
+import CommitModal from '@frontend/components/CommitModal/CommitModal';
+import { open } from '@frontend/components/CommitModal/state/commitModalReducer';
+import {
+  useCommitModalContext,
+  useCommitModalDispatchContext,
+} from '@frontend/components/CommitModal/state/CommitModalContext';
+import CommitModalProvider from '@frontend/components/CommitModal/state/CommitModalProvider';
 
 const stackPropsIfNoChanges = {
   alignItems: 'center',
   justifyContent: 'center',
 };
 const GitPage = () => {
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const dispatch = useCodeChangesDispatchContext();
-  const { originalDiff, updatedDiff, updatedVars } = useCodeChangesContext();
+  //const [isModalOpen, setIsModalOpen] = useState(false);
+  const codeChangesDispatch = useCodeChangesDispatchContext();
+  const { originalDiff, updatedDiff } = useCodeChangesContext();
+  const commitModalDispatch = useCommitModalDispatchContext();
+
   useEffect(() => {
-    dispatch(createDiff());
+    codeChangesDispatch(createDiff());
   }, []);
+
   return (
     <Stack
       direction="row"
@@ -29,18 +41,25 @@ const GitPage = () => {
       height="100%"
       {...(originalDiff ? {} : stackPropsIfNoChanges)}
     >
+      <CommitModal />
       {originalDiff ? (
         <>
           <Stack direction="column">
             <Stack direction="row">
-              <CommitModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />
-              <Button startIcon={<SendIcon />} color="success" onClick={() => setIsModalOpen(true)}>
+              <Button
+                startIcon={<SendIcon />}
+                color="success"
+                onClick={() => {
+                  //setIsModalOpen(true);
+                  commitModalDispatch(open());
+                }}
+              >
                 Commit
               </Button>
               <Button
                 startIcon={<ReplayIcon />}
                 color="error"
-                onClick={() => dispatch(rollback(updatedDiff))}
+                onClick={() => codeChangesDispatch(rollback(updatedDiff))}
               >
                 Rollback
               </Button>
@@ -65,4 +84,8 @@ const GitPage = () => {
   );
 };
 
-export default GitPage;
+export default () => (
+  <CommitModalProvider>
+    <GitPage />
+  </CommitModalProvider>
+);

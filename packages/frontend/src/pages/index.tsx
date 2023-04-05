@@ -2,8 +2,11 @@ import React from 'react';
 import { Autocomplete, TextField, AutocompleteRenderInputParams, Stack } from '@mui/material';
 import { getProjectsHosts } from '@frontend/utils';
 import { useRouter } from 'next/router';
-import { useCodeChangesContext, useCodeChangesDispatchContext } from '@frontend/context/context';
-import { selectProject } from '@frontend/context/reducer';
+import {
+  useCodeChangesContext,
+  useCodeChangesDispatchContext,
+} from '@frontend/codeChanges/CodeChangesContext';
+import { selectProject } from '@frontend/codeChanges/codeChangesReducer';
 
 const HomePage = ({ projectHosts }) => {
   const projectNames = projectHosts.map((projectHost) => projectHost.project);
