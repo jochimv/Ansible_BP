@@ -11,11 +11,7 @@ import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
 } from '@frontend/codeChanges/CodeChangesContext';
-import {
-  initializeContext,
-  initialState,
-  switchMode,
-} from '@frontend/codeChanges/codeChangesReducer';
+import { switchMode } from '@frontend/codeChanges/codeChangesReducer';
 import EditIcon from '@mui/icons-material/Edit';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
@@ -28,6 +24,10 @@ import { useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBroom } from '@fortawesome/free-solid-svg-icons';
 import { faGitAlt } from '@fortawesome/free-brands-svg-icons';
+import ClearModalProvider from '@frontend/components/ClearModal/state/ClearModalProvider';
+import { useClearModalDispatchContext } from '@frontend/components/ClearModal/state/ClearModalContext';
+import { open } from '@frontend/components/ClearModal/state/clearModalReducer';
+import ClearModal from '@frontend/components/ClearModal';
 const queryClient = new QueryClient();
 
 const clientSideEmotionCache = createEmotionCache();
@@ -38,7 +38,7 @@ interface MyAppProps extends AppProps {
   emotionCache?: EmotionCache;
 }
 
-function countUpdatedVariables(projects, projectName) {
+export function countUpdatedVariables(projects, projectName) {
   let count = 0;
   const countedPaths = new Set();
 
@@ -63,23 +63,24 @@ function countUpdatedVariables(projects, projectName) {
 
 const AppBarResolver = () => {
   const { isInEditMode, selectedProjectName, updatedProjects } = useCodeChangesContext();
-  const dispatch = useCodeChangesDispatchContext();
+  const codeChangesDispatch = useCodeChangesDispatchContext();
   const router = useRouter();
+  const clearModalDispatch = useClearModalDispatchContext();
 
   const numberOfUpdatedFiles = countUpdatedVariables(updatedProjects, selectedProjectName);
   return (
     <>
       <AppBar>
         <Toolbar sx={{ justifyContent: 'flex-end' }}>
+          <ClearModal />
           <Button
             color="inherit"
             onClick={() => {
-              dispatch(initializeContext(initialState));
-              localStorage.removeItem('codeChangesContextData');
+              clearModalDispatch(open());
             }}
             startIcon={<FontAwesomeIcon style={{ width: 18, height: 18 }} icon={faBroom} />}
           >
-            Clear all
+            Clear
           </Button>
 
           <Button
@@ -90,14 +91,14 @@ const AppBarResolver = () => {
               </Badge>
             }
             component={Link}
-            href="/git"
+            href={`/${selectedProjectName}/git`}
           >
             Git
           </Button>
           <Button
             startIcon={isInEditMode ? <EditIcon /> : <LibraryBooksIcon />}
             color="inherit"
-            onClick={() => dispatch(switchMode())}
+            onClick={() => codeChangesDispatch(switchMode())}
           >
             {isInEditMode ? 'Edit mode' : 'Read mode'}
           </Button>
@@ -146,7 +147,9 @@ const App = ({ Component, pageProps, emotionCache = clientSideEmotionCache }: My
                 <meta name="viewport" content="initial-scale=1, width=device-width" />
                 <title>Ansible manager</title>
               </Head>
-              <AppBarResolver />
+              <ClearModalProvider>
+                <AppBarResolver />
+              </ClearModalProvider>
               <Box sx={{ mx: 5, mt: 4, mb: 4 }}>
                 <Component {...pageProps} />
               </Box>

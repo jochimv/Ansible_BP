@@ -200,6 +200,9 @@ export const actionTypes = keyMirror({
   CLEAR_ALL_UPDATES: null,
   OPEN_COMMIT_MODAL: null,
   CLOSE_COMMIT_MODAL: null,
+  CLEAR_PROJECT_UPDATES: null,
+  CLEAR_PROJECT_UPDATES_INCLUDING_GIT: null,
+  CLEAR_PROJECT_UPDATES_FROM_EDITOR: null,
 });
 export const initialState: CodeChangesState = {
   updatedProjects: [],
@@ -215,18 +218,23 @@ export const initialState: CodeChangesState = {
   selectedProjectName: null,
 };
 
-function getUpdatedVars(updatedProjects: Project[]) {
+const getProjectUpdatedVars = (project: any): any[] => {
   const updatedVars: any[] = [];
-  updatedProjects?.forEach((updatedProject: Project) => {
-    updatedProject.hosts.forEach((host: Host) => {
-      host.hostDetailsByInventoryType.forEach((hostDetailByInventoryType: HostDetails) => {
-        hostDetailByInventoryType.variables.forEach((variable: HostVariable) => {
-          if (variable.updated && variable.type !== 'applied') {
-            updatedVars.push(variable);
-          }
-        });
+  project?.hosts?.forEach((host: Host) => {
+    host.hostDetailsByInventoryType.forEach((hostDetailByInventoryType: HostDetails) => {
+      hostDetailByInventoryType.variables.forEach((variable: HostVariable) => {
+        if (variable.updated && variable.type !== 'applied') {
+          updatedVars.push(variable);
+        }
       });
     });
+  });
+  return updatedVars;
+};
+function getAllUpdatedVars(updatedProjects: Project[]) {
+  const updatedVars: any[] = [];
+  updatedProjects?.forEach((updatedProject: Project) => {
+    updatedVars.push(...getProjectUpdatedVars(updatedProject));
   });
   return updatedVars;
 }
@@ -246,32 +254,81 @@ export const codeChangesReducer = (
       return { ...state, selectedHostDetails: action.payload };
     case actionTypes.SHOW_VARIABLES:
       return { ...state, selectedVariables: action.payload };
+    case actionTypes.CLEAR_PROJECT_UPDATES_FROM_EDITOR: {
+      const { projectName, hostname } = action.payload;
+      const originalSelectedHostDetailsByInventoryType = state.originalProjects
+        .find((project) => project.projectName === projectName)
+        ?.hosts.find((host) => host.hostname === hostname)?.hostDetailsByInventoryType;
+      const originalSelectedHostDetail = originalSelectedHostDetailsByInventoryType?.find(
+        (selectedHostDetail) =>
+          selectedHostDetail.inventoryType === state.selectedHostDetails?.inventoryType,
+      );
+      const originalSelectedVariables = originalSelectedHostDetail?.variables.find(
+        (variable) => variable.type === state.selectedVariables.type,
+      );
+      return {
+        ...state,
+        selectedHostDetailsByInventoryType: originalSelectedHostDetailsByInventoryType,
+        selectedHostDetails: originalSelectedHostDetail,
+        selectedVariables: originalSelectedVariables,
+        updatedProjects: state.updatedProjects.filter(
+          (project) => project.projectName !== projectName,
+        ),
+      };
+    }
+    case actionTypes.CLEAR_PROJECT_UPDATES_INCLUDING_GIT: {
+      return {
+        ...state,
+        originalDiff: undefined,
+        updatedDiff: undefined,
+        originalVars: [],
+        updatedVars: [],
+        updatedProjects: state.updatedProjects.filter(
+          (project) => project.projectName !== action.payload,
+        ),
+      };
+    }
+    case actionTypes.CLEAR_PROJECT_UPDATES:
+      // todo: jestli jsme na stránce projectname/hostname, musíme updatnout i selectedVariables
+      // taky na stránce /git je potřeba updatnout newDiff a updatedDiff
+      return {
+        ...state,
+        updatedProjects: state.updatedProjects.filter(
+          (project) => project.projectName != action.payload,
+        ),
+      };
     case actionTypes.CREATE_DIFF: {
-      const updatedVars = getUpdatedVars(state.updatedProjects);
+      const projectName = action.payload;
+      const selectedProject = state.updatedProjects.find(
+        (project) => project.projectName === projectName,
+      );
+      const selectedProjectUpdatedVars = getProjectUpdatedVars(selectedProject);
 
       const originalVars: any[] = [];
       state.originalProjects?.forEach((originalProject: Project) => {
-        originalProject.hosts.forEach((host: Host) => {
-          host.hostDetailsByInventoryType.forEach((hostDetailByInventoryType: HostDetails) => {
-            hostDetailByInventoryType.variables.forEach((variable: HostVariable) => {
-              if (
-                updatedVars.some(
-                  (updatedVar) => updatedVar.pathInProject === variable.pathInProject,
-                )
-              ) {
-                originalVars.push(variable);
-              }
+        if (originalProject.projectName === projectName) {
+          originalProject.hosts.forEach((host: Host) => {
+            host.hostDetailsByInventoryType.forEach((hostDetailByInventoryType: HostDetails) => {
+              hostDetailByInventoryType.variables.forEach((variable: HostVariable) => {
+                if (
+                  selectedProjectUpdatedVars.some(
+                    (updatedVar) => updatedVar.pathInProject === variable.pathInProject,
+                  )
+                ) {
+                  originalVars.push(variable);
+                }
+              });
             });
           });
-        });
+        }
       });
 
       return {
         ...state,
-        updatedVars,
+        updatedVars: selectedProjectUpdatedVars,
         originalVars,
         originalDiff: originalVars[0],
-        updatedDiff: updatedVars[0],
+        updatedDiff: selectedProjectUpdatedVars[0],
       };
     }
     case actionTypes.CLEAR_ALL_UPDATES: {
@@ -356,7 +413,7 @@ export const codeChangesReducer = (
             }
           });
 
-          const updatedVars = getUpdatedVars(state.updatedProjects);
+          const updatedVars = getAllUpdatedVars(state.updatedProjects);
 
           let incomingHostDetailsByInventoryTypeVariablesWereUpdated;
 
@@ -834,8 +891,9 @@ export const codeChangesReducer = (
   }
 };
 
-export const createDiff = (): CodeChangesAction => ({
+export const createDiff = (payload: any): CodeChangesAction => ({
   type: actionTypes.CREATE_DIFF,
+  payload,
 });
 
 export const rollback = (payload: any): CodeChangesAction => ({
@@ -876,5 +934,20 @@ export const initializeContext = (payload: any): CodeChangesAction => ({
 });
 export const selectProject = (payload: any): CodeChangesAction => ({
   type: actionTypes.SELECT_PROJECT,
+  payload,
+});
+
+export const clearProjectUpdates = (payload: any): CodeChangesAction => ({
+  type: actionTypes.CLEAR_PROJECT_UPDATES,
+  payload,
+});
+
+export const clearProjectUpdatesIncludingGit = (payload: any): CodeChangesAction => ({
+  type: actionTypes.CLEAR_PROJECT_UPDATES_INCLUDING_GIT,
+  payload,
+});
+
+export const clearProjectUpdatesFromEditor = (payload: any): CodeChangesAction => ({
+  type: actionTypes.CLEAR_PROJECT_UPDATES_FROM_EDITOR,
   payload,
 });

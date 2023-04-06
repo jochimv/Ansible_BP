@@ -1,4 +1,4 @@
-import { readdirSync, statSync, readFileSync, accessSync, constants } from 'fs';
+import { readdirSync, statSync, readFileSync, accessSync, existsSync, constants } from 'fs';
 import { parse as parseIni } from 'ini';
 import { parse as parseYaml, stringify } from 'yaml';
 import { extname, join } from 'path';
@@ -25,7 +25,7 @@ const directoriesToIgnore = [
 
 export const getProjectDetails = (projectName: string): any[] | boolean => {
   const projectPath = join(ansibleReposPath, projectName);
-  if (!fileOrDirectoryExists(projectName)) {
+  if (!existsSync(projectPath)) {
     return false;
   }
 
@@ -46,7 +46,7 @@ export const getProjectDetails = (projectName: string): any[] | boolean => {
           const hostVarsFilePath = join(inventoryDirectoryPath, 'host_vars', `${hostname}.yml`);
 
           let hostValues;
-          if (fileOrDirectoryExists(hostVarsFilePath)) {
+          if (existsSync(hostVarsFilePath)) {
             hostValues = readFileSync(hostVarsFilePath, 'utf-8');
           }
 
@@ -59,7 +59,7 @@ export const getProjectDetails = (projectName: string): any[] | boolean => {
             `${baseGroupName}.yml`,
           );
           let groupValues;
-          if (fileOrDirectoryExists(groupVarsFilePath)) {
+          if (existsSync(groupVarsFilePath)) {
             groupValues = readFileSync(groupVarsFilePath, 'utf-8');
           }
 
@@ -68,9 +68,9 @@ export const getProjectDetails = (projectName: string): any[] | boolean => {
           const alternativeCommonVarsFilePath = join(groupVarsDirectoryPath, 'all.yml');
 
           let commonValues;
-          if (fileOrDirectoryExists(commonVarsFilePath)) {
+          if (existsSync(commonVarsFilePath)) {
             commonValues = readFileSync(commonVarsFilePath, 'utf-8').replace(/\r\n/g, '\n');
-          } else if (fileOrDirectoryExists(alternativeCommonVarsFilePath)) {
+          } else if (existsSync(alternativeCommonVarsFilePath)) {
             commonValues = readFileSync(alternativeCommonVarsFilePath, 'utf-8').replace(
               /\r\n/g,
               '\n',
@@ -204,14 +204,14 @@ const getLastPathSegment = (path: string): string => {
   return segments[segments.length - 1]; // return the last segment
 };
 
-const fileOrDirectoryExists = (path: string): boolean => {
+/*const fileOrDirectoryExists = (path: string): boolean => {
   try {
     accessSync(path, constants.F_OK);
     return true;
   } catch (err) {
     return false;
   }
-};
+};*/
 
 const getGroupNameFromIniInventory = (filePath: string, serverName: string): string | undefined => {
   const iniData = parseIniFile(filePath);
@@ -253,7 +253,9 @@ const getCommonVariablesObj = (filePath: string) => {
 export const getHostDetails = (projectName: string, hostName: string) => {
   const projectPath = join(ansibleReposPath, projectName);
 
-  if (!fileOrDirectoryExists(projectPath)) {
+  console.log(`testing ${projectPath}`);
+  if (!existsSync(projectPath)) {
+    console.log('project path does not exist');
     return { projectExists: false, hostDetailsByInventoryType: null, hostExists: false };
   }
 
@@ -272,7 +274,7 @@ export const getHostDetails = (projectName: string, hostName: string) => {
       const hostVarsFilePath = join(inventoryDirectoryPath, 'host_vars', `${hostName}.yml`);
 
       let hostVariables;
-      if (fileOrDirectoryExists(hostVarsFilePath)) {
+      if (existsSync(hostVarsFilePath)) {
         hostVariables = {
           type: 'host',
           pathInProject: removeAnsibleReposPathFromPath(hostVarsFilePath),
@@ -287,7 +289,7 @@ export const getHostDetails = (projectName: string, hostName: string) => {
 
       const groupVarsFilePath = join(inventoryDirectoryPath, 'group_vars', `${baseGroupName}.yml`);
       let groupVariables;
-      if (fileOrDirectoryExists(groupVarsFilePath)) {
+      if (existsSync(groupVarsFilePath)) {
         groupVariables = {
           type: 'group',
           pathInProject: removeAnsibleReposPathFromPath(groupVarsFilePath),
@@ -302,10 +304,10 @@ export const getHostDetails = (projectName: string, hostName: string) => {
       const alternativeCommonVarsFilePath = join(groupVarsDirectoryPath, 'all.yml');
 
       let commonVariables;
-      if (fileOrDirectoryExists(commonVarsFilePath)) {
+      if (existsSync(commonVarsFilePath)) {
         commonVariables = getCommonVariablesObj(commonVarsFilePath);
         variables.push(commonVariables);
-      } else if (fileOrDirectoryExists(alternativeCommonVarsFilePath)) {
+      } else if (existsSync(alternativeCommonVarsFilePath)) {
         commonVariables = getCommonVariablesObj(alternativeCommonVarsFilePath);
         variables.push(commonVariables);
       }

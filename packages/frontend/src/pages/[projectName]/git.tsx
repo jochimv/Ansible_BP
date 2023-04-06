@@ -14,24 +14,23 @@ import { createDiff, rollback } from '../../codeChanges/codeChangesReducer';
 import GitChangesFileTree from '../../components/GitChangesFileTree';
 import CommitModal from '@frontend/components/CommitModal/CommitModal';
 import { open } from '@frontend/components/CommitModal/state/commitModalReducer';
-import {
-  useCommitModalContext,
-  useCommitModalDispatchContext,
-} from '@frontend/components/CommitModal/state/CommitModalContext';
+import { useCommitModalDispatchContext } from '@frontend/components/CommitModal/state/CommitModalContext';
 import CommitModalProvider from '@frontend/components/CommitModal/state/CommitModalProvider';
+import { useRouter } from 'next/router';
 
 const stackPropsIfNoChanges = {
   alignItems: 'center',
   justifyContent: 'center',
 };
 const GitPage = () => {
-  //const [isModalOpen, setIsModalOpen] = useState(false);
   const codeChangesDispatch = useCodeChangesDispatchContext();
   const { originalDiff, updatedDiff } = useCodeChangesContext();
   const commitModalDispatch = useCommitModalDispatchContext();
+  const router = useRouter();
+  const { projectName } = router.query;
 
   useEffect(() => {
-    codeChangesDispatch(createDiff());
+    codeChangesDispatch(createDiff(projectName));
   }, []);
 
   return (
@@ -50,7 +49,6 @@ const GitPage = () => {
                 startIcon={<SendIcon />}
                 color="success"
                 onClick={() => {
-                  //setIsModalOpen(true);
                   commitModalDispatch(open());
                 }}
               >

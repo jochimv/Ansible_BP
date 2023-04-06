@@ -25,6 +25,8 @@ const convertData = (data) => {
     };
   });
 };
+
+// todo - vzít ty data z kontextu a primárně z updated
 const ProjectPage = ({ projectDetails }) => {
   if (!projectDetails) {
     return <ProjectNotFound />;

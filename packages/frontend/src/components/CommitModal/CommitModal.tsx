@@ -1,22 +1,16 @@
 import React from 'react';
 import {
   Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  CircularProgress,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
-import {
-  Send as SendIcon,
-  Close as CloseIcon,
-  CheckCircle,
-  Cancel,
-  Replay as ReplayIcon,
-} from '@mui/icons-material';
+import { Cancel, CheckCircle, Replay as ReplayIcon, Send as SendIcon } from '@mui/icons-material';
 import axios from 'axios';
 import { useMutation } from 'react-query';
 import {
@@ -36,14 +30,9 @@ import {
   useCommitModalContext,
   useCommitModalDispatchContext,
 } from '@frontend/components/CommitModal/state/CommitModalContext';
+import { CloseButton } from '@frontend/components/CloseButton';
 
 const postCommitData = (data: any) => axios.post('http://localhost:4000/commit', data);
-
-const CloseButton = ({ children, ...other }) => (
-  <Button {...other} color="error" startIcon={<CloseIcon />}>
-    {children}
-  </Button>
-);
 
 // todo - automatické načítání změn z backendu do /packagages/backend/ansible-repos
 // todo - uložení credentials do .env variables
