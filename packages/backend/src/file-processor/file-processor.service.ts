@@ -32,11 +32,21 @@ export class FileProcessorService {
     'host_vars',
   ];
 
-  // todo - dokončit pushování, nemám write access na repositáře
   async commit(commitDto): Promise<CommitResponse> {
+    console.log('process.env.GIT_USERNAME: ', process.env.GIT_USERNAME);
     const { commitMessage, commitBranchName, projectName, updatedVars } = commitDto;
     const repositoryPath = join(this.ansibleReposPath, projectName);
-    const git = simpleGit(repositoryPath);
+    const git = await simpleGit(repositoryPath);
+    // todo - vyřešit stejné jméno branch
+    // todo - use this for push
+    let remoteRepoUrl;
+    await git.getRemotes(true, (err, remotes) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      remoteRepoUrl = remotes.map((remote) => remote.refs.fetch)[0];
+    });
 
     let originalBranchName;
     await git.branch(['--all'], (error, result) => {
