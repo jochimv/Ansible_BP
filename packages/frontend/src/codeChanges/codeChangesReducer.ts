@@ -289,8 +289,6 @@ export const codeChangesReducer = (
       };
     }
     case actionTypes.CLEAR_PROJECT_UPDATES:
-      // todo: jestli jsme na stránce projectname/hostname, musíme updatnout i selectedVariables
-      // taky na stránce /git je potřeba updatnout newDiff a updatedDiff
       return {
         ...state,
         updatedProjects: state.updatedProjects.filter(

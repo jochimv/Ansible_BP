@@ -5,6 +5,8 @@ import ProjectDetailsTree from '@frontend/components/ProjectDetailsTree';
 import Editor from '@monaco-editor/react';
 import { useState } from 'react';
 import ProjectNotFound from '@frontend/components/notFoundPages/ProjectNotFound';
+import { useCodeChangesContext } from '@frontend/codeChanges/CodeChangesContext';
+import { parse as parseYaml, stringify } from 'yaml';
 
 const convertData = (data) => {
   return data.flatMap(({ inventoryType, groupHosts }, idx) => {
@@ -25,14 +27,92 @@ const convertData = (data) => {
     };
   });
 };
+export const getStringifiedVariablesFromVariablesArray = (variables) => {
+  const commonVariables = variables.find((variable) => variable.type === 'common');
+  const groupVariables = variables.find((variable) => variable.type === 'group');
+  const hostVariables = variables.find((variable) => variable.type === 'host');
 
-// todo - vzít ty data z kontextu a primárně z updated
+  try {
+    const appliedVariables = {
+      ...(commonVariables && parseYaml(commonVariables.values)),
+      ...(groupVariables && parseYaml(groupVariables.values)),
+      ...(hostVariables && parseYaml(hostVariables.values)),
+    };
+
+    const stringifiedAppliedVariables = stringify(appliedVariables);
+    return stringifiedAppliedVariables === '{}\n' ? '' : stringifiedAppliedVariables;
+  } catch (e) {
+    // todo  tohle
+    return variable;
+  }
+};
+
+function updateAppliedVariables(projectDetails, updatedProjects, projectName) {
+  const updatedDetails = JSON.parse(JSON.stringify(projectDetails));
+
+  const updatedProject = updatedProjects.find((project) => project.projectName === projectName);
+  updatedDetails?.forEach((detail) => {
+    detail?.groupHosts.forEach((groupHost) => {
+      groupHost?.hosts?.forEach((host) => {
+        const inventoryType = detail.inventoryType;
+        const groupName = groupHost.groupName;
+        const hostname = host.hostname;
+        let hostVariables;
+        let groupVariables;
+        let commonVariables;
+        const sourceForAppliedVariables = [];
+        updatedProject?.hosts.forEach((host) => {
+          host?.hostDetailsByInventoryType.forEach((hostDetail) => {
+            if (
+              host.hostname === hostname &&
+              hostDetail.inventoryType === inventoryType &&
+              hostDetail.groupName === groupName
+            ) {
+              hostVariables = hostDetail.variables.find((variable) => variable.type === 'host');
+              groupVariables = hostDetail.variables.find((variable) => variable.type === 'group');
+              commonVariables = hostDetail.variables.find((variable) => variable.type === 'common');
+            } else if (
+              hostDetail.inventoryType === inventoryType &&
+              hostDetail.groupName === groupName
+            ) {
+              groupVariables = hostDetail.variables.find((variable) => variable.type === 'group');
+              commonVariables = hostDetail.variables.find((variable) => variable.type === 'common');
+            } else if (hostDetail.inventoryType === inventoryType) {
+              commonVariables = hostDetail.variables.find((variable) => variable.type === 'common');
+            }
+          });
+        });
+        if (hostVariables) {
+          sourceForAppliedVariables.push(hostVariables);
+        }
+        if (groupVariables) {
+          sourceForAppliedVariables.push(groupVariables);
+        }
+        if (commonVariables) {
+          sourceForAppliedVariables.push(commonVariables);
+        }
+        if (sourceForAppliedVariables.length !== 0) {
+          host.appliedVariables =
+            getStringifiedVariablesFromVariablesArray(sourceForAppliedVariables);
+        }
+      });
+    });
+  });
+  return updatedDetails;
+}
+
 const ProjectPage = ({ projectDetails }) => {
   if (!projectDetails) {
     return <ProjectNotFound />;
   }
   const router = useRouter();
-  const treeData = convertData(projectDetails);
+  const { projectName } = router.query;
+
+  const { updatedProjects } = useCodeChangesContext();
+
+  const newProjectDetails = updateAppliedVariables(projectDetails, updatedProjects, projectName);
+
+  const treeData = convertData(newProjectDetails);
   const [selectedHost, setSelectedHost] = useState(treeData[0].children[0].children[0]);
 
   return (
