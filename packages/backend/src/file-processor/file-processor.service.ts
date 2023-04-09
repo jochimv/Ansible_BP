@@ -12,6 +12,13 @@ export interface CommitResponse {
   pullRequestUrl?: any;
 }
 
+function addCredentialsToUrl(username, password, url) {
+  const urlWithCredentials = new URL(url);
+  urlWithCredentials.username = username;
+  urlWithCredentials.password = password;
+  return urlWithCredentials.href;
+}
+
 @Injectable()
 export class FileProcessorService {
   private ansibleReposPath =
@@ -33,12 +40,10 @@ export class FileProcessorService {
   ];
 
   async commit(commitDto): Promise<CommitResponse> {
-    console.log('process.env.GIT_USERNAME: ', process.env.GIT_USERNAME);
     const { commitMessage, commitBranchName, projectName, updatedVars } = commitDto;
     const repositoryPath = join(this.ansibleReposPath, projectName);
     const git = await simpleGit(repositoryPath);
     // todo - vyřešit stejné jméno branch
-    // todo - use this for push
     let remoteRepoUrl;
     await git.getRemotes(true, (err, remotes) => {
       if (err) {
@@ -47,6 +52,11 @@ export class FileProcessorService {
       }
       remoteRepoUrl = remotes.map((remote) => remote.refs.fetch)[0];
     });
+    const repositoryUrlWithCredentials = addCredentialsToUrl(
+      process.env.GIT_USERNAME,
+      process.env.GIT_PASSWORD,
+      remoteRepoUrl,
+    );
 
     let originalBranchName;
     await git.branch(['--all'], (error, result) => {
@@ -75,11 +85,8 @@ export class FileProcessorService {
     await git.commit(commitMessage);
 
     try {
-      const response = await git.push(['-u', 'origin', commitBranchName]);
-      console.log('Pushed successfully, response is: ', JSON.stringify(response));
+      const response = await git.push(repositoryUrlWithCredentials, commitBranchName);
       const pullRequestUrl = response.remoteMessages.all[1];
-      console.log('response: ', JSON.stringify(response));
-      console.log('pullRequestUrl: ', pullRequestUrl);
       await git.checkout(originalBranchName).deleteLocalBranch(commitBranchName, true);
       return { error: false, pullRequestUrl };
     } catch (error) {

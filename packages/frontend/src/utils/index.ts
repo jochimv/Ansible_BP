@@ -252,7 +252,6 @@ const getCommonVariablesObj = (filePath: string) => {
 export const getHostDetails = (projectName: string, hostName: string) => {
   const projectPath = join(ansibleReposPath, projectName);
 
-  console.log(`testing ${projectPath}`);
   if (!existsSync(projectPath)) {
     console.log('project path does not exist');
     return { projectExists: false, hostDetailsByInventoryType: null, hostExists: false };

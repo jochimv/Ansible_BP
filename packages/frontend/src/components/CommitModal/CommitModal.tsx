@@ -35,7 +35,6 @@ import { CloseButton } from '@frontend/components/CloseButton';
 const postCommitData = (data: any) => axios.post('http://localhost:4000/commit', data);
 
 // todo - automatické načítání změn z backendu do /packagages/backend/ansible-repos
-// todo - uložení credentials do .env variables
 
 const CommitModal = () => {
   const { commitMessage, commitBranchName, response, isModalOpen } = useCommitModalContext();
