@@ -2,7 +2,7 @@ import { readdirSync, statSync, readFileSync, existsSync } from 'fs';
 import { parse as parseIni } from 'ini';
 import { parse as parseYaml, stringify } from 'yaml';
 import { extname, join } from 'path';
-import { ProjectsHosts } from '@backend/types';
+import { simpleGit } from 'simple-git';
 
 const ansibleReposPath =
   'C:\\Users\\VJochim\\Desktop\\Ansible_BP\\packages\\backend\\ansible_repos'; // "/app/ansible_repos" inside docker container
@@ -22,11 +22,55 @@ const directoriesToIgnore = [
   'host_vars',
 ];
 
-export const getProjectDetails = (projectName: string): any[] | boolean => {
+export const getMainBranchName = async (git) => {
+  /*let mainBranchName;
+  await git.branch(['--all'], (error, result) => {
+    if (error) {
+      console.log('Error during listing branches', error);
+    } else {
+      const { all: branchNames, branches } = result;
+      for (const branchName of branchNames) {
+        const { current, name } = branches[branchName];
+        if (current) {
+          mainBranchName = name;
+          break;
+        }
+      }
+    }
+  });
+  return mainBranchName;*/
+  try {
+    return await git.revparse(['--abbrev-ref', 'HEAD']);
+  } catch (error) {
+    console.log('Error during getting the main branch name', error);
+    return null;
+  }
+};
+
+// TADY
+const checkAndUpdateProject = async (projectPath: string) => {
+  const git = await simpleGit(projectPath);
+  const mainBranchName = await getMainBranchName(git);
+  console.log(`projectPath: ${projectPath}, mainBranchName: ${mainBranchName}`);
+  const diffResult = await git.diff(['origin', mainBranchName]);
+
+  if (diffResult) {
+    await git.pull();
+  }
+};
+
+const checkAndUpdateAllProjects = async (projectPaths: string[]) => {
+  const tasks = projectPaths.map((path) => checkAndUpdateProject(path));
+  await Promise.all(tasks);
+};
+
+export const getProjectDetails = async (projectName: string) => {
   const projectPath = join(ansibleReposPath, projectName);
   if (!existsSync(projectPath)) {
-    return false;
+    return { projectExists: false, projectDetails: null };
   }
+
+  await checkAndUpdateProject(projectPath);
 
   const inventoryFilesPaths = getInventoryFilesPaths(projectPath);
   const projectDetails = [];
@@ -90,7 +134,7 @@ export const getProjectDetails = (projectName: string): any[] | boolean => {
     });
     projectDetails.push({ inventoryType, groupHosts });
   }
-  return projectDetails;
+  return { projectDetails, projectExists: true };
 };
 
 const extractHostsFromIniFile = (inventoryPath: string): string[] => {
@@ -146,10 +190,12 @@ const isIni = (inventoryPath: string) => {
   return inventoryExtension === '.ini' || inventoryExtension === '';
 };
 
-export const getProjectsHosts = (): ProjectsHosts | boolean => {
+export const getProjectsHosts = async () => {
   const projectsHosts = [];
   const projects = readdirSync(ansibleReposPath);
 
+  const projectsPaths = projects.map((project) => join(ansibleReposPath, project));
+  await checkAndUpdateAllProjects(projectsPaths);
   for (const project of projects) {
     const projectPath = join(ansibleReposPath, project);
     const inventoryPaths = getInventoryFilesPaths(projectPath);
@@ -249,13 +295,14 @@ const getCommonVariablesObj = (filePath: string) => {
   };
 };
 
-export const getHostDetails = (projectName: string, hostName: string) => {
+export const getHostDetails = async (projectName: string, hostName: string) => {
   const projectPath = join(ansibleReposPath, projectName);
 
   if (!existsSync(projectPath)) {
-    console.log('project path does not exist');
     return { projectExists: false, hostDetailsByInventoryType: null, hostExists: false };
   }
+
+  await checkAndUpdateProject(projectPath);
 
   const inventoryFilesPaths = getInventoryFilesPaths(projectPath);
   const hostDetailsByInventoryType = [];

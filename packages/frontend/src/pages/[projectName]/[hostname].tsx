@@ -188,7 +188,7 @@ export default HostDetailsPage;
 
 export async function getServerSideProps(context: any) {
   const { hostname, projectName } = context.query;
-  const { hostDetailsByInventoryType, projectExists, hostExists } = getHostDetails(
+  const { hostDetailsByInventoryType, projectExists, hostExists } = await getHostDetails(
     projectName,
     hostname,
   );

@@ -19,6 +19,16 @@ function addCredentialsToUrl(username, password, url) {
   return urlWithCredentials.href;
 }
 
+// todo - ozkoušet tohle jestli to funguje, a odstranit duplikát na frontendu v utils
+export const getMainBranchName = async (git): Promise<string> => {
+  try {
+    return await git.revparse(['--abbrev-ref', 'HEAD']);
+  } catch (error) {
+    console.log('Error during getting the main branch name', error);
+    return null;
+  }
+};
+
 @Injectable()
 export class FileProcessorService {
   private ansibleReposPath =
@@ -58,21 +68,8 @@ export class FileProcessorService {
       remoteRepoUrl,
     );
 
-    let originalBranchName;
-    await git.branch(['--all'], (error, result) => {
-      if (error) {
-        console.log('Error during listing branches', error);
-      } else {
-        const { all: branchNames, branches } = result;
-        for (const branchName of branchNames) {
-          const { current, name } = branches[branchName];
-          if (current) {
-            originalBranchName = name;
-            break;
-          }
-        }
-      }
-    });
+    const originalBranchName = await getMainBranchName(git);
+    console.log('originalBranchName: ', originalBranchName);
 
     await git.checkoutBranch(commitBranchName, originalBranchName);
     for (const updatedVar of updatedVars) {

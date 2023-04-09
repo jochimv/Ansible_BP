@@ -101,8 +101,8 @@ function updateAppliedVariables(projectDetails, updatedProjects, projectName) {
   return updatedDetails;
 }
 
-const ProjectPage = ({ projectDetails }) => {
-  if (!projectDetails) {
+const ProjectPage = ({ projectDetails, projectExists }) => {
+  if (!projectExists) {
     return <ProjectNotFound />;
   }
   const router = useRouter();
@@ -133,10 +133,10 @@ const ProjectPage = ({ projectDetails }) => {
 export async function getServerSideProps(context: any) {
   const { projectName } = context.query;
 
-  const projectDetails = getProjectDetails(projectName);
+  const { projectDetails, projectExists } = await getProjectDetails(projectName);
 
   return {
-    props: { projectDetails },
+    props: { projectDetails, projectExists },
   };
 }
 
