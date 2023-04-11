@@ -17,7 +17,7 @@ import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
 } from '@frontend/codeChanges/CodeChangesContext';
-import { clearAllUpdates } from '@frontend/codeChanges/codeChangesReducer';
+import { clearProjectUpdates } from '@frontend/codeChanges/codeChangesReducer';
 import { faCodePullRequest } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -38,7 +38,6 @@ const CommitModal = ({ mainBranchName }) => {
   const { commitMessage, commitBranchName, response, isModalOpen } = useCommitModalContext();
   const commitModalDispatch = useCommitModalDispatchContext();
 
-  const { selectedProjectName } = useCodeChangesContext();
   const handleCommitMessageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     commitModalDispatch(updateCommitMessage(event.target.value));
   };
@@ -49,8 +48,9 @@ const CommitModal = ({ mainBranchName }) => {
   const { isLoading, reset, mutateAsync } = useMutation(postCommitData, {
     onSuccess: (data) => commitModalDispatch(updateResponse(data.data)),
   });
-  const { updatedVars } = useCodeChangesContext();
+  const { updatedVars, selectedProjectName } = useCodeChangesContext();
   const codeChangesDispatch = useCodeChangesDispatchContext();
+  console.log('updatedVars: ', JSON.stringify(updatedVars));
 
   const closeModal = () => commitModalDispatch(close());
   const clearResponse = () => commitModalDispatch(updateResponse(undefined));
@@ -63,7 +63,7 @@ const CommitModal = ({ mainBranchName }) => {
       projectName: selectedProjectName,
     });
     if (!data.data?.error) {
-      codeChangesDispatch(clearAllUpdates());
+      codeChangesDispatch(clearProjectUpdates(selectedProjectName));
     }
   };
 

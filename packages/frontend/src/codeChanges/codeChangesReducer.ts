@@ -210,12 +210,12 @@ export const actionTypes = keyMirror({
   ROLLBACK: null,
   SELECT_PROJECT: null,
   INITIALIZE_CONTEXT: null,
-  CLEAR_ALL_UPDATES: null,
+  CLEAR_PROJECT_UPDATES: null,
   OPEN_COMMIT_MODAL: null,
   CLOSE_COMMIT_MODAL: null,
-  CLEAR_PROJECT_UPDATES: null,
-  CLEAR_PROJECT_UPDATES_INCLUDING_GIT: null,
   CLEAR_PROJECT_UPDATES_FROM_EDITOR: null,
+  CLEAR_ALL_PROJECTS_UPDATES: null,
+  CLEAR_ALL_PROJECT_UPDATES_FROM_EDITOR: null,
 });
 export const initialState: CodeChangesState = {
   updatedProjects: [],
@@ -252,6 +252,24 @@ function getAllUpdatedVars(updatedProjects: Project[]) {
   return updatedVars;
 }
 
+const extractOriginalStateValues = (state, projectName, hostname) => {
+  const selectedHostDetailsByInventoryType = state.originalProjects
+    .find((project) => project.projectName === projectName)
+    ?.hosts.find((host) => host.hostname === hostname)?.hostDetailsByInventoryType;
+  const selectedHostDetails = selectedHostDetailsByInventoryType?.find(
+    (selectedHostDetail) =>
+      selectedHostDetail.inventoryType === state.selectedHostDetails?.inventoryType,
+  );
+  const selectedVariables = selectedHostDetails?.variables.find(
+    (variable) => variable.type === state.selectedVariables.type,
+  );
+  return {
+    selectedHostDetailsByInventoryType,
+    selectedHostDetails,
+    selectedVariables,
+  };
+};
+
 export const codeChangesReducer = (
   state = initialState,
   action: CodeChangesAction,
@@ -267,47 +285,39 @@ export const codeChangesReducer = (
       return { ...state, selectedHostDetails: action.payload };
     case actionTypes.SHOW_VARIABLES:
       return { ...state, selectedVariables: action.payload };
-    case actionTypes.CLEAR_PROJECT_UPDATES_FROM_EDITOR: {
+    case actionTypes.CLEAR_ALL_PROJECT_UPDATES_FROM_EDITOR: {
       const { projectName, hostname } = action.payload;
-      const originalSelectedHostDetailsByInventoryType = state.originalProjects
-        .find((project) => project.projectName === projectName)
-        ?.hosts.find((host) => host.hostname === hostname)?.hostDetailsByInventoryType;
-      const originalSelectedHostDetail = originalSelectedHostDetailsByInventoryType?.find(
-        (selectedHostDetail) =>
-          selectedHostDetail.inventoryType === state.selectedHostDetails?.inventoryType,
-      );
-      const originalSelectedVariables = originalSelectedHostDetail?.variables.find(
-        (variable) => variable.type === state.selectedVariables.type,
-      );
+      const { selectedHostDetailsByInventoryType, selectedHostDetails, selectedVariables } =
+        extractOriginalStateValues(state, projectName, hostname);
       return {
         ...state,
-        selectedHostDetailsByInventoryType: originalSelectedHostDetailsByInventoryType,
-        selectedHostDetails: originalSelectedHostDetail,
-        selectedVariables: originalSelectedVariables,
+        originalDiff: null,
+        updatedDiff: null,
+        updatedVars: [],
+        selectedHostDetailsByInventoryType,
+        selectedHostDetails,
+        selectedVariables,
+        updatedProjects: [],
+      };
+    }
+    case actionTypes.CLEAR_PROJECT_UPDATES_FROM_EDITOR: {
+      const { projectName, hostname } = action.payload;
+      const { selectedHostDetailsByInventoryType, selectedHostDetails, selectedVariables } =
+        extractOriginalStateValues(state, projectName, hostname);
+      return {
+        ...state,
+        originalDiff: null,
+        updatedDiff: null,
+        updatedVars: [],
+        selectedHostDetailsByInventoryType,
+        selectedHostDetails,
+        selectedVariables,
         updatedProjects: state.updatedProjects.filter(
           (project) => project.projectName !== projectName,
         ),
       };
     }
-    case actionTypes.CLEAR_PROJECT_UPDATES_INCLUDING_GIT: {
-      return {
-        ...state,
-        originalDiff: undefined,
-        updatedDiff: undefined,
-        originalVars: [],
-        updatedVars: [],
-        updatedProjects: state.updatedProjects.filter(
-          (project) => project.projectName !== action.payload,
-        ),
-      };
-    }
-    case actionTypes.CLEAR_PROJECT_UPDATES:
-      return {
-        ...state,
-        updatedProjects: state.updatedProjects.filter(
-          (project) => project.projectName != action.payload,
-        ),
-      };
+
     case actionTypes.CREATE_DIFF: {
       const projectName = action.payload;
       const selectedProject = state.updatedProjects.find(
@@ -342,20 +352,25 @@ export const codeChangesReducer = (
         updatedDiff: selectedProjectUpdatedVars[0],
       };
     }
-    case actionTypes.CLEAR_ALL_UPDATES: {
+    case actionTypes.CLEAR_PROJECT_UPDATES: {
+      const projectName = action.payload;
       return {
         ...state,
         originalDiff: null,
         updatedDiff: null,
-        originalVars: state.originalVars?.filter(
-          (originalVar) => originalVar.pathInProject.split('\\')[1] !== state.selectedProjectName,
-        ),
-        updatedVars: state.updatedVars?.filter(
-          (updatedVar) => updatedVar.pathInProject.split('\\')[1] !== state.selectedProjectName,
-        ),
+        updatedVars: [],
         updatedProjects: state.updatedProjects?.filter(
-          (updatedProject) => updatedProject.projectName !== state.selectedProjectName,
+          (updatedProject) => updatedProject.projectName !== projectName,
         ),
+      };
+    }
+    case actionTypes.CLEAR_ALL_PROJECTS_UPDATES: {
+      return {
+        ...state,
+        originalDiff: null,
+        updatedDiff: null,
+        updatedVars: [],
+        updatedProjects: [],
       };
     }
     case actionTypes.INITIALIZE_EDITOR: {
@@ -647,7 +662,6 @@ export const codeChangesReducer = (
         },
       );
 
-      // todo - smazat to z updatedProjects jestli tam není vůbec nic updated
       // updated variables all - meaning including applied variables
       let updatedAppliedVariablesAreNotSameAsOriginalUpdatedVariables;
 
@@ -753,8 +767,6 @@ export const codeChangesReducer = (
         (host) => host.hostname === hostname,
       );
 
-      // todo - if updatedVariablesAll has an updated variable, everything is OK. If they don't you have to check for the presence
-      // todo - of updated variables in the selected project
       let updatedProjects;
       if (updatedProjectExistsInState && hostExistInUpdatedProject) {
         updatedProjects = state.updatedProjects.map((project) => {
@@ -924,7 +936,10 @@ export const rollback = (payload: any): CodeChangesAction => ({
   payload,
 });
 
-export const clearAllUpdates = (): CodeChangesAction => ({ type: actionTypes.CLEAR_ALL_UPDATES });
+export const clearProjectUpdates = (payload: any): CodeChangesAction => ({
+  type: actionTypes.CLEAR_PROJECT_UPDATES,
+  payload,
+});
 export const switchMode = (): CodeChangesAction => ({ type: actionTypes.SWITCH_MODE });
 
 export const updateVariables = (payload: any): CodeChangesAction => ({
@@ -960,17 +975,16 @@ export const selectProject = (payload: any): CodeChangesAction => ({
   payload,
 });
 
-export const clearProjectUpdates = (payload: any): CodeChangesAction => ({
-  type: actionTypes.CLEAR_PROJECT_UPDATES,
-  payload,
-});
-
-export const clearProjectUpdatesIncludingGit = (payload: any): CodeChangesAction => ({
-  type: actionTypes.CLEAR_PROJECT_UPDATES_INCLUDING_GIT,
-  payload,
-});
-
 export const clearProjectUpdatesFromEditor = (payload: any): CodeChangesAction => ({
   type: actionTypes.CLEAR_PROJECT_UPDATES_FROM_EDITOR,
+  payload,
+});
+
+export const clearAllProjectsUpdates = (): CodeChangesAction => ({
+  type: actionTypes.CLEAR_ALL_PROJECTS_UPDATES,
+});
+
+export const clearAllProjectUpdatesFromEditor = (payload: any): CodeChangesAction => ({
+  type: actionTypes.CLEAR_ALL_PROJECT_UPDATES_FROM_EDITOR,
   payload,
 });

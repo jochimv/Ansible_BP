@@ -20,11 +20,10 @@ import {
   useCodeChangesDispatchContext,
 } from '@frontend/codeChanges/CodeChangesContext';
 import {
+  clearAllProjectsUpdates,
+  clearAllProjectUpdatesFromEditor,
   clearProjectUpdates,
   clearProjectUpdatesFromEditor,
-  clearProjectUpdatesIncludingGit,
-  initializeContext,
-  initialState,
 } from '@frontend/codeChanges/codeChangesReducer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBomb, faBroom } from '@fortawesome/free-solid-svg-icons';
@@ -56,15 +55,22 @@ const ClearModal = () => {
   const closeModal = () => dispatch(close());
   const router = useRouter();
 
-  const handleRollbackProject = (projectName: string) => {
+  const handleRollbackAllProjects = () => {
     switch (router.pathname) {
-      case '/[projectName]/git': {
-        codeChangesDispatch(clearProjectUpdatesIncludingGit(projectName));
+      case '/[projectName]/[hostname]': {
+        codeChangesDispatch(clearAllProjectUpdatesFromEditor(router.query));
         break;
       }
+      default: {
+        codeChangesDispatch(clearAllProjectsUpdates());
+      }
+    }
+  };
+
+  const handleRollbackProject = (projectName: string) => {
+    switch (router.pathname) {
       case '/[projectName]/[hostname]': {
-        const { projectName, hostname } = router.query;
-        codeChangesDispatch(clearProjectUpdatesFromEditor({ projectName, hostname }));
+        codeChangesDispatch(clearProjectUpdatesFromEditor(router.query));
         break;
       }
       default: {
@@ -72,16 +78,24 @@ const ClearModal = () => {
       }
     }
   };
-  console.log('updatedProjects: ', JSON.stringify(updatedProjects));
 
   const hasUpdatedVariable = findIfAnyVariableWasUpdated(updatedProjects);
 
   return (
-    <Dialog open={isModalOpen} sx={{ width: 1000 }}>
+    <Dialog open={isModalOpen} fullWidth maxWidth="sm">
       <DialogTitle>Clear changes</DialogTitle>
       {hasUpdatedVariable ? (
         <>
           <DialogContent>
+            <Grid container alignItems="center" justifyContent="center">
+              <Grid item xs={5}>
+                <Typography fontWeight="bold">Project name</Typography>
+              </Grid>
+              <Grid item xs={4}>
+                <Typography fontWeight="bold"># of files changed</Typography>
+              </Grid>
+              <Grid item xs={2} />
+            </Grid>
             {updatedProjects.map((updatedProject) => {
               const { projectName } = updatedProject;
               const updatedFilesCount = countUpdatedVariables(updatedProjects, projectName);
@@ -90,16 +104,16 @@ const ClearModal = () => {
                   container
                   spacing={3}
                   alignItems="center"
-                  justifyContent="space-between"
+                  justifyContent="center"
                   key={projectName}
                 >
                   <Grid item xs={6}>
                     <Typography>{projectName}</Typography>
                   </Grid>
-                  <Grid item xs={2}>
+                  <Grid item xs={3}>
                     <Typography>{updatedFilesCount}</Typography>
                   </Grid>
-                  <Grid item xs={4}>
+                  <Grid item xs={2}>
                     <Button
                       startIcon={
                         <FontAwesomeIcon style={{ width: 18, height: 18 }} icon={faBroom} />
@@ -118,7 +132,7 @@ const ClearModal = () => {
               color="success"
               startIcon={<FontAwesomeIcon icon={faBomb} />}
               onClick={() => {
-                codeChangesDispatch(initializeContext(initialState));
+                handleRollbackAllProjects();
                 localStorage.removeItem('codeChangesContextData');
                 dispatch(close());
               }}
