@@ -38,9 +38,8 @@ interface MyAppProps extends AppProps {
   emotionCache?: EmotionCache;
 }
 
-export function countUpdatedVariables(projects, projectName) {
-  let count = 0;
-  const countedPaths = new Set();
+export function getUpdatedFilesPaths(projects, projectName) {
+  const countedPaths = [];
 
   projects?.forEach(({ projectName: proj, hosts }) => {
     if (proj === projectName) {
@@ -48,9 +47,8 @@ export function countUpdatedVariables(projects, projectName) {
         hostDetailsByInventoryType.forEach(({ variables }) => {
           variables.forEach(({ type, pathInProject, updated }) => {
             if (type !== 'applied' && updated) {
-              if (!countedPaths.has(pathInProject)) {
-                countedPaths.add(pathInProject);
-                count++;
+              if (!countedPaths.includes(pathInProject)) {
+                countedPaths.push(pathInProject);
               }
             }
           });
@@ -58,7 +56,7 @@ export function countUpdatedVariables(projects, projectName) {
       });
     }
   });
-  return count;
+  return countedPaths;
 }
 
 const AppBarResolver = () => {
@@ -67,7 +65,7 @@ const AppBarResolver = () => {
   const router = useRouter();
   const clearModalDispatch = useClearModalDispatchContext();
 
-  const numberOfUpdatedFiles = countUpdatedVariables(updatedProjects, selectedProjectName);
+  const updatedFilesPaths = getUpdatedFilesPaths(updatedProjects, selectedProjectName);
   return (
     <>
       <AppBar>
@@ -86,7 +84,7 @@ const AppBarResolver = () => {
           <Button
             color="inherit"
             startIcon={
-              <Badge badgeContent={numberOfUpdatedFiles} color="warning">
+              <Badge badgeContent={updatedFilesPaths.length} color="warning">
                 <FontAwesomeIcon icon={faGitAlt} />
               </Badge>
             }

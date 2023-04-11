@@ -5,10 +5,19 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Grid,
+  Paper,
   Stack,
+  Table,
+  TableCell,
+  TableContainer,
+  Grid,
+  TableHead,
+  TableRow,
   Typography,
+  TableBody,
+  Tooltip,
 } from '@mui/material';
+import { HelpOutline } from '@mui/icons-material';
 import {
   useClearModalContext,
   useClearModalDispatchContext,
@@ -25,13 +34,12 @@ import {
   clearProjectUpdates,
   clearProjectUpdatesFromEditor,
 } from '@frontend/codeChanges/codeChangesReducer';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBomb, faBroom } from '@fortawesome/free-solid-svg-icons';
-import { countUpdatedVariables } from '@frontend/pages/_app';
+import { getUpdatedFilesPaths } from '@frontend/pages/_app';
 import { CodeOff as CodeOffIcon } from '@mui/icons-material';
 import { useRouter } from 'next/router';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-// todo - project has updated variables možná, a to by se dalo použít i k mazání updatedProjects na BE
 function findIfAnyVariableWasUpdated(projects) {
   for (const project of projects) {
     for (const host of project.hosts) {
@@ -87,45 +95,52 @@ const ClearModal = () => {
       {hasUpdatedVariable ? (
         <>
           <DialogContent>
-            <Grid container alignItems="center" justifyContent="center">
-              <Grid item xs={5}>
-                <Typography fontWeight="bold">Project name</Typography>
-              </Grid>
-              <Grid item xs={4}>
-                <Typography fontWeight="bold"># of files changed</Typography>
-              </Grid>
-              <Grid item xs={2} />
-            </Grid>
-            {updatedProjects.map((updatedProject) => {
-              const { projectName } = updatedProject;
-              const updatedFilesCount = countUpdatedVariables(updatedProjects, projectName);
-              return (
-                <Grid
-                  container
-                  spacing={3}
-                  alignItems="center"
-                  justifyContent="center"
-                  key={projectName}
-                >
-                  <Grid item xs={6}>
-                    <Typography>{projectName}</Typography>
-                  </Grid>
-                  <Grid item xs={3}>
-                    <Typography>{updatedFilesCount}</Typography>
-                  </Grid>
-                  <Grid item xs={2}>
-                    <Button
-                      startIcon={
-                        <FontAwesomeIcon style={{ width: 18, height: 18 }} icon={faBroom} />
-                      }
-                      onClick={() => handleRollbackProject(updatedProject.projectName)}
-                    >
-                      Clear
-                    </Button>
-                  </Grid>
-                </Grid>
-              );
-            })}
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>
+                      <Typography fontWeight="bold">Project name</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography fontWeight="bold"># of files changed</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography fontWeight="bold">Action</Typography>
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {updatedProjects.map((updatedProject) => {
+                    const { projectName } = updatedProject;
+                    const updatedFilesPaths = getUpdatedFilesPaths(updatedProjects, projectName);
+                    return (
+                      <TableRow>
+                        <TableCell>{projectName}</TableCell>
+                        <TableCell>
+                          <Stack spacing={2} direction="row">
+                            <Typography>{updatedFilesPaths.length}</Typography>
+                            <Tooltip title={updatedFilesPaths.map((path) => `${path},\n `)}>
+                              <HelpOutline sx={{ color: 'info.main' }} />
+                            </Tooltip>
+                          </Stack>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            startIcon={
+                              <FontAwesomeIcon style={{ width: 18, height: 18 }} icon={faBroom} />
+                            }
+                            onClick={() => handleRollbackProject(updatedProject.projectName)}
+                          >
+                            Clear
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </DialogContent>
           <DialogActions>
             <Button
