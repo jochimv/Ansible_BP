@@ -2,6 +2,19 @@ import keyMirror from 'keymirror';
 import { parse as parseYaml, stringify } from 'yaml';
 import { omit } from 'ramda';
 
+function projectHasUpdatedVariables(project) {
+  for (const host of project.hosts) {
+    for (const inventoryType of host.hostDetailsByInventoryType) {
+      for (const variable of inventoryType.variables) {
+        if (variable.updated && variable.type !== 'applied') {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 interface HostVariable {
   type: string;
   pathInProject: string;
@@ -634,7 +647,10 @@ export const codeChangesReducer = (
         },
       );
 
+      // todo - smazat to z updatedProjects jestli tam není vůbec nic updated
       // updated variables all - meaning including applied variables
+      let updatedAppliedVariablesAreNotSameAsOriginalUpdatedVariables;
+
       const updatedVariablesAll = error
         ? updatedVariablesSelectedOnly
         : updatedVariablesSelectedOnly?.map((variable) => {
@@ -685,18 +701,23 @@ export const codeChangesReducer = (
                   ...variable,
                   values: appliedVariablesToShow,
                 });
-
-                const originalAppliedVariables = findAppliedVariableObject(
-                  state.originalProjects,
-                  projectName,
-                  hostname,
-                  state.selectedHostDetails?.inventoryType,
+                const originalAppliedVariables = omit(
+                  ['updated'],
+                  findAppliedVariableObject(
+                    state.originalProjects,
+                    projectName,
+                    hostname,
+                    state.selectedHostDetails?.inventoryType,
+                  ),
                 );
+
+                updatedAppliedVariablesAreNotSameAsOriginalUpdatedVariables =
+                  JSON.stringify(updatedAppliedVariables) !==
+                  JSON.stringify(originalAppliedVariables);
+
                 return {
                   ...updatedAppliedVariables,
-                  updated:
-                    JSON.stringify(updatedAppliedVariables) !==
-                    JSON.stringify(originalAppliedVariables),
+                  updated: updatedAppliedVariablesAreNotSameAsOriginalUpdatedVariables,
                 };
               } catch (e) {
                 return variable;
@@ -732,6 +753,8 @@ export const codeChangesReducer = (
         (host) => host.hostname === hostname,
       );
 
+      // todo - if updatedVariablesAll has an updated variable, everything is OK. If they don't you have to check for the presence
+      // todo - of updated variables in the selected project
       let updatedProjects;
       if (updatedProjectExistsInState && hostExistInUpdatedProject) {
         updatedProjects = state.updatedProjects.map((project) => {
@@ -881,7 +904,9 @@ export const codeChangesReducer = (
         selectedVariables: updatedSelectedVariables,
         selectedHostDetails: updatedSelectedHostDetails,
         selectedHostDetailsByInventoryType: updatedSelectedHostDetailsByInventoryType,
-        updatedProjects,
+        updatedProjects: updatedAppliedVariablesAreNotSameAsOriginalUpdatedVariables
+          ? updatedProjects
+          : updatedProjects.filter((project) => projectHasUpdatedVariables(project)),
       };
     }
     default:

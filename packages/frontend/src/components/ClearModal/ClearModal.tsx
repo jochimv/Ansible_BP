@@ -32,7 +32,8 @@ import { countUpdatedVariables } from '@frontend/pages/_app';
 import { CodeOff as CodeOffIcon } from '@mui/icons-material';
 import { useRouter } from 'next/router';
 
-function hasUpdatedVariables(projects) {
+// todo - project has updated variables možná, a to by se dalo použít i k mazání updatedProjects na BE
+function findIfAnyVariableWasUpdated(projects) {
   for (const project of projects) {
     for (const host of project.hosts) {
       for (const inventoryType of host.hostDetailsByInventoryType) {
@@ -71,9 +72,10 @@ const ClearModal = () => {
       }
     }
   };
+  console.log('updatedProjects: ', JSON.stringify(updatedProjects));
 
-  const hasUpdatedVariable = hasUpdatedVariables(updatedProjects);
-  // todo - clear the changes from the rest of the state. If you try do do it while having updated variables open, it does not work correctly
+  const hasUpdatedVariable = findIfAnyVariableWasUpdated(updatedProjects);
+
   return (
     <Dialog open={isModalOpen} sx={{ width: 1000 }}>
       <DialogTitle>Clear changes</DialogTitle>
