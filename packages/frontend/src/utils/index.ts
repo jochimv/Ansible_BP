@@ -4,7 +4,7 @@ import { parse as parseYaml, stringify } from 'yaml';
 import { extname, join } from 'path';
 import { simpleGit } from 'simple-git';
 
-const ansibleReposPath =
+export const ansibleReposPath =
   'C:\\Users\\VJochim\\Desktop\\Ansible_BP\\packages\\backend\\ansible_repos'; // "/app/ansible_repos" inside docker container
 const possibleInventoryFiles = ['hosts.ini', 'hosts', 'hosts.yaml'];
 const directoriesToIgnore = [
@@ -23,22 +23,6 @@ const directoriesToIgnore = [
 ];
 
 export const getMainBranchName = async (git) => {
-  /*let mainBranchName;
-  await git.branch(['--all'], (error, result) => {
-    if (error) {
-      console.log('Error during listing branches', error);
-    } else {
-      const { all: branchNames, branches } = result;
-      for (const branchName of branchNames) {
-        const { current, name } = branches[branchName];
-        if (current) {
-          mainBranchName = name;
-          break;
-        }
-      }
-    }
-  });
-  return mainBranchName;*/
   try {
     return await git.revparse(['--abbrev-ref', 'HEAD']);
   } catch (error) {
@@ -47,7 +31,6 @@ export const getMainBranchName = async (git) => {
   }
 };
 
-// TADY
 const checkAndUpdateProject = async (projectPath: string) => {
   const git = await simpleGit(projectPath);
   const mainBranchName = await getMainBranchName(git);

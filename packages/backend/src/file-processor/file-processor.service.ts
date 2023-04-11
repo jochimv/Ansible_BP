@@ -19,6 +19,13 @@ function addCredentialsToUrl(username, password, url) {
   return urlWithCredentials.href;
 }
 
+const removeCredentialsFromUrl = (urlWithCredentials) => {
+  const urlWithoutCredentials = new URL(urlWithCredentials);
+  urlWithoutCredentials.username = '';
+  urlWithoutCredentials.password = '';
+  return urlWithoutCredentials.href;
+};
+
 // todo - ozkoušet tohle jestli to funguje, a odstranit duplikát na frontendu v utils
 export const getMainBranchName = async (git): Promise<string> => {
   try {
@@ -53,7 +60,7 @@ export class FileProcessorService {
     const { commitMessage, commitBranchName, projectName, updatedVars } = commitDto;
     const repositoryPath = join(this.ansibleReposPath, projectName);
     const git = await simpleGit(repositoryPath);
-    // todo - vyřešit stejné jméno branch
+    // todo - vyřešit stejné jméno branch (master)
     let remoteRepoUrl;
     await git.getRemotes(true, (err, remotes) => {
       if (err) {
@@ -62,14 +69,8 @@ export class FileProcessorService {
       }
       remoteRepoUrl = remotes.map((remote) => remote.refs.fetch)[0];
     });
-    const repositoryUrlWithCredentials = addCredentialsToUrl(
-      process.env.GIT_USERNAME,
-      process.env.GIT_PASSWORD,
-      remoteRepoUrl,
-    );
 
     const originalBranchName = await getMainBranchName(git);
-    console.log('originalBranchName: ', originalBranchName);
 
     await git.checkoutBranch(commitBranchName, originalBranchName);
     for (const updatedVar of updatedVars) {
@@ -81,14 +82,26 @@ export class FileProcessorService {
 
     await git.commit(commitMessage);
 
+    const repositoryUrlWithCredentials = addCredentialsToUrl(
+      process.env.GIT_USERNAME,
+      process.env.GIT_PASSWORD,
+      remoteRepoUrl,
+    );
     try {
       const response = await git.push(repositoryUrlWithCredentials, commitBranchName);
       const pullRequestUrl = response.remoteMessages.all[1];
       await git.checkout(originalBranchName).deleteLocalBranch(commitBranchName, true);
       return { error: false, pullRequestUrl };
     } catch (error) {
-      console.log('Could not push.');
-      await git.checkout(originalBranchName).deleteLocalBranch(commitBranchName, true);
+      console.log('error caught while push, now about to try deleting local branch');
+      try {
+        await git.checkout(originalBranchName).deleteLocalBranch(commitBranchName, true);
+        console.log('branch deleted successfully');
+      } catch (e) {
+        console.log('unable to delete local branch. Error: ', JSON.stringify(e));
+        return { error: `Failed to push: ${JSON.stringify(error)}` };
+      }
+      error.task.commands[1] = removeCredentialsFromUrl(remoteRepoUrl);
       return { error: `Failed to push: ${JSON.stringify(error)}` };
     }
   }

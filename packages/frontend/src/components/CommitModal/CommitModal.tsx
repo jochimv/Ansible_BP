@@ -34,9 +34,7 @@ import { CloseButton } from '@frontend/components/CloseButton';
 
 const postCommitData = (data: any) => axios.post('http://localhost:4000/commit', data);
 
-// todo - automatické načítání změn z backendu do /packagages/backend/ansible-repos
-
-const CommitModal = () => {
+const CommitModal = ({ mainBranchName }) => {
   const { commitMessage, commitBranchName, response, isModalOpen } = useCommitModalContext();
   const commitModalDispatch = useCommitModalDispatchContext();
 
@@ -69,6 +67,8 @@ const CommitModal = () => {
     }
   };
 
+  const isCommitingToMainBranch = commitBranchName === mainBranchName;
+
   const getModalContent = (isLoading: boolean, response: any) => {
     if (isLoading) {
       return (
@@ -86,7 +86,9 @@ const CommitModal = () => {
           <DialogContent>
             <Stack direction="row" alignItems="center" justifyContent="center" spacing={3}>
               <Cancel sx={{ width: 40, height: 40, color: 'error.main' }} />
-              <Typography variant="h6">{response.error}</Typography>
+              <Typography variant="h6" sx={{ wordWrap: 'break-word', overflow: 'auto' }}>
+                {response.error}
+              </Typography>
             </Stack>
           </DialogContent>
           <DialogActions>
@@ -151,12 +153,23 @@ const CommitModal = () => {
               type="text"
               fullWidth
               variant="standard"
+              error={isCommitingToMainBranch}
+              helperText={
+                isCommitingToMainBranch
+                  ? 'You cannot commit directly to the main branch'
+                  : undefined
+              }
               value={commitBranchName}
               onChange={handleBranchNameChange}
             />
           </DialogContent>
           <DialogActions>
-            <Button startIcon={<SendIcon />} onClick={handleCommit} color="success">
+            <Button
+              startIcon={<SendIcon />}
+              onClick={handleCommit}
+              color="success"
+              disabled={isCommitingToMainBranch}
+            >
               Commit
             </Button>
             <CloseButton onClick={closeModal}>Cancel</CloseButton>

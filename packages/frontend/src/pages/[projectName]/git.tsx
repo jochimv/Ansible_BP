@@ -17,12 +17,15 @@ import { open } from '@frontend/components/CommitModal/state/commitModalReducer'
 import { useCommitModalDispatchContext } from '@frontend/components/CommitModal/state/CommitModalContext';
 import CommitModalProvider from '@frontend/components/CommitModal/state/CommitModalProvider';
 import { useRouter } from 'next/router';
+import { simpleGit } from 'simple-git';
+import { join } from 'path';
+import { ansibleReposPath, getMainBranchName } from '@frontend/utils';
 
 const stackPropsIfNoChanges = {
   alignItems: 'center',
   justifyContent: 'center',
 };
-const GitPage = () => {
+const GitPage = ({ mainBranchName }) => {
   const codeChangesDispatch = useCodeChangesDispatchContext();
   const { originalDiff, updatedDiff } = useCodeChangesContext();
   const commitModalDispatch = useCommitModalDispatchContext();
@@ -40,7 +43,7 @@ const GitPage = () => {
       height="100%"
       {...(originalDiff ? {} : stackPropsIfNoChanges)}
     >
-      <CommitModal />
+      <CommitModal mainBranchName={mainBranchName} />
       {originalDiff ? (
         <>
           <Stack direction="column">
@@ -82,8 +85,18 @@ const GitPage = () => {
   );
 };
 
-export default () => (
+export default ({ mainBranchName }) => (
   <CommitModalProvider>
-    <GitPage />
+    <GitPage mainBranchName={mainBranchName} />
   </CommitModalProvider>
 );
+
+export async function getServerSideProps(context: any) {
+  const { projectName } = context.query;
+  const projectPath = join(ansibleReposPath, projectName);
+  const git = await simpleGit(projectPath);
+  const mainBranchName = await getMainBranchName(git);
+  return {
+    props: { mainBranchName },
+  };
+}
