@@ -20,12 +20,17 @@ import { useRouter } from 'next/router';
 import { simpleGit } from 'simple-git';
 import { join } from 'path';
 import { ansibleReposPath, getMainBranchName } from '@frontend/utils';
+import { existsSync } from 'fs';
+import ProjectNotFound from '@frontend/components/notFoundPages/ProjectNotFound';
 
 const stackPropsIfNoChanges = {
   alignItems: 'center',
   justifyContent: 'center',
 };
-const GitPage = ({ mainBranchName }) => {
+const GitPage = ({ mainBranchName, projectExists }: GitPageProps) => {
+  if (!projectExists) {
+    return <ProjectNotFound />;
+  }
   const codeChangesDispatch = useCodeChangesDispatchContext();
   const { originalDiff, updatedDiff } = useCodeChangesContext();
   const commitModalDispatch = useCommitModalDispatchContext();
@@ -85,18 +90,28 @@ const GitPage = ({ mainBranchName }) => {
   );
 };
 
-export default ({ mainBranchName }) => (
+interface GitPageProps {
+  projectExists: boolean;
+  mainBranchName: string;
+}
+
+export default (props: GitPageProps) => (
   <CommitModalProvider>
-    <GitPage mainBranchName={mainBranchName} />
+    <GitPage {...props} />
   </CommitModalProvider>
 );
 
 export async function getServerSideProps(context: any) {
   const { projectName } = context.query;
   const projectPath = join(ansibleReposPath, projectName);
+  if (!existsSync(projectPath)) {
+    return {
+      props: { mainBranchName: null, projectExists: false },
+    };
+  }
   const git = await simpleGit(projectPath);
   const mainBranchName = await getMainBranchName(git);
   return {
-    props: { mainBranchName },
+    props: { mainBranchName, projectExists: true },
   };
 }

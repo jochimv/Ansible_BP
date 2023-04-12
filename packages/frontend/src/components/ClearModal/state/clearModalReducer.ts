@@ -1,15 +1,20 @@
 import { useReducer } from 'react';
 import keyMirror from 'keymirror';
-export const initialState = {
+import { ReducerAction } from '@frontend/utils/types';
+
+interface ClearModalState {
+  isModalOpen: boolean;
+}
+export const initialState: ClearModalState = {
   isModalOpen: false,
-};
+} as never;
 
 const actionTypes = keyMirror({
   OPEN: null,
   CLOSE: null,
 });
 
-export const clearModalReducer = (state, action) => {
+export const clearModalReducer = (state: ClearModalState, action: ReducerAction) => {
   switch (action.type) {
     case actionTypes.OPEN:
       return {
@@ -21,6 +26,8 @@ export const clearModalReducer = (state, action) => {
         ...state,
         isModalOpen: false,
       };
+    default:
+      return state;
   }
 };
 

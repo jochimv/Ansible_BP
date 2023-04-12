@@ -11,7 +11,7 @@ import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
 } from '@frontend/codeChanges/CodeChangesContext';
-import { switchMode } from '@frontend/codeChanges/codeChangesReducer';
+import { CodeChangesState, switchMode } from '@frontend/codeChanges/codeChangesReducer';
 import EditIcon from '@mui/icons-material/Edit';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
@@ -19,8 +19,7 @@ import CodeChangesProvider from '../codeChanges/CodeChangesProvider';
 import { AppProps } from 'next/app';
 import '@frontend/styles/globals.css';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
-
+import { ReactNode, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBroom } from '@fortawesome/free-solid-svg-icons';
 import { faGitAlt } from '@fortawesome/free-brands-svg-icons';
@@ -28,6 +27,7 @@ import ClearModalProvider from '@frontend/components/ClearModal/state/ClearModal
 import { useClearModalDispatchContext } from '@frontend/components/ClearModal/state/ClearModalContext';
 import { open } from '@frontend/components/ClearModal/state/clearModalReducer';
 import ClearModal from '@frontend/components/ClearModal';
+import { Host, HostDetails, HostVariable, Project } from '@frontend/utils/types';
 const queryClient = new QueryClient();
 
 const clientSideEmotionCache = createEmotionCache();
@@ -38,25 +38,37 @@ interface MyAppProps extends AppProps {
   emotionCache?: EmotionCache;
 }
 
-export function getUpdatedFilesPaths(projects, projectName) {
-  const countedPaths = [];
+export function getUpdatedFilesPaths(projects: Project[], projectName: string | null) {
+  const updatedFilesPaths: string[] = [];
 
-  projects?.forEach(({ projectName: proj, hosts }) => {
+  projects?.forEach(({ projectName: proj, hosts }: { projectName: string; hosts: Host[] }) => {
     if (proj === projectName) {
-      hosts.forEach(({ hostDetailsByInventoryType }) => {
-        hostDetailsByInventoryType.forEach(({ variables }) => {
-          variables.forEach(({ type, pathInProject, updated }) => {
-            if (type !== 'applied' && updated) {
-              if (!countedPaths.includes(pathInProject)) {
-                countedPaths.push(pathInProject);
-              }
-            }
+      hosts.forEach(
+        ({ hostDetailsByInventoryType }: { hostDetailsByInventoryType: HostDetails[] }) => {
+          hostDetailsByInventoryType.forEach(({ variables }: { variables: HostVariable[] }) => {
+            variables.forEach(
+              ({
+                type,
+                pathInProject,
+                updated,
+              }: {
+                type: string;
+                pathInProject: string;
+                updated: boolean;
+              }) => {
+                if (type !== 'applied' && updated) {
+                  if (!updatedFilesPaths.includes(pathInProject)) {
+                    updatedFilesPaths.push(pathInProject);
+                  }
+                }
+              },
+            );
           });
-        });
-      });
+        },
+      );
     }
   });
-  return countedPaths;
+  return updatedFilesPaths;
 }
 
 const AppBarResolver = () => {
@@ -117,7 +129,10 @@ const AppBarResolver = () => {
   );
 };
 
-const AutoSaveContextProvider = ({ children }) => {
+interface AutoSaveContextProviderProps {
+  children: ReactNode;
+}
+const AutoSaveContextProvider = ({ children }: AutoSaveContextProviderProps) => {
   const codeChangesContextData = useCodeChangesContext();
   useEffect(() => {
     window.addEventListener('beforeunload', () => handleBeforeUnload(codeChangesContextData));
@@ -130,7 +145,7 @@ const AutoSaveContextProvider = ({ children }) => {
   return <>{children}</>;
 };
 
-const handleBeforeUnload = (codeChangesContextData) => {
+const handleBeforeUnload = (codeChangesContextData: CodeChangesState) => {
   localStorage.setItem('codeChangesContextData', JSON.stringify(codeChangesContextData));
 };
 

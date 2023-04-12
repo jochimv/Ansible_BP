@@ -17,7 +17,6 @@ import {
   useCodeChangesDispatchContext,
 } from '@frontend/codeChanges/CodeChangesContext';
 import {
-  HostDetails,
   initializeEditor,
   showHostDetails,
   showVariables,
@@ -25,11 +24,14 @@ import {
 } from '@frontend/codeChanges/codeChangesReducer';
 import HostNotFound from '@frontend/components/notFoundPages/HostNotFound';
 import ProjectNotFound from '@frontend/components/notFoundPages/ProjectNotFound';
+import { HostDetails } from '@frontend/utils/types';
 
 interface HostPageProps {
   hostDetailsByInventoryType: HostDetails[];
   hostname: string;
   projectName: string;
+  projectExists: boolean;
+  hostExists: boolean;
 }
 
 const getVariablesByType = (obj: any, type: string) => {

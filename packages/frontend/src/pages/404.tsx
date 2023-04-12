@@ -2,7 +2,7 @@ import { Button, Stack, Typography } from '@mui/material';
 import { useRouter } from 'next/router';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-export default function Custom404() {
+export default function Custom404Page() {
   const router = useRouter();
 
   const handleGoBack = () => router.back();

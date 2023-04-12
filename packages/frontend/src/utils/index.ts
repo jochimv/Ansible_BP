@@ -2,7 +2,7 @@ import { readdirSync, statSync, readFileSync, existsSync } from 'fs';
 import { parse as parseIni } from 'ini';
 import { parse as parseYaml, stringify } from 'yaml';
 import { extname, join } from 'path';
-import { simpleGit } from 'simple-git';
+import { SimpleGit, simpleGit } from 'simple-git';
 
 export const ansibleReposPath =
   'C:\\Users\\VJochim\\Desktop\\Ansible_BP\\packages\\backend\\ansible_repos'; // "/app/ansible_repos" inside docker container
@@ -22,19 +22,12 @@ const directoriesToIgnore = [
   'host_vars',
 ];
 
-export const getMainBranchName = async (git) => {
-  try {
-    return await git.revparse(['--abbrev-ref', 'HEAD']);
-  } catch (error) {
-    console.log('Error during getting the main branch name', error);
-    return null;
-  }
-};
+export const getMainBranchName = async (git: SimpleGit) =>
+  await git.revparse(['--abbrev-ref', 'HEAD']);
 
 const checkAndUpdateProject = async (projectPath: string) => {
   const git = await simpleGit(projectPath);
-  const mainBranchName = await getMainBranchName(git);
-  console.log(`projectPath: ${projectPath}, mainBranchName: ${mainBranchName}`);
+  const mainBranchName: string = await getMainBranchName(git)!;
   const diffResult = await git.diff(['origin', mainBranchName]);
 
   if (diffResult) {
@@ -76,7 +69,7 @@ export const getProjectDetails = async (projectName: string) => {
             hostValues = readFileSync(hostVarsFilePath, 'utf-8');
           }
 
-          const groupName = getGroupNameFromIniInventory(inventoryFilePath, hostname);
+          const groupName = getGroupNameFromIniInventory(inventoryFilePath, hostname)!;
           const baseGroupName = extractBeforeColon(groupName);
 
           const groupVarsFilePath = join(
@@ -232,15 +225,6 @@ const getLastPathSegment = (path: string): string => {
   return segments[segments.length - 1]; // return the last segment
 };
 
-/*const fileOrDirectoryExists = (path: string): boolean => {
-  try {
-    accessSync(path, constants.F_OK);
-    return true;
-  } catch (err) {
-    return false;
-  }
-};*/
-
 const getGroupNameFromIniInventory = (filePath: string, serverName: string): string | undefined => {
   const iniData = parseIniFile(filePath);
   for (const groupName in iniData) {
@@ -255,7 +239,7 @@ const removeAnsibleReposPathFromPath = (filePath: string): string => {
   return filePath.slice(ansibleReposPath.length);
 };
 
-function extractBeforeColon(str: string) {
+const extractBeforeColon = (str: string) => {
   // find the index of the first colon in the string
   const colonIndex = str.indexOf(':');
 
@@ -266,7 +250,7 @@ function extractBeforeColon(str: string) {
     // extract the substring before the colon
     return str.substring(0, colonIndex);
   }
-}
+};
 
 const getCommonVariablesObj = (filePath: string) => {
   return {
@@ -311,7 +295,7 @@ export const getHostDetails = async (projectName: string, hostName: string) => {
         };
         variables.push(hostVariables);
       }
-      const groupName = getGroupNameFromIniInventory(inventoryFilePath, hostName);
+      const groupName = getGroupNameFromIniInventory(inventoryFilePath, hostName)!;
       // because some groups have name "foo:children," which will be displayed to the user, but the variables are placed in file foo.yml (without ":children")
       const baseGroupName = extractBeforeColon(groupName);
 
@@ -327,9 +311,9 @@ export const getHostDetails = async (projectName: string, hostName: string) => {
         variables.push(groupVariables);
       }
 
-      const groupVarsDirectoryPath = join(inventoryDirectoryPath, 'group_vars');
-      const commonVarsFilePath = join(groupVarsDirectoryPath, 'all', 'common.yml');
-      const alternativeCommonVarsFilePath = join(groupVarsDirectoryPath, 'all.yml');
+      const groupVarsDirectoryPath: string = join(inventoryDirectoryPath, 'group_vars');
+      const commonVarsFilePath: string = join(groupVarsDirectoryPath, 'all', 'common.yml');
+      const alternativeCommonVarsFilePath: string = join(groupVarsDirectoryPath, 'all.yml');
 
       let commonVariables;
       if (existsSync(commonVarsFilePath)) {

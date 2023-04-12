@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Dispatch, SyntheticEvent, useState } from 'react';
 import { TreeView, TreeItem } from '@mui/lab';
 import { Folder, Description } from '@mui/icons-material';
 import {
@@ -6,32 +6,36 @@ import {
   useCodeChangesDispatchContext,
 } from '../codeChanges/CodeChangesContext';
 import { showDiff } from '../codeChanges/codeChangesReducer';
+import { HostVariable } from '@frontend/utils/types';
 
-const buildTree = (paths: string[]) => {
-  const tree = {};
+interface TreeNode {
+  [key: string]: TreeNode | undefined;
+}
+
+const buildTree = (paths: string[]): TreeNode => {
+  const tree: TreeNode = {};
 
   for (const path of paths) {
     const parts = path.split('\\').slice(1);
-    let currentNode = tree;
+    let currentNode: TreeNode = tree;
 
     for (const part of parts) {
       if (!currentNode[part]) {
         currentNode[part] = {};
       }
-      currentNode = currentNode[part];
+      currentNode = currentNode[part]!;
     }
   }
   return tree;
 };
 
-const renderTree = (nodes, path: string, dispatch) => {
-  if (Object.keys(nodes).length === 0) {
+const renderTree = (nodes: TreeNode | undefined, path: string, dispatch: Dispatch<any>) => {
+  if (Object.keys(nodes ?? {}).length === 0) {
     return;
   }
-
-  return Object.entries(nodes).map(([nodeName, children]) => {
+  return Object.entries(nodes ?? {}).map(([nodeName, children]) => {
     const newPath = `${path}\\${nodeName}`;
-    const isLeaf = Object.keys(children).length === 0;
+    const isLeaf = Object.keys(children ?? {}).length === 0;
     return (
       <TreeItem
         key={newPath}
@@ -52,7 +56,7 @@ const renderTree = (nodes, path: string, dispatch) => {
   });
 };
 
-function getPathHierarchy(path) {
+const getPathHierarchy = (path: string) => {
   const parts = path.split('\\');
   const result = [];
 
@@ -65,24 +69,25 @@ function getPathHierarchy(path) {
   }
 
   return result;
-}
+};
 
 const GitChangesFileTree = () => {
   const { originalVars, originalDiff, selectedProjectName } = useCodeChangesContext();
 
   const dispatch = useCodeChangesDispatchContext();
+
   const paths = originalVars
-    .map((originalVar) => originalVar.pathInProject)
+    ?.map((originalVar: HostVariable) => originalVar.pathInProject)
     // only show diff for the current project
-    .filter((path) => path.split('\\')[1] === selectedProjectName);
+    .filter((path) => path.split('\\')[1] === selectedProjectName)!;
 
   const treeData = buildTree(paths);
-  const selectedNodeId = originalDiff.pathInProject || paths[0];
+  const selectedNodeId = originalDiff?.pathInProject || paths[0];
 
-  const allPaths = paths.flatMap((path) => getPathHierarchy(path));
+  const allPaths = paths?.flatMap((path) => getPathHierarchy(path));
   const [expanded, setExpanded] = useState<string[]>(allPaths);
 
-  const handleToggle = (event, nodeIds: string[]) => {
+  const handleToggle = (event: SyntheticEvent, nodeIds: string[]) => {
     setExpanded(nodeIds);
   };
 
@@ -90,7 +95,7 @@ const GitChangesFileTree = () => {
     <TreeView
       expanded={expanded}
       selected={selectedNodeId}
-      defaultCollapseIcon={<Folder open />}
+      defaultCollapseIcon={<Folder />}
       onNodeToggle={handleToggle}
       defaultExpandIcon={<Folder />}
       defaultEndIcon={<Description />}

@@ -3,82 +3,115 @@ import { Stack, Typography } from '@mui/material';
 import { getProjectDetails } from '@frontend/utils';
 import ProjectDetailsTree from '@frontend/components/ProjectDetailsTree';
 import Editor from '@monaco-editor/react';
-import { useState } from 'react';
+import { SyntheticEvent, useState } from 'react';
 import ProjectNotFound from '@frontend/components/notFoundPages/ProjectNotFound';
 import { useCodeChangesContext } from '@frontend/codeChanges/CodeChangesContext';
 import { parse as parseYaml, stringify } from 'yaml';
+import {
+  Host,
+  HostDetails,
+  HostVariable,
+  Project,
+  ProjectDetails,
+  ProjectDetailsGroup,
+  ProjectDetailsHost,
+  ProjectDetailsInventory,
+} from '@frontend/utils/types';
 
-const convertData = (data) => {
-  return data.flatMap(({ inventoryType, groupHosts }, idx) => {
-    return {
-      id: `inventory-${idx}`,
-      name: inventoryType,
-      children: groupHosts.flatMap(({ groupName, hosts }, groupIdx) => {
-        return {
-          id: `group-${idx}-${groupIdx}`,
-          name: groupName,
-          children: hosts.map(({ hostname, appliedVariables }, hostIdx) => ({
-            id: `host-${idx}-${groupIdx}-${hostIdx}`,
-            name: hostname,
-            appliedVariables,
-          })),
-        };
-      }),
-    };
-  });
+const convertProjectDetailsToTreeOfIds = (projectDetails: ProjectDetails) => {
+  return projectDetails.flatMap(
+    ({ inventoryType, groupHosts }: ProjectDetailsInventory, idx: number) => {
+      return {
+        id: `inventory-${idx}`,
+        name: inventoryType,
+        children: groupHosts.flatMap(
+          ({ groupName, hosts }: ProjectDetailsGroup, groupIdx: number) => {
+            return {
+              id: `group-${idx}-${groupIdx}`,
+              name: groupName,
+              children: hosts.map(
+                ({ hostname, appliedVariables }: ProjectDetailsHost, hostIdx: number) => ({
+                  id: `host-${idx}-${groupIdx}-${hostIdx}`,
+                  name: hostname,
+                  appliedVariables,
+                }),
+              ),
+            };
+          },
+        ),
+      };
+    },
+  );
 };
-export const getStringifiedVariablesFromVariablesArray = (variables) => {
-  const commonVariables = variables.find((variable) => variable.type === 'common');
-  const groupVariables = variables.find((variable) => variable.type === 'group');
-  const hostVariables = variables.find((variable) => variable.type === 'host');
-
-  try {
-    const appliedVariables = {
-      ...(commonVariables && parseYaml(commonVariables.values)),
-      ...(groupVariables && parseYaml(groupVariables.values)),
-      ...(hostVariables && parseYaml(hostVariables.values)),
-    };
-
-    const stringifiedAppliedVariables = stringify(appliedVariables);
-    return stringifiedAppliedVariables === '{}\n' ? '' : stringifiedAppliedVariables;
-  } catch (e) {
-    // todo  tohle
-    return variable;
+export const getStringifiedAppliedVariablesFromVariablesArray = (
+  variables: HostVariable[],
+  originalAppliedVariables: string,
+) => {
+  const commonVariables = variables.find((variable: HostVariable) => variable.type === 'common');
+  const groupVariables = variables.find((variable: HostVariable) => variable.type === 'group');
+  const hostVariables = variables.find((variable: HostVariable) => variable.type === 'host');
+  const appliedVariables = {
+    ...(commonVariables && parseYaml(commonVariables.values)),
+    ...(groupVariables && parseYaml(groupVariables.values)),
+    ...(hostVariables && parseYaml(hostVariables.values)),
+  };
+  if ('0' in appliedVariables) {
+    return originalAppliedVariables;
   }
+  const stringifiedAppliedVariables = stringify(appliedVariables);
+  return stringifiedAppliedVariables === '{}\n' ? '' : stringifiedAppliedVariables;
 };
 
-function updateAppliedVariables(projectDetails, updatedProjects, projectName) {
+const updateAppliedVariables = (
+  projectDetails: ProjectDetails,
+  updatedProjects: Project[],
+  projectName: string | string[] | undefined,
+) => {
   const updatedDetails = JSON.parse(JSON.stringify(projectDetails));
 
-  const updatedProject = updatedProjects.find((project) => project.projectName === projectName);
-  updatedDetails?.forEach((detail) => {
-    detail?.groupHosts.forEach((groupHost) => {
-      groupHost?.hosts?.forEach((host) => {
+  const updatedProject = updatedProjects.find(
+    (project: Project) => project.projectName === projectName,
+  );
+  updatedDetails?.forEach((detail: ProjectDetailsInventory) => {
+    detail?.groupHosts.forEach((groupHost: ProjectDetailsGroup) => {
+      groupHost?.hosts?.forEach((host: ProjectDetailsHost) => {
         const inventoryType = detail.inventoryType;
         const groupName = groupHost.groupName;
         const hostname = host.hostname;
         let hostVariables;
         let groupVariables;
         let commonVariables;
-        const sourceForAppliedVariables = [];
-        updatedProject?.hosts.forEach((host) => {
-          host?.hostDetailsByInventoryType.forEach((hostDetail) => {
+        const sourceForAppliedVariables: HostVariable[] = [];
+        updatedProject?.hosts.forEach((host: Host) => {
+          host?.hostDetailsByInventoryType.forEach((hostDetail: HostDetails) => {
             if (
               host.hostname === hostname &&
               hostDetail.inventoryType === inventoryType &&
               hostDetail.groupName === groupName
             ) {
-              hostVariables = hostDetail.variables.find((variable) => variable.type === 'host');
-              groupVariables = hostDetail.variables.find((variable) => variable.type === 'group');
-              commonVariables = hostDetail.variables.find((variable) => variable.type === 'common');
+              hostVariables = hostDetail.variables.find(
+                (variable: HostVariable) => variable.type === 'host',
+              );
+              groupVariables = hostDetail.variables.find(
+                (variable: HostVariable) => variable.type === 'group',
+              );
+              commonVariables = hostDetail.variables.find(
+                (variable: HostVariable) => variable.type === 'common',
+              );
             } else if (
               hostDetail.inventoryType === inventoryType &&
               hostDetail.groupName === groupName
             ) {
-              groupVariables = hostDetail.variables.find((variable) => variable.type === 'group');
-              commonVariables = hostDetail.variables.find((variable) => variable.type === 'common');
+              groupVariables = hostDetail.variables.find(
+                (variable: HostVariable) => variable.type === 'group',
+              );
+              commonVariables = hostDetail.variables.find(
+                (variable: HostVariable) => variable.type === 'common',
+              );
             } else if (hostDetail.inventoryType === inventoryType) {
-              commonVariables = hostDetail.variables.find((variable) => variable.type === 'common');
+              commonVariables = hostDetail.variables.find(
+                (variable: HostVariable) => variable.type === 'common',
+              );
             }
           });
         });
@@ -92,32 +125,37 @@ function updateAppliedVariables(projectDetails, updatedProjects, projectName) {
           sourceForAppliedVariables.push(commonVariables);
         }
         if (sourceForAppliedVariables.length !== 0) {
-          host.appliedVariables =
-            getStringifiedVariablesFromVariablesArray(sourceForAppliedVariables);
+          host.appliedVariables = getStringifiedAppliedVariablesFromVariablesArray(
+            sourceForAppliedVariables,
+            host.appliedVariables,
+          );
         }
       });
     });
   });
   return updatedDetails;
-}
+};
 
-const ProjectPage = ({ projectDetails, projectExists }) => {
+const ProjectPage = ({
+  projectDetails,
+  projectExists,
+}: {
+  projectDetails: ProjectDetails;
+  projectExists: boolean;
+}) => {
   if (!projectExists) {
     return <ProjectNotFound />;
   }
-  const router = useRouter();
-  const { projectName } = router.query;
-
+  const { projectName } = useRouter().query!;
   const { updatedProjects } = useCodeChangesContext();
-
   const newProjectDetails = updateAppliedVariables(projectDetails, updatedProjects, projectName);
 
-  const treeData = convertData(newProjectDetails);
+  const treeData = convertProjectDetailsToTreeOfIds(newProjectDetails);
   const [selectedHost, setSelectedHost] = useState(treeData[0].children[0].children[0]);
 
   return (
     <Stack sx={{ height: '100%' }}>
-      <Typography variant="h4">{router.query.projectName}</Typography>
+      <Typography variant="h4">{projectName}</Typography>
       <Stack direction="row" sx={{ height: '100%' }}>
         <ProjectDetailsTree data={treeData} onNodeSelected={setSelectedHost} />
         <Editor

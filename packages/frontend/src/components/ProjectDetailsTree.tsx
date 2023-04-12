@@ -4,23 +4,32 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { faServer } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-const ProjectDetailsTree = ({ data, onNodeSelected }) => {
+import { TreeViewInventoryItem } from '@frontend/utils/types';
+
+interface ProjectDetailsTreeProps {
+  data: TreeViewInventoryItem[];
+  onNodeSelected: React.Dispatch<
+    React.SetStateAction<{ id: string; name: string; appliedVariables: string }>
+  >;
+}
+
+const ProjectDetailsTree = ({ data, onNodeSelected }: ProjectDetailsTreeProps) => {
   const [expanded, setExpanded] = useState<string[]>(['inventory-0', 'group-0-0']);
-  const [selected, setSelected] = useState<string[]>(['host-0-0-0']);
+  const [selected, setSelected] = useState<string>('host-0-0-0');
 
   const handleToggle = (event: React.SyntheticEvent, nodeIds: string[]) => {
     setExpanded(nodeIds);
   };
 
-  const handleSelect = (event: React.SyntheticEvent, nodeIds: string[]) => {
-    if (nodeIds.startsWith('host-')) {
-      setSelected(nodeIds);
+  const handleSelect = (event: React.SyntheticEvent, nodeId: string) => {
+    if (nodeId.startsWith('host-')) {
+      setSelected(nodeId);
 
       let selectedNode;
-      data.forEach((inventory) => {
-        inventory.children.forEach((group) => {
-          group.children.forEach((host) => {
-            if (host.id === nodeIds) {
+      data.forEach((inventory: TreeViewInventoryItem) => {
+        inventory?.children?.forEach((group) => {
+          group?.children?.forEach((host) => {
+            if (host.id === nodeId) {
               selectedNode = host;
             }
           });
@@ -32,7 +41,7 @@ const ProjectDetailsTree = ({ data, onNodeSelected }) => {
       }
     }
   };
-  const renderTree = (nodes) => {
+  const renderTree = (nodes: TreeViewInventoryItem) => {
     return (
       <TreeItem
         icon={

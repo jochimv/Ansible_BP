@@ -5,12 +5,10 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Paper,
   Stack,
   Table,
   TableCell,
   TableContainer,
-  Grid,
   TableHead,
   TableRow,
   Typography,
@@ -39,8 +37,9 @@ import { getUpdatedFilesPaths } from '@frontend/pages/_app';
 import { CodeOff as CodeOffIcon } from '@mui/icons-material';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Project } from '@frontend/utils/types';
 
-function findIfAnyVariableWasUpdated(projects) {
+const findIfAnyVariableWasUpdated = (projects: Project[]) => {
   for (const project of projects) {
     for (const host of project.hosts) {
       for (const inventoryType of host.hostDetailsByInventoryType) {
@@ -53,7 +52,7 @@ function findIfAnyVariableWasUpdated(projects) {
     }
   }
   return false;
-}
+};
 
 const ClearModal = () => {
   const { isModalOpen } = useClearModalContext();
@@ -111,11 +110,11 @@ const ClearModal = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {updatedProjects.map((updatedProject) => {
+                  {updatedProjects.map((updatedProject: Project) => {
                     const { projectName } = updatedProject;
                     const updatedFilesPaths = getUpdatedFilesPaths(updatedProjects, projectName);
                     return (
-                      <TableRow>
+                      <TableRow key={updatedProject.projectName}>
                         <TableCell>{projectName}</TableCell>
                         <TableCell>
                           <Stack spacing={2} direction="row">

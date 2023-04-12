@@ -34,7 +34,11 @@ import { CloseButton } from '@frontend/components/CloseButton';
 
 const postCommitData = (data: any) => axios.post('http://localhost:4000/commit', data);
 
-const CommitModal = ({ mainBranchName }) => {
+interface CommitModalProps {
+  mainBranchName: string;
+}
+
+const CommitModal = ({ mainBranchName }: CommitModalProps) => {
   const { commitMessage, commitBranchName, response, isModalOpen } = useCommitModalContext();
   const commitModalDispatch = useCommitModalDispatchContext();
 
@@ -50,7 +54,6 @@ const CommitModal = ({ mainBranchName }) => {
   });
   const { updatedVars, selectedProjectName } = useCodeChangesContext();
   const codeChangesDispatch = useCodeChangesDispatchContext();
-  console.log('updatedVars: ', JSON.stringify(updatedVars));
 
   const closeModal = () => commitModalDispatch(close());
   const clearResponse = () => commitModalDispatch(updateResponse(undefined));
