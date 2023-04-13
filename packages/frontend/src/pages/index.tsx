@@ -33,7 +33,6 @@ const HomePage = ({ projectHosts }: HomePageProps) => {
   const [projectNames, setProjectNames] = useState(
     projectHosts.map((projectHost: ProjectHosts) => projectHost.project),
   );
-  //let projectNames = projectHosts.map((projectHost: ProjectHosts) => projectHost.project);
   const router = useRouter();
   const { selectedProjectName } = useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();

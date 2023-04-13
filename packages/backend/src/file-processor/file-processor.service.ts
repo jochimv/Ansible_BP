@@ -9,10 +9,9 @@ export interface CommitResponse {
   error: string | boolean;
   pullRequestUrl?: any;
 }
-export const extractRepoNameFromUrl = (gitRepoUrl: string): string => {
-  const urlParts = gitRepoUrl.split('/');
-  const repoNameWithGit = urlParts[urlParts.length - 1];
-  return repoNameWithGit.replace('.git', '');
+const extractSecondToLastPathSegment = (url: string): string => {
+  const urlSegments = url.split('/');
+  return urlSegments[urlSegments.length - 2];
 };
 
 function addCredentialsToUrl(username, password, url) {
@@ -81,7 +80,8 @@ export class FileProcessorService {
     const git: SimpleGit = simpleGit();
     console.log('starting to download repository');
     try {
-      const projectName = extractRepoNameFromUrl(gitRepositoryUrl);
+      const projectName = extractSecondToLastPathSegment(gitRepositoryUrl);
+      console.log('projectName: ', projectName);
       const projectDestinationPath = join(this.ansibleReposPath, projectName);
 
       if (existsSync(projectDestinationPath)) {
