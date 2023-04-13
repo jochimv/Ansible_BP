@@ -190,6 +190,7 @@ export const actionTypes = keyMirror({
   CLEAR_PROJECT_UPDATES_FROM_EDITOR: null,
   CLEAR_ALL_PROJECTS_UPDATES: null,
   CLEAR_ALL_PROJECT_UPDATES_FROM_EDITOR: null,
+  DELETE_PROJECT: null,
 });
 export const initialState: CodeChangesState = {
   updatedProjects: [],
@@ -263,6 +264,19 @@ export const codeChangesReducer = (
       return { ...state, selectedHostDetails: action.payload };
     case actionTypes.SHOW_VARIABLES:
       return { ...state, selectedVariables: action.payload };
+    case actionTypes.DELETE_PROJECT: {
+      const projectName = action.payload;
+      return {
+        ...state,
+        selectedProjectName: null,
+        originalProjects: state.originalProjects.filter(
+          (project) => project.projectName !== projectName,
+        ),
+        updatedProjects: state.updatedProjects.filter(
+          (project) => project.projectName !== projectName,
+        ),
+      };
+    }
     case actionTypes.CLEAR_ALL_PROJECT_UPDATES_FROM_EDITOR: {
       const { projectName, hostname } = action.payload;
       const { selectedHostDetailsByInventoryType, selectedHostDetails, selectedVariables } =
@@ -967,5 +981,10 @@ export const clearAllProjectsUpdates = (): ReducerAction => ({
 
 export const clearAllProjectUpdatesFromEditor = (payload: any): ReducerAction => ({
   type: actionTypes.CLEAR_ALL_PROJECT_UPDATES_FROM_EDITOR,
+  payload,
+});
+
+export const deleteProject = (payload: any): ReducerAction => ({
+  type: actionTypes.DELETE_PROJECT,
   payload,
 });

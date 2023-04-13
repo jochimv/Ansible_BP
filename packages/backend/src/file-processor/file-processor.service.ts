@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { readdirSync, readFileSync, statSync, writeFileSync, existsSync } from 'fs';
+import { readdirSync, readFileSync, statSync, writeFileSync, existsSync, rmSync } from 'fs';
 import { parse as parseIni } from 'ini';
 import { parse as parseYaml } from 'yaml';
 import { extname, join } from 'path';
@@ -29,7 +29,7 @@ const removeCredentialsFromUrl = (urlWithCredentials) => {
   return urlWithoutCredentials.href;
 };
 
-interface DownloadRepositoryResult {
+export interface DownloadRepositoryResult {
   success: boolean;
   error?: string;
 }
@@ -64,10 +64,22 @@ export class FileProcessorService {
     'host_vars',
   ];
 
+  deleteRepository = async (projectName: string): Promise<DownloadRepositoryResult> => {
+    const projectPath = join(this.ansibleReposPath, projectName);
+    if (!existsSync(projectPath)) {
+      return { success: false, error: `${projectName} not found` };
+    }
+
+    try {
+      await rmSync(projectPath, { recursive: true, force: true });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: `Error during removal of ${projectPath}` };
+    }
+  };
   downloadRepository = async (gitRepositoryUrl: string): Promise<DownloadRepositoryResult> => {
     const git: SimpleGit = simpleGit();
     console.log('starting to download repository');
-
     try {
       const projectName = extractRepoNameFromUrl(gitRepositoryUrl);
       const projectDestinationPath = join(this.ansibleReposPath, projectName);

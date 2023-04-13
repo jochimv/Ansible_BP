@@ -15,20 +15,51 @@ import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
 } from '@frontend/codeChanges/CodeChangesContext';
-import { selectProject } from '@frontend/codeChanges/codeChangesReducer';
+import { deleteProject, selectProject } from '@frontend/codeChanges/codeChangesReducer';
 import { ProjectHosts } from '@frontend/utils/types';
 import DownloadIcon from '@mui/icons-material/Download';
 import ImportProjectModal from '@frontend/components/ImportProjectModal';
+import { FolderOff } from '@mui/icons-material';
+import axios, { AxiosResponse } from 'axios';
+import { useMutation } from 'react-query';
+import { useSnackbar } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
+import ConfirmDialog from '@frontend/components/ConfirmDialog';
 
 interface HomePageProps {
   projectHosts: ProjectHosts[];
 }
+const deleteRepository = (data: any) => axios.post('http://localhost:4000/deleteRepository', data);
 const HomePage = ({ projectHosts }: HomePageProps) => {
-  const projectNames = projectHosts.map((projectHost: ProjectHosts) => projectHost.project);
+  const [projectNames, setProjectNames] = useState(
+    projectHosts.map((projectHost: ProjectHosts) => projectHost.project),
+  );
+  //let projectNames = projectHosts.map((projectHost: ProjectHosts) => projectHost.project);
   const router = useRouter();
   const { selectedProjectName } = useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();
   const [isImportProjectModalOpen, setIsImportProjectModalOpen] = useState(false);
+  const { showMessage } = useSnackbar();
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const handleDelete = () => {
+    if (selectedProjectName) {
+      mutate({ projectName: selectedProjectName });
+    }
+    setIsConfirmDialogOpen(false);
+  };
+
+  const { mutate } = useMutation(deleteRepository, {
+    onSuccess: (response: AxiosResponse<any>) => {
+      if (response.data.success) {
+        showMessage(`${selectedProjectName} deleted successfully`, 'success');
+        setProjectNames((projectNames) =>
+          projectNames.filter((projectName) => projectName !== selectedProjectName),
+        );
+        dispatch(deleteProject(selectedProjectName));
+      } else {
+        showMessage(response.data.error, 'error');
+      }
+    },
+  });
   return (
     <Box display="flex" justifyContent="center" alignItems="center">
       <Stack spacing={3} sx={{ width: 'min-content' }}>
@@ -42,7 +73,7 @@ const HomePage = ({ projectHosts }: HomePageProps) => {
           onChange={(event: SyntheticEvent, newValue: string | null) => {
             dispatch(selectProject(newValue));
           }}
-          value={selectedProjectName ?? undefined}
+          value={selectedProjectName}
         />
         <Autocomplete
           id="servers"
@@ -67,9 +98,27 @@ const HomePage = ({ projectHosts }: HomePageProps) => {
         <Button startIcon={<DownloadIcon />} onClick={() => setIsImportProjectModalOpen(true)}>
           Import repository
         </Button>
+        <Button
+          startIcon={<FolderOff />}
+          onClick={() => {
+            if (selectedProjectName) {
+              setIsConfirmDialogOpen(true);
+            }
+          }}
+          disabled={!selectedProjectName}
+        >
+          Delete selected repository
+        </Button>
         <ImportProjectModal
           isOpen={isImportProjectModalOpen}
           onClose={() => setIsImportProjectModalOpen(false)}
+        />
+        <ConfirmDialog
+          open={isConfirmDialogOpen}
+          onClose={() => setIsConfirmDialogOpen(false)}
+          onConfirm={handleDelete}
+          title="Delete Repository"
+          message={`Are you sure you want to delete the project "${selectedProjectName}"?`}
         />
       </Stack>
     </Box>

@@ -1,7 +1,5 @@
-import { Snackbar as MuiSnackbar, IconButton } from '@mui/material';
+import { Snackbar as MuiSnackbar, IconButton, Alert, AlertColor } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import Alert from '@mui/lab/Alert';
-import { AlertColor } from '@mui/lab/Alert/Alert';
 
 interface SnackbarProps {
   message: string;
