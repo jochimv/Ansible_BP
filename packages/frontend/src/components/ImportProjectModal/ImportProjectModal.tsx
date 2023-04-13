@@ -18,6 +18,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 interface ImportProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess: (projectName: string) => void;
 }
 
 const gitRepoUrlRegex = /((git|ssh|http(s)?)|(git@[\w.]+))(:(\/\/)?)([\w.@/:~-]+)(\.git)(\/)?/;
@@ -25,16 +26,16 @@ const gitRepoUrlRegex = /((git|ssh|http(s)?)|(git@[\w.]+))(:(\/\/)?)([\w.@/:~-]+
 const importProjectByRepoUrl = (data: any) =>
   axios.post('http://localhost:4000/downloadRepository', data);
 
-const ImportProjectModal = ({ isOpen, onClose }: ImportProjectModalProps) => {
+const ImportProjectModal = ({ isOpen, onClose, onSuccess }: ImportProjectModalProps) => {
   const { showMessage } = useSnackbar();
   const { isLoading, mutate } = useMutation(importProjectByRepoUrl, {
     onSuccess: (response) => {
       if (response.data.success) {
         const url = new URL(gitRepositoryUrl);
         const pathSegments = url.pathname.split('/');
-        const lastSegment = pathSegments[pathSegments.length - 1];
-        const repoName = lastSegment.replace(/\.git$/, '');
-        showMessage(`${repoName} imported successfully`, 'success');
+        const projectName = pathSegments[pathSegments.length - 2];
+        showMessage(`${projectName} imported successfully`, 'success');
+        onSuccess(projectName);
         if (isOpen) {
           onClose();
         }

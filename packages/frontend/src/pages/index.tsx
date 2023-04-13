@@ -46,13 +46,16 @@ const HomePage = ({ projectHosts }: HomePageProps) => {
     setIsConfirmDialogOpen(false);
   };
 
+  const handleChangeProjectsAutocompleteValues = () =>
+    setProjectNames((projectNames) =>
+      projectNames.filter((projectName) => projectName !== selectedProjectName),
+    );
+
   const { mutate } = useMutation(deleteRepository, {
     onSuccess: (response: AxiosResponse<any>) => {
       if (response.data.success) {
         showMessage(`${selectedProjectName} deleted successfully`, 'success');
-        setProjectNames((projectNames) =>
-          projectNames.filter((projectName) => projectName !== selectedProjectName),
-        );
+        handleChangeProjectsAutocompleteValues();
         dispatch(deleteProject(selectedProjectName));
       } else {
         showMessage(response.data.error, 'error');
@@ -111,6 +114,7 @@ const HomePage = ({ projectHosts }: HomePageProps) => {
         <ImportProjectModal
           isOpen={isImportProjectModalOpen}
           onClose={() => setIsImportProjectModalOpen(false)}
+          onSuccess={handleChangeProjectsAutocompleteValues}
         />
         <ConfirmDialog
           open={isConfirmDialogOpen}
