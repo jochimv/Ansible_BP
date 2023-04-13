@@ -13,4 +13,8 @@ export class FileProcessorController {
   async commit(@Body() commitDto): Promise<CommitResponse> {
     return await this.fileProcessorService.commit(commitDto);
   }
+  @Post('downloadRepository')
+  async downloadRepository(@Body('gitRepositoryUrl') gitRepositoryUrl) {
+    return await this.fileProcessorService.downloadRepository(gitRepositoryUrl);
+  }
 }

@@ -28,6 +28,7 @@ import { useClearModalDispatchContext } from '@frontend/components/ClearModal/st
 import { open } from '@frontend/components/ClearModal/state/clearModalReducer';
 import ClearModal from '@frontend/components/ClearModal';
 import { Host, HostDetails, HostVariable, Project } from '@frontend/utils/types';
+import { SnackbarProvider } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
 const queryClient = new QueryClient();
 
 const clientSideEmotionCache = createEmotionCache();
@@ -156,16 +157,18 @@ const App = ({ Component, pageProps, emotionCache = clientSideEmotionCache }: My
         <ThemeProvider theme={theme}>
           <CodeChangesProvider>
             <AutoSaveContextProvider>
-              <Head>
-                <meta name="viewport" content="initial-scale=1, width=device-width" />
-                <title>Ansible manager</title>
-              </Head>
-              <ClearModalProvider>
-                <AppBarResolver />
-              </ClearModalProvider>
-              <Box sx={{ mx: 5, mt: 4, mb: 4 }}>
-                <Component {...pageProps} />
-              </Box>
+              <SnackbarProvider>
+                <Head>
+                  <meta name="viewport" content="initial-scale=1, width=device-width" />
+                  <title>Ansible manager</title>
+                </Head>
+                <ClearModalProvider>
+                  <AppBarResolver />
+                </ClearModalProvider>
+                <Box sx={{ mx: 5, mt: 4, mb: 4 }}>
+                  <Component {...pageProps} />
+                </Box>
+              </SnackbarProvider>
             </AutoSaveContextProvider>
           </CodeChangesProvider>
         </ThemeProvider>

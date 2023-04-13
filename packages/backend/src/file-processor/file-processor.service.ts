@@ -1,16 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { readdirSync, statSync, readFileSync } from 'fs';
+import { readdirSync, readFileSync, statSync, writeFileSync, existsSync } from 'fs';
 import { parse as parseIni } from 'ini';
 import { parse as parseYaml } from 'yaml';
 import { extname, join } from 'path';
 import { ProjectsHosts } from '../types';
-import { writeFileSync } from 'fs';
-import { simpleGit } from 'simple-git';
-
+import { SimpleGit, simpleGit } from 'simple-git';
 export interface CommitResponse {
   error: string | boolean;
   pullRequestUrl?: any;
 }
+export const extractRepoNameFromUrl = (gitRepoUrl: string): string => {
+  const urlParts = gitRepoUrl.split('/');
+  const repoNameWithGit = urlParts[urlParts.length - 1];
+  return repoNameWithGit.replace('.git', '');
+};
 
 function addCredentialsToUrl(username, password, url) {
   const urlWithCredentials = new URL(url);
@@ -25,6 +28,11 @@ const removeCredentialsFromUrl = (urlWithCredentials) => {
   urlWithoutCredentials.password = '';
   return urlWithoutCredentials.href;
 };
+
+interface DownloadRepositoryResult {
+  success: boolean;
+  error?: string;
+}
 
 // todo - ozkoušet tohle jestli to funguje, a odstranit duplikát na frontendu v utils
 export const getMainBranchName = async (git): Promise<string> => {
@@ -56,11 +64,34 @@ export class FileProcessorService {
     'host_vars',
   ];
 
+  downloadRepository = async (gitRepositoryUrl: string): Promise<DownloadRepositoryResult> => {
+    const git: SimpleGit = simpleGit();
+    console.log('starting to download repository');
+
+    try {
+      const projectName = extractRepoNameFromUrl(gitRepositoryUrl);
+      const projectDestinationPath = join(this.ansibleReposPath, projectName);
+
+      if (existsSync(projectDestinationPath)) {
+        return { success: false, error: `${projectName} already present` };
+      }
+
+      const result = await git.clone(gitRepositoryUrl, projectDestinationPath);
+      console.log('downloading completed', JSON.stringify(result));
+      return { success: true };
+    } catch (error) {
+      console.error('Error downloading repository:', JSON.stringify(error));
+      return {
+        success: false,
+        error: 'Failed to download repository. Check internet connection and URL.',
+      };
+    }
+  };
+
   async commit(commitDto): Promise<CommitResponse> {
     const { commitMessage, commitBranchName, projectName, updatedVars } = commitDto;
     const repositoryPath = join(this.ansibleReposPath, projectName);
     const git = await simpleGit(repositoryPath);
-    // todo - vyřešit stejné jméno branch (master)
     let remoteRepoUrl;
     await git.getRemotes(true, (err, remotes) => {
       if (err) {

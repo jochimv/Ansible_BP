@@ -1,4 +1,4 @@
-import { readdirSync, statSync, readFileSync, existsSync } from 'fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
 import { parse as parseIni } from 'ini';
 import { parse as parseYaml, stringify } from 'yaml';
 import { extname, join } from 'path';
@@ -343,4 +343,9 @@ export const getHostDetails = async (projectName: string, hostName: string) => {
     }
   }
   return { hostDetailsByInventoryType, hostExists, projectExists: true };
+};
+export const extractRepoNameFromUrl = (gitRepoUrl: string): string => {
+  const urlParts = gitRepoUrl.split('/');
+  const repoNameWithGit = urlParts[urlParts.length - 1];
+  return repoNameWithGit.replace('.git', '');
 };
