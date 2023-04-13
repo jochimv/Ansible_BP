@@ -1,6 +1,15 @@
 import { useReducer } from 'react';
 import keyMirror from 'keymirror';
-export const initialState = {
+import { ReducerAction } from '@frontend/utils/types';
+
+interface CommitModalReducerState {
+  isModalOpen: boolean;
+  commitMessage: string;
+  commitBranchName: string;
+  response: string | undefined;
+}
+
+export const initialState: CommitModalReducerState = {
   isModalOpen: false,
   commitMessage: '',
   commitBranchName: '',
@@ -15,7 +24,10 @@ const actionTypes = keyMirror({
   UPDATE_RESPONSE: null,
 });
 
-export const commitModalReducer = (state, action) => {
+export const commitModalReducer = (
+  state: CommitModalReducerState,
+  action: ReducerAction,
+): CommitModalReducerState => {
   switch (action.type) {
     case actionTypes.OPEN:
       return {
@@ -42,6 +54,8 @@ export const commitModalReducer = (state, action) => {
         ...state,
         response: action.payload,
       };
+    default:
+      return state;
   }
 };
 

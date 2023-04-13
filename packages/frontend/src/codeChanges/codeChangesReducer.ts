@@ -249,6 +249,21 @@ const extractOriginalStateValues = (
   };
 };
 
+const tryToParseYml = (newEditorValue: string) => {
+  try {
+    const parsedYml = parseYaml(newEditorValue);
+    if ('0' in parsedYml) {
+      return 'Unfinished key';
+    }
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      return e.message;
+    } else {
+      return String(e);
+    }
+  }
+};
+
 export const codeChangesReducer = (
   state = initialState,
   action: ReducerAction,
@@ -613,16 +628,7 @@ export const codeChangesReducer = (
     }
     case actionTypes.UPDATE_VARIABLES: {
       const { newEditorValue, projectName, hostname } = action.payload;
-      let error: any;
-      try {
-        parseYaml(newEditorValue);
-      } catch (e: unknown) {
-        if (e instanceof Error) {
-          error = e.message;
-        } else {
-          error = String(e);
-        }
-      }
+      const error = tryToParseYml(newEditorValue);
 
       let updatedSelectedVariables = omit(['updated'], {
         ...state.selectedVariables,
@@ -680,27 +686,6 @@ export const codeChangesReducer = (
                   ...(groupVariables && parseYaml(groupVariables.values)),
                   ...(hostVariables && parseYaml(hostVariables.values)),
                 };
-
-                if ('0' in appliedVariables) {
-                  updatedVariablesSelectedOnly = state.selectedHostDetails?.variables.map(
-                    (variable: HostVariable) => {
-                      if (
-                        variable.pathInProject === state.selectedVariables.pathInProject &&
-                        variable.type !== 'applied'
-                      ) {
-                        return { ...updatedSelectedVariables, error: 'Unfinished key' };
-                      } else {
-                        return variable;
-                      }
-                    },
-                  );
-                  updatedSelectedVariables = {
-                    ...updatedSelectedVariables,
-                    ...(updatedSelectedVariables.type !== 'applied' && { error: 'Unfinished key' }),
-                  };
-
-                  throw new Error();
-                }
                 // prevent monaco editor showing {}
                 const stringifiedAppliedVariables = stringify(appliedVariables);
                 const appliedVariablesToShow =
@@ -764,7 +749,7 @@ export const codeChangesReducer = (
 
       let updatedProjects;
       if (updatedProjectExistsInState && hostExistInUpdatedProject) {
-        updatedProjects = state.updatedProjects.map((project) => {
+        updatedProjects = state.updatedProjects.map((project: Project) => {
           if (project.projectName === projectName) {
             return {
               projectName,
