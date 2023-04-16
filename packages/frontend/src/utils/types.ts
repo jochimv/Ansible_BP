@@ -24,7 +24,7 @@ export interface HostVariable {
   type: string;
   pathInProject: string;
   values: string;
-  updated: boolean;
+  updated?: boolean;
 }
 
 export interface HostDetails {
