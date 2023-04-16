@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "cross-env STAGE=development next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "cross-env STAGE=production next start",
     "lint": "next lint"
   },
   "devDependencies": {
@@ -14,7 +14,6 @@
     "@types/node": "18.14.0",
     "@types/react": "18.0.28",
     "@types/react-dom": "18.0.11",
-    "keymirror": "^0.1.1",
     "typescript": "4.9.5"
   },
   "dependencies": {
@@ -38,6 +37,8 @@
     "react-dom": "18.2.0",
     "react-query": "^3.39.3",
     "simple-git": "^3.17.0",
-    "yaml": "^2.2.1"
+    "yaml": "^2.2.1",
+    "keymirror": "^0.1.1",
+    "cross-env": "^7.0.3"
   }
 }

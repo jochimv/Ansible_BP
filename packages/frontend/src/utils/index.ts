@@ -4,8 +4,8 @@ import { parse as parseYaml, stringify } from 'yaml';
 import { extname, join } from 'path';
 import { SimpleGit, simpleGit } from 'simple-git';
 
-export const ansibleReposPath =
-  'C:\\Users\\VJochim\\Desktop\\Ansible_BP\\packages\\backend\\ansible_repos'; // "/app/ansible_repos" inside docker container
+export const ansibleReposPath = process.env.STAGE === 'development' ?
+    'C:\\Users\\Dell\\Desktop\\ansible_bp\\packages\\backend\\ansible_repos' : '/app/ansible_repos'; // "/app/ansible_repos" inside docker container
 const possibleInventoryFiles = ['hosts.ini', 'hosts', 'hosts.yaml'];
 const directoriesToIgnore = [
   'roles',

@@ -1,3 +1,4 @@
+# Builder stage
 FROM node:alpine AS builder
 WORKDIR /app
 COPY package.json .
@@ -7,8 +8,14 @@ RUN yarn install --production=false
 COPY . .
 RUN yarn build
 
-
+# Production stage
 FROM node:alpine AS production
+
+# Install Ansible and required dependencies
+RUN apk add --no-cache python3 py3-pip py3-cryptography openssh-client
+RUN pip3 install --upgrade pip
+RUN pip3 install ansible
+
 ENV NODE_ENV=production
 WORKDIR /app
 
@@ -18,7 +25,7 @@ RUN yarn config set "strict-ssl" false
 RUN yarn install --production=true
 # dist folder contains compiled code
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/ansible_repos ./ansible_repos
 
 EXPOSE 4000
 CMD ["yarn","start:prod"]
-

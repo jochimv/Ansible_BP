@@ -721,7 +721,8 @@ export const codeChangesReducer = (
             }
           });
 
-      const updatedSelectedHostDetailsByInventoryType =
+      // @ts-ignore
+      const updatedSelectedHostDetailsByInventoryType: HostDetails[] =
         state.selectedHostDetailsByInventoryType?.map((hostDetail) => {
           if (hostDetail.inventoryType === state.selectedHostDetails?.inventoryType) {
             return {
@@ -733,8 +734,9 @@ export const codeChangesReducer = (
           }
         });
 
-      const updatedSelectedHostDetails = {
+      const updatedSelectedHostDetails: HostDetails = {
         ...state.selectedHostDetails,
+        // @ts-ignore
         variables: updatedVariablesAll,
       };
 
@@ -747,8 +749,9 @@ export const codeChangesReducer = (
         (host) => host.hostname === hostname,
       );
 
-      let updatedProjects;
+      let updatedProjects: Project[];
       if (updatedProjectExistsInState && hostExistInUpdatedProject) {
+        // @ts-ignore
         updatedProjects = state.updatedProjects.map((project: Project) => {
           if (project.projectName === projectName) {
             return {
@@ -898,7 +901,7 @@ export const codeChangesReducer = (
         selectedHostDetailsByInventoryType: updatedSelectedHostDetailsByInventoryType,
         updatedProjects: updatedAppliedVariablesAreNotSameAsOriginalUpdatedVariables
           ? updatedProjects
-          : updatedProjects.filter((project) => projectHasUpdatedVariables(project)),
+          : updatedProjects.filter((project: Project) => projectHasUpdatedVariables(project)),
       };
     }
     default:
