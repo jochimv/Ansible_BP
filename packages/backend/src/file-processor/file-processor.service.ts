@@ -45,8 +45,8 @@ export const getMainBranchName = async (git): Promise<string> => {
 
 @Injectable()
 export class FileProcessorService {
-  private ansibleReposPath =
-    'C:\\Users\\VJochim\\Desktop\\Ansible_BP\\packages\\backend\\ansible_repos'; // "/app/ansible_repos" inside docker container
+  private ansibleReposPath =  process.env.STAGE === 'development' ?
+      'C:\\Users\\Dell\\Desktop\\ansible_bp\\packages\\backend\\ansible_repos' : '/app/ansible_repos'; // "/app/ansible_repos" inside docker container
   private possibleInventoryFiles = ['hosts.ini', 'hosts', 'hosts.yaml'];
   private directoriesToIgnore = [
     'roles',

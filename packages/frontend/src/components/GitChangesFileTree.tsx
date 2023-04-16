@@ -79,7 +79,7 @@ const GitChangesFileTree = () => {
   const paths = originalVars
     ?.map((originalVar: HostVariable) => originalVar.pathInProject)
     // only show diff for the current project
-    .filter((path) => path.split('\\')[1] === selectedProjectName)!;
+    .filter((path: string) => path.split('\\')[1] === selectedProjectName) || [];
 
   const treeData = buildTree(paths);
   const selectedNodeId = originalDiff?.pathInProject || paths[0];

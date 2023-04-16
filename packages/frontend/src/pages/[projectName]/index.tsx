@@ -3,7 +3,7 @@ import { Stack, Typography } from '@mui/material';
 import { getProjectDetails } from '@frontend/utils';
 import ProjectDetailsTree from '@frontend/components/ProjectDetailsTree';
 import Editor from '@monaco-editor/react';
-import { SyntheticEvent, useState } from 'react';
+import { useState } from 'react';
 import ProjectNotFound from '@frontend/components/notFoundPages/ProjectNotFound';
 import { useCodeChangesContext } from '@frontend/codeChanges/CodeChangesContext';
 import { parse as parseYaml, stringify } from 'yaml';
