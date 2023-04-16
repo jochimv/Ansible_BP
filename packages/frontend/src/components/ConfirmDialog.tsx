@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { CloseButton } from '@frontend/components/CloseButton';
 import DoneIcon from '@mui/icons-material/Done';
+import ConfirmButton from "@frontend/components/ConfirmButton";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -32,9 +33,9 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         <DialogContentText>{message}</DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button startIcon={<DoneIcon />} color="success" onClick={onConfirm}>
+        <ConfirmButton onClick={onConfirm}>
           Yes
-        </Button>
+        </ConfirmButton>
         <CloseButton onClick={onClose} autoFocus>
           No
         </CloseButton>

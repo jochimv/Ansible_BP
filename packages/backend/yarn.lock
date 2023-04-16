@@ -3514,6 +3514,13 @@ mnemonist@0.39.5:
   dependencies:
     obliterator "^2.0.1"
 
+mock-spawn@^0.2.6:
+  version "0.2.6"
+  resolved "https://registry.yarnpkg.com/mock-spawn/-/mock-spawn-0.2.6.tgz#b39c15a1c067504310144151f2c1de344d03937f"
+  integrity sha512-cMSfGmQlTiCF54a7taY1cUVXuuEKqDR8vLrfN7pI4LCskxwRedupMQB7o5d5Hg5L6rctvtyZJwUxMl3czTd4tg==
+  dependencies:
+    through "2.3.x"
+
 ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
@@ -3566,6 +3573,15 @@ node-abort-controller@^3.0.1:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/node-abort-controller/-/node-abort-controller-3.1.1.tgz#a94377e964a9a37ac3976d848cb5c765833b8548"
   integrity sha512-AGK2yQKIjRuqnc6VkX2Xj5d+QW8xZ87pa1UK6yA6ouUyuxfHuMP6umE5QK7UmTeOAymo+Zx1Fxiuw9rVx8taHQ==
+
+node-ansible@^0.5.5:
+  version "0.5.5"
+  resolved "https://registry.yarnpkg.com/node-ansible/-/node-ansible-0.5.5.tgz#d52d82e0e5a5d96d67d7ca32520c035f1a318fd2"
+  integrity sha512-auf43FHxT5NjFsG6x9q1oyfoGhyGb1bkEZKFJ1AP0d1cNQ+LNwuscfgkvceM83hGqt9TLtTiDunVAmnkBTj0lw==
+  dependencies:
+    mock-spawn "^0.2.6"
+    q "~1.0.0"
+    underscore "~1.5.2"
 
 node-emoji@1.11.0:
   version "1.11.0"
@@ -3894,6 +3910,11 @@ punycode@^2.1.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.0.tgz#f67fa67c94da8f4d0cfff981aee4118064199b8f"
   integrity sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==
+
+q@~1.0.0:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/q/-/q-1.0.1.tgz#11872aeedee89268110b10a718448ffb10112a14"
+  integrity sha512-18MnBaCeBX9sLRUdtxz/6onlb7wLzFxCylklyO8n27y5JxJYaGLPu4ccyc5zih58SpEzY8QmfwaWqguqXU6Y+A==
 
 qs@6.11.0, qs@^6.11.0:
   version "6.11.0"
@@ -4496,7 +4517,7 @@ thread-stream@^2.0.0:
   dependencies:
     real-require "^0.2.0"
 
-through@^2.3.6:
+through@2.3.x, through@^2.3.6:
   version "2.3.8"
   resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
   integrity sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==
@@ -4643,6 +4664,11 @@ uid@2.0.1:
   integrity sha512-PF+1AnZgycpAIEmNtjxGBVmKbZAQguaa4pBUq6KNaGEcpzZ2klCNZLM34tsjp76maN00TttiiUf6zkIBpJQm2A==
   dependencies:
     "@lukeed/csprng" "^1.0.0"
+
+underscore@~1.5.2:
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.5.2.tgz#1335c5e4f5e6d33bbb4b006ba8c86a00f556de08"
+  integrity sha512-yejOFsRnTJs0N9CK5Apzf6maDO2djxGoLLrlZlvGs2o9ZQuhIhDL18rtFyy4FBIbOkzA6+4hDgXbgz5EvDQCXQ==
 
 universalify@^2.0.0:
   version "2.0.0"

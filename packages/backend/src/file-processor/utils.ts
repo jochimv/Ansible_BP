@@ -7,7 +7,7 @@ import { extname } from 'path';
 
 export const ansibleReposPath =
   process.env.STAGE === 'development'
-    ? 'C:\\Users\\VJochim\\Desktop\\Ansible_BP\\packages\\backend\\ansible_repos'
+    ? 'C:\\Users\\Dell\\Desktop\\ansible_bp\\packages\\backend\\ansible_repos'
     : '/app/ansible_repos'; // "/app/ansible_repos" inside docker container
 const possibleInventoryFiles = ['hosts.ini', 'hosts', 'hosts.yaml'];
 const directoriesToIgnore = [

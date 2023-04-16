@@ -1,14 +1,26 @@
-// contexts/AnsibleCommandsContext.tsx
 import React, { createContext, ReactNode, useContext, useState } from 'react';
 
-interface AnsibleCommand {
+export interface AnsibleCommand {
   id: number;
   command: string;
+  alias: string;
+  mode: 'builder' | 'ad-hoc';
+  builderData?: {
+    selectedPlaybook: any;
+    selectedInventoryType: string | null;
+    selectedGroup: string | null;
+    selectedHost: string | null;
+    additionalVariables: string;
+  };
 }
-
 interface AnsibleCommandsContextValue {
   commands: AnsibleCommand[];
-  addCommand: (command: string) => void;
+  addCommand: (
+    command: string,
+    alias: string,
+    mode: 'builder' | 'ad-hoc',
+    builderData?: any,
+  ) => void;
   removeCommand: (id: number) => void;
 }
 
@@ -28,9 +40,14 @@ interface AnsibleCommandsProviderProps {
 export const AnsibleCommandsProvider = ({ children }: AnsibleCommandsProviderProps) => {
   const [commands, setCommands] = useState<AnsibleCommand[]>([]);
 
-  const addCommand = (command: string) => {
+  const addCommand = (
+    command: string,
+    alias: string,
+    mode: 'builder' | 'ad-hoc',
+    builderData?: any,
+  ) => {
     const id = Date.now();
-    setCommands((prevCommands) => [...prevCommands, { id, command }]);
+    setCommands((prevCommands) => [...prevCommands, { id, command, alias, mode, builderData }]);
   };
 
   const removeCommand = (id: number) => {

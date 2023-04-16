@@ -15,6 +15,7 @@ import { CodeChangesState, switchMode } from '@frontend/codeChanges/codeChangesR
 import EditIcon from '@mui/icons-material/Edit';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
+import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import CodeChangesProvider from '../codeChanges/CodeChangesProvider';
 import { AppProps } from 'next/app';
 import '@frontend/styles/globals.css';
@@ -52,10 +53,6 @@ export function getUpdatedFilesPaths(projects: Project[], projectName: string | 
                 type,
                 pathInProject,
                 updated,
-              }: {
-                type: string;
-                pathInProject: string;
-                updated: boolean;
               }) => {
                 if (type !== 'applied' && updated) {
                   if (!updatedFilesPaths.includes(pathInProject)) {
@@ -84,6 +81,14 @@ const AppBarResolver = () => {
       <AppBar>
         <Toolbar sx={{ justifyContent: 'flex-end' }}>
           <ClearModal />
+          <Button
+              color="inherit"
+              startIcon={<PlayCircleOutlineIcon/>}
+              component={Link}
+              href={`/${selectedProjectName}/runner`}
+          >
+            Runner
+          </Button>
           <Button
             color="inherit"
             onClick={() => {

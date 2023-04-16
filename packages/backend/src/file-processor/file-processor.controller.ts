@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Param, Post} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import {
   CommitResponse,
   DownloadRepositoryResult,
@@ -8,6 +8,14 @@ import {
 @Controller()
 export class FileProcessorController {
   constructor(private fileProcessorService: FileProcessorService) {}
+
+  @Get('/:projectName/details-playbooks')
+  async getProjectDetailsAndPlaybooks(@Param('projectName') projectName: string) {
+    const projectDetails = await this.fileProcessorService.getProjectDetails(projectName);
+    const projectPlaybooks = await this.fileProcessorService.getProjectPlaybooks(projectName);
+    console.log('projectPlaybooks', JSON.stringify(projectPlaybooks));
+    return { projectDetails, projectPlaybooks };
+  }
 
   @Get('/:projectName/git')
   async getMainBranchName(@Param('projectName') projectName: string) {
@@ -20,7 +28,10 @@ export class FileProcessorController {
   }
 
   @Get('/:projectName/:hostname')
-  async getHostDetails(@Param('projectName') projectName: string, @Param('hostname') hostname: string) {
+  async getHostDetails(
+    @Param('projectName') projectName: string,
+    @Param('hostname') hostname: string,
+  ) {
     return await this.fileProcessorService.getHostDetails(projectName, hostname);
   }
   @Get('projects')

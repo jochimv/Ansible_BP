@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
 import {
-  TextField,
   Button,
   List,
   ListItem,
   ListItemText,
   ListItemSecondaryAction,
   IconButton,
+  Stack,
 } from '@mui/material';
 import { Delete as DeleteIcon, PlayCircle as PlayCircleIcon } from '@mui/icons-material';
 import axios from 'axios';
 import {
+  AnsibleCommand,
   AnsibleCommandsProvider,
   useAnsibleCommands,
 } from '@frontend/contexts/ansibleCommandContext';
 import { useMutation } from 'react-query';
-import {BE_IP_ADDRESS} from "@frontend/utils/constants";
+import { BE_IP_ADDRESS } from '@frontend/utils/constants';
+import AddCommandDialog from '@frontend/components/AddCommandDialog';
+import EditIcon from '@mui/icons-material/Edit';
 
 const postCommitData = (data: any) => axios.post(`http://${BE_IP_ADDRESS}:4000/run-command`, data);
 
@@ -42,51 +45,61 @@ const TerminalOutput: React.FC<{ output: string }> = ({ output }) => {
 };
 
 const AnsibleCommandsPage: React.FC = () => {
-  const [newCommand, setNewCommand] = useState('');
   const [commandResult, setCommandResult] = useState('');
-  const { commands, addCommand, removeCommand } = useAnsibleCommands();
+  const { commands, removeCommand } = useAnsibleCommands();
+  const [openDialog, setOpenDialog] = useState(false);
+  const [currentCommand, setCurrentCommand] = useState<AnsibleCommand | undefined>();
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
+  };
 
-  const handleAddCommand = () => {
-    if (newCommand.trim()) {
-      addCommand(newCommand);
-      setNewCommand('');
-    }
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
   };
 
   const { mutate } = useMutation(postCommitData, {
     onSuccess: (data) => {
-      console.log('command finished successfully: ', JSON.stringify(data.data));
       setCommandResult(data.data);
     },
   });
 
   return (
     <div>
-      <TextField
-        label="New Ansible Command"
-        value={newCommand}
-        onChange={(e) => setNewCommand(e.target.value)}
-        fullWidth
-        margin="normal"
+      <AddCommandDialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        initialCommand={currentCommand}
       />
-      <Button variant="contained" color="primary" onClick={handleAddCommand}>
+      <Button variant="contained" color="primary" onClick={handleOpenDialog}>
         Add Command
       </Button>
       <List>
-        {commands.map((cmd) => (
+        {commands.map((cmd: AnsibleCommand) => (
           <ListItem key={cmd.id}>
-            <ListItemText primary={cmd.command} />
+            <ListItemText primary={cmd.alias} />
             <ListItemSecondaryAction>
-              <IconButton
-                edge="end"
-                aria-label="delete"
-                onClick={() => mutate({ command: cmd.command })}
-              >
-                <PlayCircleIcon />
-              </IconButton>
-              <IconButton edge="end" aria-label="delete" onClick={() => removeCommand(cmd.id)}>
-                <DeleteIcon />
-              </IconButton>
+              <Stack direction="row" columnGap={2}>
+                <IconButton
+                  edge="end"
+                  aria-label="edit"
+                  onClick={() => {
+                    setCurrentCommand(cmd);
+                    handleOpenDialog();
+                  }}
+                >
+                  <EditIcon />
+                </IconButton>
+                <IconButton
+                  edge="end"
+                  aria-label="delete"
+                  onClick={() => mutate({ command: cmd.command })}
+                >
+                  <PlayCircleIcon />
+                </IconButton>
+                <IconButton aria-label="delete" onClick={() => removeCommand(cmd.id)}>
+                  <DeleteIcon />
+                </IconButton>
+              </Stack>
             </ListItemSecondaryAction>
           </ListItem>
         ))}
