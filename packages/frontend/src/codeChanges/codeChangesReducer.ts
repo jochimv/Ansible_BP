@@ -413,10 +413,10 @@ export const codeChangesReducer = (
         };
       } else {
         // if hostDetailsByInventoryType not present at all, make it selected for the page
+
         selectedHostDetailsByInventoryType = hostDetailsByInventoryType;
         selectedHostDetails = hostDetailsByInventoryType[0];
         selectedVariables = selectedHostDetails.variables[0];
-
         const originalProject = state.originalProjects?.find(
           (originalProject: Project) => originalProject.projectName === projectName,
         );

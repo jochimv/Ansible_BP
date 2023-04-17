@@ -1,4 +1,6 @@
-import { useEffect } from 'react';
+import { useQuery } from 'react-query';
+import { useRouter } from 'next/router';
+import axios from 'axios';
 import {
   Alert,
   Box,
@@ -8,7 +10,6 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material';
-import { getHostDetails } from '@frontend/utils';
 import Editor from '@monaco-editor/react';
 import { Breadcrumbs } from '@mui/material';
 import Link from 'next/link';
@@ -22,17 +23,14 @@ import {
   showVariables,
   updateVariables,
 } from '@frontend/codeChanges/codeChangesReducer';
-import HostNotFound from '@frontend/components/notFoundPages/HostNotFound';
-import ProjectNotFound from '@frontend/components/notFoundPages/ProjectNotFound';
+import HostNotFound from '@frontend/components/pages/HostNotFound';
+import ProjectNotFound from '@frontend/components/pages/ProjectNotFound';
+import LoadingPage from '@frontend/components/pages/Loading';
 import { HostDetails } from '@frontend/utils/types';
+import { BE_IP_ADDRESS } from '@frontend/utils/constants';
 
-interface HostPageProps {
-  hostDetailsByInventoryType: HostDetails[];
-  hostname: string;
-  projectName: string;
-  projectExists: boolean;
-  hostExists: boolean;
-}
+const fetchHostDetails = async (projectName: string, hostname: string | string[]) =>
+  await axios.get(`http://${BE_IP_ADDRESS}:4000/${projectName}/${hostname}`);
 
 const getVariablesByType = (obj: any, type: string) => {
   const variablesArray = obj.variables;
@@ -48,44 +46,66 @@ const formatErrorMessage = (message: string): JSX.Element => {
   const lines = message.split('\n');
   return (
     <div>
-      {lines.map((line, index) => (
+      {lines.map((line: string, index: number) => (
         <div key={index}>{line || '\u00A0'}</div>
       ))}
     </div>
   );
 };
 
-const HostDetailsPage = ({
-  hostname,
-  projectName,
-  hostDetailsByInventoryType,
-  projectExists,
-  hostExists,
-}: HostPageProps) => {
-  if (!projectExists) {
-    return <ProjectNotFound />;
-  } else if (!hostExists) {
-    return <HostNotFound />;
-  }
-
+const HostDetailsPage = () => {
+  const router = useRouter();
+  const { projectName, hostname } = router.query;
+  const dispatch = useCodeChangesDispatchContext();
   const {
     isInEditMode,
     selectedHostDetails,
     selectedVariables,
     selectedHostDetailsByInventoryType,
+    originalProjects,
   } = useCodeChangesContext();
-  const dispatch = useCodeChangesDispatchContext();
 
-  useEffect(() => {
-    // todo - integrace na react query. Problém je v tom, že se bere info ze static props, a tím pádem se soubory z backendu zpracovávají zbytečně když už existují v kontextu.
-    dispatch(
-      initializeEditor({
-        hostDetailsByInventoryType,
-        projectName,
-        hostname,
-      }),
-    );
-  }, []);
+  const {
+    isLoading: hostDataLoading,
+    isSuccess,
+    data,
+  } = useQuery(
+    ['hostDetails', { projectName, hostname }],
+    () => {
+      if (typeof projectName === 'string' && typeof hostname === 'string') {
+        return fetchHostDetails(projectName, hostname);
+      }
+    },
+    {
+      enabled: !!projectName && !!hostname,
+      onSuccess: (data) => {
+        if (data?.data) {
+          const { hostDetailsByInventoryType, projectExists, hostExists } = data.data;
+          if (projectExists && hostExists) {
+            dispatch(
+              initializeEditor({
+                hostDetailsByInventoryType,
+                projectName,
+                hostname,
+              }),
+            );
+          }
+        }
+      },
+    },
+  );
+
+  if (hostDataLoading || !projectName || !hostname || !isSuccess) {
+    return <LoadingPage />;
+  }
+
+  const { projectExists, hostExists } = data?.data || {};
+
+  if (!projectExists) {
+    return <ProjectNotFound />;
+  } else if (!hostExists) {
+    return <HostNotFound />;
+  }
 
   const handleEditorChange = (newEditorValue: string | undefined) => {
     dispatch(updateVariables({ newEditorValue, projectName, hostname }));
@@ -118,7 +138,7 @@ const HostDetailsPage = ({
               }
             }}
           >
-            {selectedHostDetailsByInventoryType?.map((hostDetail) => {
+            {selectedHostDetailsByInventoryType?.map((hostDetail: HostDetails) => {
               const inventoryType = hostDetail.inventoryType;
               return (
                 <ToggleButton
@@ -191,20 +211,3 @@ const HostDetailsPage = ({
 };
 
 export default HostDetailsPage;
-
-export async function getServerSideProps(context: any) {
-  const { hostname, projectName } = context.query;
-  const { hostDetailsByInventoryType, projectExists, hostExists } = await getHostDetails(
-    projectName,
-    hostname,
-  );
-  return {
-    props: {
-      hostname,
-      projectName,
-      hostDetailsByInventoryType,
-      projectExists,
-      hostExists,
-    },
-  };
-}

@@ -31,8 +31,9 @@ import {
   useCommitModalDispatchContext,
 } from '@frontend/components/CommitModal/state/CommitModalContext';
 import { CloseButton } from '@frontend/components/CloseButton';
+import {BE_IP_ADDRESS} from "@frontend/utils/constants";
 
-const postCommitData = (data: any) => axios.post('http://localhost:4000/commit', data);
+const postCommitData = (data: any) => axios.post(`http://${BE_IP_ADDRESS}:4000/commit`, data);
 
 interface CommitModalProps {
   mainBranchName: string;

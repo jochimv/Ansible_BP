@@ -9,7 +9,6 @@ import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
 } from '../../codeChanges/CodeChangesContext';
-import React, { useEffect } from 'react';
 import { createDiff, rollback } from '../../codeChanges/codeChangesReducer';
 import GitChangesFileTree from '../../components/GitChangesFileTree';
 import CommitModal from '@frontend/components/CommitModal/CommitModal';
@@ -17,29 +16,50 @@ import { open } from '@frontend/components/CommitModal/state/commitModalReducer'
 import { useCommitModalDispatchContext } from '@frontend/components/CommitModal/state/CommitModalContext';
 import CommitModalProvider from '@frontend/components/CommitModal/state/CommitModalProvider';
 import { useRouter } from 'next/router';
-import { simpleGit } from 'simple-git';
-import { join } from 'path';
-import { ansibleReposPath, getMainBranchName } from '@frontend/utils';
-import { existsSync } from 'fs';
-import ProjectNotFound from '@frontend/components/notFoundPages/ProjectNotFound';
-
+import ProjectNotFound from '@frontend/components/pages/ProjectNotFound';
+import axios from 'axios';
+import {useQuery} from "react-query";
+import LoadingPage from "@frontend/components/pages/Loading";
+import {BE_IP_ADDRESS} from "@frontend/utils/constants";
 const stackPropsIfNoChanges = {
   alignItems: 'center',
   justifyContent: 'center',
 };
-const GitPage = ({ mainBranchName, projectExists }: GitPageProps) => {
+const fetchMainBranchName = async (projectName : string) => {
+  const response = await axios.get(`http://${BE_IP_ADDRESS}:4000/${projectName}/mainBranchName`);
+  return response.data;
+};
+
+const GitPage = () => {
+
+  const codeChangesDispatch = useCodeChangesDispatchContext();
+  const {projectName}= useRouter().query;
+  const { originalDiff, updatedDiff } = useCodeChangesContext();
+  const commitModalDispatch = useCommitModalDispatchContext();
+  const { data, isLoading, isSuccess } = useQuery(
+      ['mainBranchName', projectName],
+      () => {
+        if(typeof projectName === 'string') {
+          return fetchMainBranchName(projectName)
+        }
+      },
+      { enabled: !!projectName, onSuccess: (data) => {
+        if (data.projectExists){
+          codeChangesDispatch(createDiff(projectName));
+        }
+        }}
+  );
+
+  if(isLoading || !projectName || !isSuccess){
+    return <LoadingPage/>
+  }
+
+  const {mainBranchName, projectExists} = data;
+
   if (!projectExists) {
     return <ProjectNotFound />;
   }
-  const codeChangesDispatch = useCodeChangesDispatchContext();
-  const { originalDiff, updatedDiff } = useCodeChangesContext();
-  const commitModalDispatch = useCommitModalDispatchContext();
-  const router = useRouter();
-  const { projectName } = router.query;
 
-  useEffect(() => {
-    codeChangesDispatch(createDiff(projectName));
-  }, []);
 
   return (
     <Stack
@@ -90,28 +110,8 @@ const GitPage = ({ mainBranchName, projectExists }: GitPageProps) => {
   );
 };
 
-interface GitPageProps {
-  projectExists: boolean;
-  mainBranchName: string;
-}
-
-export default (props: GitPageProps) => (
+export default () => (
   <CommitModalProvider>
-    <GitPage {...props} />
+    <GitPage />
   </CommitModalProvider>
 );
-
-export async function getServerSideProps(context: any) {
-  const { projectName } = context.query;
-  const projectPath = join(ansibleReposPath, projectName);
-  if (!existsSync(projectPath)) {
-    return {
-      props: { mainBranchName: null, projectExists: false },
-    };
-  }
-  const git = await simpleGit(projectPath);
-  const mainBranchName = await getMainBranchName(git);
-  return {
-    props: { mainBranchName, projectExists: true },
-  };
-}

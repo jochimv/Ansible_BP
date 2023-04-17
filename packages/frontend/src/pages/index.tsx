@@ -9,7 +9,6 @@ import {
   Button,
   Box,
 } from '@mui/material';
-import { getProjectsHosts } from '@frontend/utils';
 import { useRouter } from 'next/router';
 import {
   useCodeChangesContext,
@@ -21,20 +20,27 @@ import DownloadIcon from '@mui/icons-material/Download';
 import ImportProjectModal from '@frontend/components/ImportProjectModal';
 import { FolderOff } from '@mui/icons-material';
 import axios, { AxiosResponse } from 'axios';
-import { useMutation } from 'react-query';
+import { useMutation, useQuery } from 'react-query';
 import { useSnackbar } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
 import ConfirmDialog from '@frontend/components/ConfirmDialog';
+import { BE_IP_ADDRESS } from '@frontend/utils/constants';
 
-interface HomePageProps {
-  projectHosts: ProjectHosts[];
-}
-const deleteRepository = (data: any) => axios.post('http://localhost:4000/deleteRepository', data);
-const HomePage = ({ projectHosts }: HomePageProps) => {
-  const [projectNames, setProjectNames] = useState(
-    projectHosts.map((projectHost: ProjectHosts) => projectHost.project),
-  );
+const fetchProjectsHosts = async () => {
+  const response = await axios.get(`http://${BE_IP_ADDRESS}:4000/projects`);
+  return response.data;
+};
+const deleteRepository = (data: any) =>
+  axios.post(`http://${BE_IP_ADDRESS}:4000/deleteRepository`, data);
+const HomePage = () => {
+  const [projectNames, setProjectNames] = useState<string[]>([]);
+  const { data: projectHosts } = useQuery('projectsHosts', fetchProjectsHosts, {
+    onSuccess: (projectHosts) => {
+      setProjectNames(projectHosts.map((projectHost: ProjectHosts) => projectHost.project));
+    },
+  });
+
   const router = useRouter();
-  const { selectedProjectName } = useCodeChangesContext();
+  const { selectedProjectName, originalProjects } = useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();
   const [isImportProjectModalOpen, setIsImportProjectModalOpen] = useState(false);
   const { showMessage } = useSnackbar();
@@ -45,10 +51,9 @@ const HomePage = ({ projectHosts }: HomePageProps) => {
     }
     setIsConfirmDialogOpen(false);
   };
-
   const handleChangeProjectsAutocompleteValues = () =>
-    setProjectNames((projectNames) =>
-      projectNames.filter((projectName) => projectName !== selectedProjectName),
+    setProjectNames((projectNames: string[]) =>
+      projectNames.filter((projectName: string) => projectName !== selectedProjectName),
     );
 
   const { mutate } = useMutation(deleteRepository, {
@@ -81,7 +86,7 @@ const HomePage = ({ projectHosts }: HomePageProps) => {
           id="servers"
           disabled={!selectedProjectName}
           options={
-            projectHosts.find(
+            projectHosts?.find(
               (projectHost: ProjectHosts) => projectHost.project === selectedProjectName,
             )?.hosts || []
           }
@@ -127,12 +132,5 @@ const HomePage = ({ projectHosts }: HomePageProps) => {
     </Box>
   );
 };
-
-export async function getServerSideProps() {
-  const projectHosts = await getProjectsHosts();
-  return {
-    props: { projectHosts },
-  };
-}
 
 export default HomePage;

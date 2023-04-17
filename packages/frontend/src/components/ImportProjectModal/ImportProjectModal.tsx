@@ -14,6 +14,7 @@ import axios from 'axios';
 import { useMutation } from 'react-query';
 import { useSnackbar } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import {BE_IP_ADDRESS} from "@frontend/utils/constants";
 
 interface ImportProjectModalProps {
   isOpen: boolean;
@@ -24,7 +25,7 @@ interface ImportProjectModalProps {
 const gitRepoUrlRegex = /((git|ssh|http(s)?)|(git@[\w.]+))(:(\/\/)?)([\w.@/:~-]+)(\.git)(\/)?/;
 
 const importProjectByRepoUrl = (data: any) =>
-  axios.post('http://localhost:4000/downloadRepository', data);
+  axios.post(`http://${BE_IP_ADDRESS}:4000/downloadRepository`, data);
 
 const ImportProjectModal = ({ isOpen, onClose, onSuccess }: ImportProjectModalProps) => {
   const { showMessage } = useSnackbar();

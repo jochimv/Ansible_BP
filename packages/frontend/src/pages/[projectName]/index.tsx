@@ -1,10 +1,9 @@
 import { useRouter } from 'next/router';
 import { Stack, Typography } from '@mui/material';
-import { getProjectDetails } from '@frontend/utils';
 import ProjectDetailsTree from '@frontend/components/ProjectDetailsTree';
 import Editor from '@monaco-editor/react';
-import { useState } from 'react';
-import ProjectNotFound from '@frontend/components/notFoundPages/ProjectNotFound';
+import { useState, useEffect } from 'react';
+import ProjectNotFound from '@frontend/components/pages/ProjectNotFound';
 import { useCodeChangesContext } from '@frontend/codeChanges/CodeChangesContext';
 import { parse as parseYaml, stringify } from 'yaml';
 import {
@@ -17,6 +16,10 @@ import {
   ProjectDetailsHost,
   ProjectDetailsInventory,
 } from '@frontend/utils/types';
+import axios from 'axios';
+import { useQuery } from 'react-query';
+import LoadingPage from '@frontend/components/pages/Loading';
+import { BE_IP_ADDRESS } from '@frontend/utils/constants';
 
 const convertProjectDetailsToTreeOfIds = (projectDetails: ProjectDetails) => {
   return projectDetails.flatMap(
@@ -136,22 +139,56 @@ const updateAppliedVariables = (
   return updatedDetails;
 };
 
-const ProjectPage = ({
-  projectDetails,
-  projectExists,
-}: {
-  projectDetails: ProjectDetails;
-  projectExists: boolean;
-}) => {
-  if (!projectExists) {
+const getProjectDetails = async (projectName: string) => {
+  const data = await axios.get(`http://${BE_IP_ADDRESS}:4000/${projectName}/details`);
+  return data.data;
+};
+
+const ProjectPage = () => {
+  const { projectName } = useRouter().query;
+  const { updatedProjects } = useCodeChangesContext();
+
+  const { data, isLoading } = useQuery(
+    ['projectDetails', projectName],
+    () => {
+      if (typeof projectName === 'string') {
+        return getProjectDetails(projectName);
+      }
+    },
+    {
+      enabled: !!projectName,
+    },
+  );
+
+  const [selectedHost, setSelectedHost] = useState({ id: '', name: '', appliedVariables: '' });
+
+  useEffect(() => {
+    if (!isLoading && projectName && data) {
+      const { projectDetails, projectExists } = data;
+
+      if (projectExists) {
+        const newProjectDetails = updateAppliedVariables(
+          projectDetails,
+          updatedProjects,
+          projectName,
+        );
+        const treeData = convertProjectDetailsToTreeOfIds(newProjectDetails);
+        setSelectedHost(treeData[0].children[0].children[0]);
+      }
+    }
+  }, [isLoading, projectName, data, updatedProjects]);
+
+  if (isLoading || !projectName || !data) {
+    return <LoadingPage />;
+  }
+  if (!data.projectExists) {
     return <ProjectNotFound />;
   }
-  const { projectName } = useRouter().query!;
-  const { updatedProjects } = useCodeChangesContext();
-  const newProjectDetails = updateAppliedVariables(projectDetails, updatedProjects, projectName);
 
-  const treeData = convertProjectDetailsToTreeOfIds(newProjectDetails);
-  const [selectedHost, setSelectedHost] = useState(treeData[0].children[0].children[0]);
+  const { projectDetails } = data;
+  const treeData = convertProjectDetailsToTreeOfIds(
+    updateAppliedVariables(projectDetails, updatedProjects, projectName),
+  );
 
   return (
     <Stack sx={{ height: '100%' }}>
@@ -167,15 +204,5 @@ const ProjectPage = ({
     </Stack>
   );
 };
-
-export async function getServerSideProps(context: any) {
-  const { projectName } = context.query;
-
-  const { projectDetails, projectExists } = await getProjectDetails(projectName);
-
-  return {
-    props: { projectDetails, projectExists },
-  };
-}
 
 export default ProjectPage;

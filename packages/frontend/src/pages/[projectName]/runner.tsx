@@ -1,4 +1,3 @@
-// pages/ansible-commands.tsx
 import React, { useState } from 'react';
 import {
   TextField,
@@ -16,8 +15,9 @@ import {
   useAnsibleCommands,
 } from '@frontend/contexts/ansibleCommandContext';
 import { useMutation } from 'react-query';
+import {BE_IP_ADDRESS} from "@frontend/utils/constants";
 
-const postCommitData = (data: any) => axios.post('http://localhost:4000/run-command', data);
+const postCommitData = (data: any) => axios.post(`http://${BE_IP_ADDRESS}:4000/run-command`, data);
 
 const TerminalOutput: React.FC<{ output: string }> = ({ output }) => {
   const formattedOutput = output.replace(/\r\n/g, '\n');

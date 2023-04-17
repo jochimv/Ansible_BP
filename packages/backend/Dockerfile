@@ -11,8 +11,8 @@ RUN yarn build
 # Production stage
 FROM node:alpine AS production
 
-# Install Ansible and required dependencies
-RUN apk add --no-cache python3 py3-pip py3-cryptography openssh-client
+# Install Ansible, Git, and required dependencies
+RUN apk add --no-cache python3 py3-pip py3-cryptography openssh-client git
 RUN pip3 install --upgrade pip
 RUN pip3 install ansible
 

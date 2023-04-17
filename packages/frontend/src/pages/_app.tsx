@@ -93,7 +93,6 @@ const AppBarResolver = () => {
           >
             Clear
           </Button>
-
           <Button
             color="inherit"
             startIcon={

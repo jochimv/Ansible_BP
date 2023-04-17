@@ -1,11 +1,14 @@
+import { SimpleGit, simpleGit } from 'simple-git';
 import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
 import { parse as parseIni } from 'ini';
+import { join } from 'path';
 import { parse as parseYaml, stringify } from 'yaml';
-import { extname, join } from 'path';
-import { SimpleGit, simpleGit } from 'simple-git';
+import { extname } from 'path';
 
-export const ansibleReposPath = process.env.STAGE === 'development' ?
-    'C:\\Users\\Dell\\Desktop\\ansible_bp\\packages\\backend\\ansible_repos' : '/app/ansible_repos'; // "/app/ansible_repos" inside docker container
+export const ansibleReposPath =
+  process.env.STAGE === 'development'
+    ? 'C:\\Users\\VJochim\\Desktop\\Ansible_BP\\packages\\backend\\ansible_repos'
+    : '/app/ansible_repos'; // "/app/ansible_repos" inside docker container
 const possibleInventoryFiles = ['hosts.ini', 'hosts', 'hosts.yaml'];
 const directoriesToIgnore = [
   'roles',
@@ -21,25 +24,21 @@ const directoriesToIgnore = [
   'group_vars',
   'host_vars',
 ];
-
 export const getMainBranchName = async (git: SimpleGit) =>
   await git.revparse(['--abbrev-ref', 'HEAD']);
-
 const checkAndUpdateProject = async (projectPath: string) => {
   const git = await simpleGit(projectPath);
   const mainBranchName: string = await getMainBranchName(git)!;
-  const diffResult = await git.diff(['origin', mainBranchName]);
+  const diffResult = await git.diff([`origin/${mainBranchName}`]);
 
   if (diffResult) {
     await git.pull();
   }
 };
-
 const checkAndUpdateAllProjects = async (projectPaths: string[]) => {
   const tasks = projectPaths.map((path) => checkAndUpdateProject(path));
   await Promise.all(tasks);
 };
-
 export const getProjectDetails = async (projectName: string) => {
   const projectPath = join(ansibleReposPath, projectName);
   if (!existsSync(projectPath)) {
@@ -50,7 +49,6 @@ export const getProjectDetails = async (projectName: string) => {
 
   const inventoryFilesPaths = getInventoryFilesPaths(projectPath);
   const projectDetails = [];
-
   for (const inventoryFilePath of inventoryFilesPaths) {
     const inventoryType = getLastPathSegment(extractDirectoryPath(inventoryFilePath));
     const inventoryDirectoryPath = extractDirectoryPath(inventoryFilePath);
@@ -112,7 +110,6 @@ export const getProjectDetails = async (projectName: string) => {
   }
   return { projectDetails, projectExists: true };
 };
-
 const extractHostsFromIniFile = (inventoryPath: string): string[] => {
   const hosts = [];
   const fileContent = readFileSync(inventoryPath, 'utf-8');
@@ -126,17 +123,14 @@ const extractHostsFromIniFile = (inventoryPath: string): string[] => {
   }
   return [...new Set(hosts)];
 };
-
 const parseYamlFile = (path: string) => {
   const fileContent = readFileSync(path, 'utf-8');
   return parseYaml(fileContent);
 };
-
 const parseIniFile = (path: string) => {
   const fileContent = readFileSync(path, 'utf-8');
   return parseIni(fileContent);
 };
-
 const extractHostsFromYamlFile = (inventoryPath: string): string[] => {
   const parsedYaml = parseYamlFile(inventoryPath);
   const hosts: string[] = [];
@@ -153,23 +147,15 @@ const extractHostsFromYamlFile = (inventoryPath: string): string[] => {
   extractHosts(parsedYaml);
   return [...new Set(hosts)];
 };
-
 const removeDuplicateHosts = (arr: any) => {
   return arr.map((item: any) => {
     item.hosts = Array.from(new Set(item.hosts));
     return item;
   });
 };
-
-const isIni = (inventoryPath: string) => {
-  const inventoryExtension = extname(inventoryPath);
-  return inventoryExtension === '.ini' || inventoryExtension === '';
-};
-
 export const getProjectsHosts = async () => {
   const projectsHosts = [];
   const projects = readdirSync(ansibleReposPath);
-
   const projectsPaths = projects.map((project) => join(ansibleReposPath, project));
   await checkAndUpdateAllProjects(projectsPaths);
   for (const project of projects) {
@@ -185,6 +171,11 @@ export const getProjectsHosts = async () => {
   return removeDuplicateHosts(projectsHosts);
 };
 
+const isIni = (inventoryPath: string) => {
+  const inventoryExtension = extname(inventoryPath);
+  return inventoryExtension === '.ini' || inventoryExtension === '';
+};
+
 const extractHostsFromInventory = (inventoryPath: string) => {
   if (isIni(inventoryPath)) {
     return extractHostsFromIniFile(inventoryPath);
@@ -192,7 +183,6 @@ const extractHostsFromInventory = (inventoryPath: string) => {
     return extractHostsFromYamlFile(inventoryPath);
   }
 };
-
 const getInventoryFilesPaths = (dir: string): string[] => {
   const files = readdirSync(dir);
 
@@ -213,18 +203,15 @@ const getInventoryFilesPaths = (dir: string): string[] => {
   }
   return inventoryFilesPaths;
 };
-
 const extractDirectoryPath = (filePath: string): string => {
   const parts = filePath.split('\\');
   parts.pop();
   return parts.join('\\');
 };
-
 const getLastPathSegment = (path: string): string => {
   const segments = path.split(/[\\/]/); // split path by forward slash or backslash
   return segments[segments.length - 1]; // return the last segment
 };
-
 const getGroupNameFromIniInventory = (filePath: string, serverName: string): string | undefined => {
   const iniData = parseIniFile(filePath);
   for (const groupName in iniData) {
@@ -234,11 +221,9 @@ const getGroupNameFromIniInventory = (filePath: string, serverName: string): str
   }
   return undefined;
 };
-
 const removeAnsibleReposPathFromPath = (filePath: string): string => {
   return filePath.slice(ansibleReposPath.length);
 };
-
 const extractBeforeColon = (str: string) => {
   // find the index of the first colon in the string
   const colonIndex = str.indexOf(':');
@@ -251,7 +236,6 @@ const extractBeforeColon = (str: string) => {
     return str.substring(0, colonIndex);
   }
 };
-
 const getCommonVariablesObj = (filePath: string) => {
   return {
     type: 'common',
@@ -261,7 +245,6 @@ const getCommonVariablesObj = (filePath: string) => {
     // don't put "updated" key here as it causes original and updated variables not to match
   };
 };
-
 export const getHostDetails = async (projectName: string, hostName: string) => {
   const projectPath = join(ansibleReposPath, projectName);
 
@@ -286,6 +269,7 @@ export const getHostDetails = async (projectName: string, hostName: string) => {
       const hostVarsFilePath = join(inventoryDirectoryPath, 'host_vars', `${hostName}.yml`);
 
       let hostVariables;
+      console.log('looking for host vairables at path ', hostVarsFilePath);
       if (existsSync(hostVarsFilePath)) {
         hostVariables = {
           type: 'host',
