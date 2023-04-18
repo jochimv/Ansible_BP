@@ -12,6 +12,7 @@ import {
   Table,
   CircularProgress,
   Dialog,
+  TextField,
 } from '@mui/material';
 import { Delete as DeleteIcon, PlayCircle as PlayCircleIcon } from '@mui/icons-material';
 import axios from 'axios';
@@ -57,6 +58,12 @@ const AnsibleCommandsPage: React.FC = () => {
   const [openOutputDialog, setOpenOutputDialog] = useState(false);
   const [currentCommand, setCurrentCommand] = useState<Command | undefined>();
   const [runningCommandIds, setRunningCommandIds] = useState<Set<number>>(new Set());
+
+  const [filterText, setFilterText] = useState('');
+
+  const filteredCommands = commands.filter((command: Command) => {
+    return command.alias.toLowerCase().includes(filterText.toLowerCase());
+  });
 
   const { projectName } = useRouter().query;
 
@@ -123,9 +130,18 @@ const AnsibleCommandsPage: React.FC = () => {
         }}
         initialCommand={currentCommand}
       />
-      <Button variant="contained" color="primary" onClick={handleOpenDialog}>
-        Add Command
-      </Button>
+      <Stack direction="row" spacing={3} mb={2}>
+        <Button variant="contained" color="primary" onClick={handleOpenDialog}>
+          Add Command
+        </Button>
+        <TextField
+          size="small"
+          label="Filter by alias"
+          value={filterText}
+          onChange={(e) => setFilterText(e.target.value)}
+          variant="outlined"
+        />
+      </Stack>
 
       <TableContainer>
         <Table size="small">
@@ -143,7 +159,7 @@ const AnsibleCommandsPage: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {commands.map((commandObj: Command) => {
+            {filteredCommands.map((commandObj: Command) => {
               const { id, alias, command } = commandObj;
               return (
                 <TableRow key={id}>
