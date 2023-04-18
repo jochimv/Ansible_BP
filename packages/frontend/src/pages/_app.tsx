@@ -30,6 +30,7 @@ import { open } from '@frontend/components/ClearModal/state/clearModalReducer';
 import ClearModal from '@frontend/components/ClearModal';
 import { Host, HostDetails, HostVariable, Project } from '@frontend/utils/types';
 import { SnackbarProvider } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
+import { Command, CommandsProvider, useCommandContext } from '@frontend/contexts/commandContext';
 const queryClient = new QueryClient();
 
 const clientSideEmotionCache = createEmotionCache();
@@ -48,19 +49,13 @@ export function getUpdatedFilesPaths(projects: Project[], projectName: string | 
       hosts.forEach(
         ({ hostDetailsByInventoryType }: { hostDetailsByInventoryType: HostDetails[] }) => {
           hostDetailsByInventoryType.forEach(({ variables }: { variables: HostVariable[] }) => {
-            variables.forEach(
-              ({
-                type,
-                pathInProject,
-                updated,
-              }) => {
-                if (type !== 'applied' && updated) {
-                  if (!updatedFilesPaths.includes(pathInProject)) {
-                    updatedFilesPaths.push(pathInProject);
-                  }
+            variables.forEach(({ type, pathInProject, updated }) => {
+              if (type !== 'applied' && updated) {
+                if (!updatedFilesPaths.includes(pathInProject)) {
+                  updatedFilesPaths.push(pathInProject);
                 }
-              },
-            );
+              }
+            });
           });
         },
       );
@@ -82,10 +77,10 @@ const AppBarResolver = () => {
         <Toolbar sx={{ justifyContent: 'flex-end' }}>
           <ClearModal />
           <Button
-              color="inherit"
-              startIcon={<PlayCircleOutlineIcon/>}
-              component={Link}
-              href={`/${selectedProjectName}/runner`}
+            color="inherit"
+            startIcon={<PlayCircleOutlineIcon />}
+            component={Link}
+            href={`/${selectedProjectName}/runner`}
           >
             Runner
           </Button>
@@ -139,27 +134,36 @@ interface AutoSaveContextProviderProps {
 }
 const AutoSaveContextProvider = ({ children }: AutoSaveContextProviderProps) => {
   const codeChangesContextData = useCodeChangesContext();
+  const { commands } = useCommandContext();
   useEffect(() => {
-    window.addEventListener('beforeunload', () => handleBeforeUnload(codeChangesContextData));
+    window.addEventListener('beforeunload', () =>
+      handleBeforeUnload(codeChangesContextData, commands),
+    );
 
     // Cleanup the event listener when the component is unmounted
     return () => {
-      window.removeEventListener('beforeunload', () => handleBeforeUnload(codeChangesContextData));
+      window.removeEventListener('beforeunload', () =>
+        handleBeforeUnload(codeChangesContextData, commands),
+      );
     };
-  }, [codeChangesContextData]);
+  }, [codeChangesContextData, commands]);
   return <>{children}</>;
 };
 
-const handleBeforeUnload = (codeChangesContextData: CodeChangesState) => {
+const handleBeforeUnload = (
+  codeChangesContextData: CodeChangesState,
+  commandContextData: Command[],
+) => {
+  localStorage.setItem('commandsContext', JSON.stringify(commandContextData));
   localStorage.setItem('codeChangesContextData', JSON.stringify(codeChangesContextData));
 };
 
-const App = ({ Component, pageProps, emotionCache = clientSideEmotionCache }: MyAppProps) => {
-  return (
-    <CacheProvider value={emotionCache}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>
-          <CodeChangesProvider>
+const App = ({ Component, pageProps, emotionCache = clientSideEmotionCache }: MyAppProps) => (
+  <CacheProvider value={emotionCache}>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={theme}>
+        <CodeChangesProvider>
+          <CommandsProvider>
             <AutoSaveContextProvider>
               <SnackbarProvider>
                 <Head>
@@ -174,11 +178,11 @@ const App = ({ Component, pageProps, emotionCache = clientSideEmotionCache }: My
                 </Box>
               </SnackbarProvider>
             </AutoSaveContextProvider>
-          </CodeChangesProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </CacheProvider>
-  );
-};
+          </CommandsProvider>
+        </CodeChangesProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </CacheProvider>
+);
 
 export default App;

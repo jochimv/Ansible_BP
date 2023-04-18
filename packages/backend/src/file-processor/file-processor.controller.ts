@@ -13,7 +13,6 @@ export class FileProcessorController {
   async getProjectDetailsAndPlaybooks(@Param('projectName') projectName: string) {
     const projectDetails = await this.fileProcessorService.getProjectDetails(projectName);
     const projectPlaybooks = await this.fileProcessorService.getProjectPlaybooks(projectName);
-    console.log('projectPlaybooks', JSON.stringify(projectPlaybooks));
     return { projectDetails, projectPlaybooks };
   }
 

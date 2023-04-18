@@ -91,7 +91,6 @@ export class FileProcessorService {
     console.log('starting to download repository');
     try {
       const projectName = extractSecondToLastPathSegment(gitRepositoryUrl);
-      console.log('projectName: ', projectName);
       const projectDestinationPath = join(ansibleReposPath, projectName);
 
       if (existsSync(projectDestinationPath)) {

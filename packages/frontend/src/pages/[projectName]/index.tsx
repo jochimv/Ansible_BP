@@ -158,9 +158,7 @@ const ProjectPage = () => {
     {
       enabled: !!projectName,
     },
-      );
-
-  console.log('data: ', JSON.stringify(data));
+  );
 
   const [selectedHost, setSelectedHost] = useState({ id: '', name: '', appliedVariables: '' });
 
