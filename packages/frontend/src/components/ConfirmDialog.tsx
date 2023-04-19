@@ -5,11 +5,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  Button,
 } from '@mui/material';
 import { CloseButton } from '@frontend/components/CloseButton';
-import DoneIcon from '@mui/icons-material/Done';
-import ConfirmButton from "@frontend/components/ConfirmButton";
+import ConfirmButton from '@frontend/components/ConfirmButton';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -33,9 +31,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         <DialogContentText>{message}</DialogContentText>
       </DialogContent>
       <DialogActions>
-        <ConfirmButton onClick={onConfirm}>
-          Yes
-        </ConfirmButton>
+        <ConfirmButton onClick={onConfirm}>Yes</ConfirmButton>
         <CloseButton onClick={onClose} autoFocus>
           No
         </CloseButton>

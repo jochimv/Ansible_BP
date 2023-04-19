@@ -62,7 +62,6 @@ const HostDetailsPage = () => {
     selectedHostDetails,
     selectedVariables,
     selectedHostDetailsByInventoryType,
-    originalProjects,
   } = useCodeChangesContext();
 
   const {

@@ -85,7 +85,7 @@ const AppBarResolver = () => {
               cursor: 'default',
             }}
           >
-            {selectedProjectName}
+            {selectedProjectName ?? 'No project selected'}
           </Typography>
           <ClearModal />
           <Button
