@@ -76,7 +76,15 @@ const AppBarResolver = () => {
       <AppBar>
         <Toolbar sx={{ justifyContent: 'flex-end' }}>
           <FolderOutlinedIcon sx={{ width: 20, height: 20 }} />
-          <Typography sx={{ flexGrow: 1, ml: 1, textTransform: 'uppercase', fontSize: '15px' }}>
+          <Typography
+            sx={{
+              flexGrow: 1,
+              ml: 1,
+              textTransform: 'uppercase',
+              fontSize: '15px',
+              cursor: 'default',
+            }}
+          >
             {selectedProjectName}
           </Typography>
           <ClearModal />
@@ -118,7 +126,7 @@ const AppBarResolver = () => {
           </Button>
           <Button
             color="inherit"
-            onClick={() => router.push(`/${selectedProjectName}`)}
+            onClick={() => router.push(`/${selectedProjectName}/overview`)}
             startIcon={<FontAwesomeIcon icon={faServer} style={{ width: 18, height: 18 }} />}
           >
             Overview
