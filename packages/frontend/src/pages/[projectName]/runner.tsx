@@ -17,13 +17,14 @@ import {
 import { Delete as DeleteIcon, PlayCircle as PlayCircleIcon } from '@mui/icons-material';
 import axios, { AxiosResponse } from 'axios';
 import { Command, ProjectCommand, useCommandContext } from '@frontend/contexts/commandContext';
-import { useMutation } from 'react-query';
+import { useMutation, useQuery } from 'react-query';
 import { BE_IP_ADDRESS } from '@frontend/utils/constants';
 import AddCommandDialog from '@frontend/components/AddCommandDialog';
 import EditIcon from '@mui/icons-material/Edit';
 import { useSnackbar } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
 import { useRouter } from 'next/router';
 import LoadingPage from '@frontend/components/pages/Loading';
+import ProjectNotFound from '@frontend/components/pages/ProjectNotFound';
 
 const runCommand = (data: any) => axios.post(`http://${BE_IP_ADDRESS}:4000/run-command`, data);
 
@@ -49,23 +50,49 @@ const TerminalOutput: React.FC<{ output: string }> = ({ output }) => {
   );
 };
 
-const SeeOutputButton = (props: any) => <Button {...props}>output</Button>;
+const fetchProjectExists = async (projectName: string) =>
+  await axios.get(`http://${BE_IP_ADDRESS}:4000/${projectName}/exists`);
 
 const AnsibleCommandsPage: React.FC = () => {
+  const { projectName } = useRouter().query;
+
+  const { data, isLoading } = useQuery(['project-exists', projectName], () => {
+    if (typeof projectName === 'string') {
+      return fetchProjectExists(projectName);
+    }
+  });
   const { showMessage } = useSnackbar();
   const [commandOutput, setCommandOutput] = useState('');
   const { projectsCommands, removeCommand } = useCommandContext();
-  const { projectName } = useRouter().query;
-  const commands = projectsCommands.find(
-    (projectCommands: ProjectCommand) => projectCommands.projectName === projectName,
-  )?.commands;
-
   const [openDialog, setOpenDialog] = useState(false);
   const [openOutputDialog, setOpenOutputDialog] = useState(false);
   const [currentCommand, setCurrentCommand] = useState<Command | undefined>();
   const [runningCommandIds, setRunningCommandIds] = useState<Set<number>>(new Set());
-
   const [filterText, setFilterText] = useState('');
+
+  const { mutate } = useMutation(runCommand, {
+    onSuccess: (data: AxiosResponse<any>) => {
+      const { error, output } = data.data;
+      const command = JSON.parse(data.config.data);
+      const { commandId, alias } = command;
+      stopRunningCommand(commandId);
+      setCommandOutput(output);
+      if (!error) {
+        showMessageWithOutput(`${alias} finished successfully`, 'success');
+      } else {
+        showMessageWithOutput(`Could not execute ${alias}`, 'error');
+      }
+    },
+  });
+  if (isLoading) {
+    return <LoadingPage />;
+  } else if (!data?.data) {
+    return <ProjectNotFound />;
+  }
+
+  const commands = projectsCommands.find(
+    (projectCommands: ProjectCommand) => projectCommands.projectName === projectName,
+  )?.commands;
 
   const filteredCommands = commands?.filter((command: Command) => {
     return command.alias.toLowerCase().includes(filterText.toLowerCase());
@@ -83,7 +110,9 @@ const AnsibleCommandsPage: React.FC = () => {
     showMessage(
       message,
       variant,
-      <SeeOutputButton color={variant} onClick={handleOpenOutputDialog} />,
+      <Button color={variant} onClick={handleOpenOutputDialog}>
+        Output
+      </Button>,
     );
   };
 
@@ -105,21 +134,6 @@ const AnsibleCommandsPage: React.FC = () => {
       return updatedSet;
     });
   };
-
-  const { mutate } = useMutation(runCommand, {
-    onSuccess: (data: AxiosResponse<any>) => {
-      const { error, output } = data.data;
-      const command = JSON.parse(data.config.data);
-      const { commandId, alias } = command;
-      stopRunningCommand(commandId);
-      setCommandOutput(output);
-      if (!error) {
-        showMessageWithOutput(`${alias} finished successfully`, 'success');
-      } else {
-        showMessageWithOutput(`Could not execute ${alias}`, 'error');
-      }
-    },
-  });
 
   return (
     <div>

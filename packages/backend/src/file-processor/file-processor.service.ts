@@ -47,6 +47,11 @@ export class FileProcessorService {
     return await getProjectDetails(projectName);
   };
 
+  projectExists = (projectName: string): boolean => {
+    const projectPath = join(ansibleReposPath, projectName);
+    return existsSync(projectPath);
+  };
+
   getProjectPlaybooks = async (projectName: string) => {
     const projectPath = join(ansibleReposPath, projectName);
     const playbookNames = readdirSync(projectPath).filter((name) => name.includes('playbook'));

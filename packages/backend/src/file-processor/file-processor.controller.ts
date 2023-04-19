@@ -9,6 +9,11 @@ import {
 export class FileProcessorController {
   constructor(private fileProcessorService: FileProcessorService) {}
 
+  @Get('/:projectName/exists')
+  async projectExists(@Param('projectName') projectName: string) {
+    return this.fileProcessorService.projectExists(projectName);
+  }
+
   @Get('/:projectName/details-playbooks')
   async getProjectDetailsAndPlaybooks(@Param('projectName') projectName: string) {
     const { projectExists, projectDetails } = await this.fileProcessorService.getProjectDetails(
