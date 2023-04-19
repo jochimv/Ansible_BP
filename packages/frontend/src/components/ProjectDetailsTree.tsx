@@ -5,7 +5,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { faServer } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { TreeViewInventoryItem } from '@frontend/utils/types';
-
+import { Box } from '@mui/material';
 interface ProjectDetailsTreeProps {
   data: TreeViewInventoryItem[];
   onNodeSelected: React.Dispatch<

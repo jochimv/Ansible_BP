@@ -8,7 +8,7 @@ import * as path from 'path';
 
 export const ansibleReposPath =
   process.env.STAGE === 'development'
-    ? 'C:\\Users\\Dell\\Desktop\\ansible_bp\\packages\\backend\\ansible_repos'
+    ? 'C:\\Users\\VJochim\\Desktop\\Ansible_BP\\packages\\backend\\ansible_repos'
     : '/app/ansible_repos';
 const possibleInventoryFiles = ['hosts.ini', 'hosts', 'hosts.yaml'];
 const directoriesToIgnore = [

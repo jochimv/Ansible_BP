@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { Stack, Typography } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import ProjectDetailsTree from '@frontend/components/ProjectDetailsTree';
 import Editor from '@monaco-editor/react';
 import { useState, useEffect } from 'react';
@@ -193,13 +193,17 @@ const ProjectPage = () => {
   return (
     <Stack sx={{ height: '100%' }}>
       <Typography variant="h4">{projectName}</Typography>
-      <Stack direction="row" sx={{ height: '100%' }}>
-        <ProjectDetailsTree data={treeData} onNodeSelected={setSelectedHost} />
-        <Editor
-          defaultLanguage="yaml"
-          value={selectedHost ? selectedHost.appliedVariables : ''}
-          options={{ readOnly: true }}
-        />
+      <Stack direction="row" sx={{ height: 'calc(100% - 40px)', display: 'flex' }}>
+        <Box sx={{ width: '30%', height: '100%', overflowY: 'auto' }}>
+          <ProjectDetailsTree data={treeData} onNodeSelected={setSelectedHost} />
+        </Box>
+        <Box sx={{ width: '70%' }}>
+          <Editor
+            defaultLanguage="yaml"
+            value={selectedHost ? selectedHost.appliedVariables : ''}
+            options={{ readOnly: true }}
+          />
+        </Box>
       </Stack>
     </Stack>
   );
