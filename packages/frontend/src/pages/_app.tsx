@@ -3,7 +3,7 @@ import { QueryClientProvider, QueryClient } from 'react-query';
 import { createEmotionCache, theme } from '@frontend/utils/styling';
 import { CacheProvider, EmotionCache } from '@emotion/react';
 import Head from 'next/head';
-import { Badge, Button, ThemeProvider, Toolbar } from '@mui/material';
+import { Badge, Button, ThemeProvider, Toolbar, Typography } from '@mui/material';
 import { AppBar, Box } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import Link from 'next/link';
@@ -20,9 +20,9 @@ import CodeChangesProvider from '../codeChanges/CodeChangesProvider';
 import { AppProps } from 'next/app';
 import '@frontend/styles/globals.css';
 import { useRouter } from 'next/router';
-import { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBroom } from '@fortawesome/free-solid-svg-icons';
+import { faBroom, faServer } from '@fortawesome/free-solid-svg-icons';
 import { faGitAlt } from '@fortawesome/free-brands-svg-icons';
 import ClearModalProvider from '@frontend/components/ClearModal/state/ClearModalProvider';
 import { useClearModalDispatchContext } from '@frontend/components/ClearModal/state/ClearModalContext';
@@ -75,6 +75,10 @@ const AppBarResolver = () => {
     <>
       <AppBar>
         <Toolbar sx={{ justifyContent: 'flex-end' }}>
+          <FolderOutlinedIcon sx={{ width: 20, height: 20 }} />
+          <Typography sx={{ flexGrow: 1, ml: 1, textTransform: 'uppercase', fontSize: '15px' }}>
+            {selectedProjectName}
+          </Typography>
           <ClearModal />
           <Button
             color="inherit"
@@ -115,9 +119,9 @@ const AppBarResolver = () => {
           <Button
             color="inherit"
             onClick={() => router.push(`/${selectedProjectName}`)}
-            startIcon={<FolderOutlinedIcon />}
+            startIcon={<FontAwesomeIcon icon={faServer} style={{ width: 18, height: 18 }} />}
           >
-            {selectedProjectName ? selectedProjectName : 'No project selected'}
+            Overview
           </Button>
           <Button color="inherit" startIcon={<Search />} component={Link} href="/">
             Hledat
