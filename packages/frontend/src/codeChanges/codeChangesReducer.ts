@@ -269,6 +269,9 @@ export const codeChangesReducer = (
   action: ReducerAction,
 ): CodeChangesState => {
   switch (action.type) {
+    // todo - smazat
+    case 'clear':
+      return initialState;
     case actionTypes.INITIALIZE_CONTEXT:
       return action.payload;
     case actionTypes.SELECT_PROJECT:

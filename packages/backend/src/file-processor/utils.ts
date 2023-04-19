@@ -9,7 +9,7 @@ import * as path from 'path';
 export const ansibleReposPath =
   process.env.STAGE === 'development'
     ? 'C:\\Users\\Dell\\Desktop\\ansible_bp\\packages\\backend\\ansible_repos'
-    : '/app/ansible_repos'; // "/app/ansible_repos" inside docker container
+    : '/app/ansible_repos';
 const possibleInventoryFiles = ['hosts.ini', 'hosts', 'hosts.yaml'];
 const directoriesToIgnore = [
   'roles',
@@ -37,7 +37,7 @@ const checkAndUpdateProject = async (projectPath: string) => {
   }
 };
 const checkAndUpdateAllProjects = async (projectPaths: string[]) => {
-  const tasks = projectPaths.map((path) => checkAndUpdateProject(path));
+  const tasks = projectPaths.map((path: string) => checkAndUpdateProject(path));
   await Promise.all(tasks);
 };
 export const getProjectDetails = async (projectName: string) => {
@@ -51,10 +51,7 @@ export const getProjectDetails = async (projectName: string) => {
   const inventoryFilesPaths = getInventoryFilesPaths(projectPath);
   const projectDetails = [];
   for (const inventoryFilePath of inventoryFilesPaths) {
-    const inventoryPathFromRoot = path.relative(
-      join(ansibleReposPath, projectName),
-      inventoryFilePath,
-    );
+    const inventoryPathFromRoot = removeAnsibleReposPathFromPath(inventoryFilePath);
     const inventoryType = getLastPathSegment(extractDirectoryPath(inventoryFilePath));
     const inventoryDirectoryPath = extractDirectoryPath(inventoryFilePath);
     const fileContent = readFileSync(inventoryFilePath, 'utf-8');
@@ -227,7 +224,7 @@ const getGroupNameFromIniInventory = (filePath: string, serverName: string): str
   return undefined;
 };
 const removeAnsibleReposPathFromPath = (filePath: string): string => {
-  return filePath.slice(ansibleReposPath.length);
+  return path.relative(ansibleReposPath, filePath);
 };
 const extractBeforeColon = (str: string) => {
   // find the index of the first colon in the string

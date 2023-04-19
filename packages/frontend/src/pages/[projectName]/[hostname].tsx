@@ -6,13 +6,13 @@ import {
   Box,
   Snackbar,
   Stack,
+  styled,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
 } from '@mui/material';
 import Editor from '@monaco-editor/react';
 import { Breadcrumbs } from '@mui/material';
-import Link from 'next/link';
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
@@ -42,6 +42,18 @@ const getVariablesByType = (obj: any, type: string) => {
   return null;
 };
 
+const renderBreadcrumbs = (path: string) => {
+  const segments = path.split('\\');
+
+  return (
+    <Breadcrumbs aria-label="breadcrumb">
+      {segments.map((segment: string, index: number) => (
+        <Typography key={index}>{segment}</Typography>
+      ))}
+    </Breadcrumbs>
+  );
+};
+
 const formatErrorMessage = (message: string): JSX.Element => {
   const lines = message.split('\n');
   return (
@@ -52,6 +64,15 @@ const formatErrorMessage = (message: string): JSX.Element => {
     </div>
   );
 };
+
+const Heading = styled(Typography)({
+  fontWeight: 'bold',
+  paddingBottom: '4px',
+});
+
+const HeadingNoSpacing = styled(Typography)({
+  fontWeight: 'bold',
+});
 
 const HostDetailsPage = () => {
   const router = useRouter();
@@ -113,18 +134,20 @@ const HostDetailsPage = () => {
   return (
     <Stack direction="row" sx={{ height: '100%' }}>
       <Stack spacing={3}>
-        <Breadcrumbs>
-          <Link href={`/${projectName}`} color="inherit">
-            {projectName}
-          </Link>
-          <Typography>{hostname}</Typography>
-        </Breadcrumbs>
         <Box>
-          <Typography sx={{ fontWeight: 'bold' }}>Server group</Typography>
+          <HeadingNoSpacing>Project name</HeadingNoSpacing>
+          <Typography>{projectName}</Typography>
+        </Box>
+        <Box>
+          <HeadingNoSpacing>Group name</HeadingNoSpacing>
           <Typography>{selectedHostDetails?.groupName}</Typography>
         </Box>
         <Box>
-          <Typography sx={{ fontWeight: 'bold' }}>Inventory</Typography>
+          <HeadingNoSpacing>Host name</HeadingNoSpacing>
+          <Typography>{hostname}</Typography>
+        </Box>
+        <Box>
+          <Heading>Inventory</Heading>
           <ToggleButtonGroup
             orientation="horizontal"
             exclusive
@@ -153,7 +176,7 @@ const HostDetailsPage = () => {
           </ToggleButtonGroup>
         </Box>
         <Box>
-          <Typography sx={{ fontWeight: 'bold' }}>Variables</Typography>
+          <Heading>Variables</Heading>
           <ToggleButtonGroup
             orientation="horizontal"
             exclusive
@@ -180,8 +203,12 @@ const HostDetailsPage = () => {
         </Box>
       </Stack>
       {selectedVariables?.values !== undefined ? (
-        <Stack direction="column" flexGrow={1}>
-          <div>{selectedVariables?.pathInProject}</div>
+        <Stack direction="column" flexGrow={1} spacing={2}>
+          <Typography ml={4}>
+            {selectedVariables?.type === 'applied'
+              ? selectedVariables?.pathInProject
+              : renderBreadcrumbs(selectedVariables?.pathInProject)}
+          </Typography>
           <Editor
             options={{ readOnly: selectedVariables?.type === 'applied' || !isInEditMode }}
             language="yaml"

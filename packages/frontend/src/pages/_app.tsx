@@ -92,6 +92,10 @@ const AppBarResolver = () => {
             {selectedProjectName ?? 'No project selected'}
           </Typography>
           <ClearModal />
+          {/* todo - delete this */}
+          <Button color={'inherit'} onClick={() => codeChangesDispatch({ type: 'clear' })}>
+            Clear state
+          </Button>
           <Button
             color="inherit"
             startIcon={<PlayCircleOutlineIcon />}
