@@ -14,16 +14,23 @@ export interface Command {
     additionalVariables: string;
   };
 }
-export interface CommandsContextValue {
+
+export interface ProjectCommand {
+  projectName: string;
   commands: Command[];
+}
+export interface CommandsContextValue {
+  projectsCommands: ProjectCommand[];
   addCommand: (
+    projectName: string,
     command: string,
     alias: string,
     mode: 'builder' | 'ad-hoc',
     builderData?: any,
   ) => void;
-  removeCommand: (id: number) => void;
+  removeCommand: (projectName: string, id: number) => void;
   updateCommand: (
+    projectName: string,
     id: number,
     command: string,
     alias: string,
@@ -46,43 +53,86 @@ interface AnsibleCommandsProviderProps {
   children: ReactNode;
 }
 export const CommandsProvider = ({ children }: AnsibleCommandsProviderProps) => {
-  const [commands, setCommands] = useState<Command[]>([]);
+  const [projectsCommands, setProjectsCommands] = useState<ProjectCommand[]>([]);
 
   useEffect(() => {
     const commands = JSON.parse(localStorage.getItem('commandsContext') || '[]');
     if (commands) {
-      setCommands(commands);
+      setProjectsCommands(commands);
     }
   }, []);
 
   const updateCommand = (
+    projectName: string,
     id: number,
     command: string,
     alias: string,
     mode: 'builder' | 'ad-hoc',
     builderData?: any,
   ) => {
-    setCommands((prevCommands) =>
-      prevCommands.map((cmd) => (cmd.id === id ? { id, command, alias, mode, builderData } : cmd)),
-    );
+    setProjectsCommands((prevCommands: ProjectCommand[]) => {
+      return prevCommands.map((prevCommand: ProjectCommand) => {
+        if (prevCommand.projectName === projectName) {
+          return {
+            projectName,
+            commands: prevCommand.commands.map((cmd: Command) =>
+              cmd.id === id ? { id, command, alias, mode, builderData } : cmd,
+            ),
+          };
+        } else {
+          return prevCommand;
+        }
+      });
+    });
   };
 
   const addCommand = (
+    projectName: string,
     command: string,
     alias: string,
     mode: 'builder' | 'ad-hoc',
     builderData?: any,
   ) => {
     const id = Date.now();
-    setCommands((prevCommands) => [...prevCommands, { id, command, alias, mode, builderData }]);
+    setProjectsCommands((prevCommands: ProjectCommand[]) => {
+      const projectPresentInContext = !!prevCommands.find(
+        (prevCommand: ProjectCommand) => prevCommand.projectName === projectName,
+      );
+      const newCommand = { id, command, alias, mode, builderData };
+      if (projectPresentInContext) {
+        return prevCommands.map((prevCommand: ProjectCommand) => {
+          if (prevCommand.projectName === projectName) {
+            return {
+              projectName,
+              commands: [...prevCommand.commands, newCommand],
+            };
+          } else {
+            return prevCommand;
+          }
+        });
+      } else {
+        return [...prevCommands, { projectName, commands: [newCommand] }];
+      }
+    });
   };
 
-  const removeCommand = (id: number) => {
-    setCommands((prevCommands) => prevCommands.filter((cmd) => cmd.id !== id));
+  const removeCommand = (projectName: string, id: number) => {
+    setProjectsCommands((prevCommands: ProjectCommand[]) => {
+      return prevCommands.map((prevCommand: ProjectCommand) => {
+        if (prevCommand.projectName === projectName) {
+          return {
+            projectName,
+            commands: prevCommand.commands.filter((cmd: Command) => cmd.id !== id),
+          };
+        } else {
+          return prevCommand;
+        }
+      });
+    });
   };
 
   return (
-    <CommandContext.Provider value={{ commands, addCommand, removeCommand, updateCommand }}>
+    <CommandContext.Provider value={{ projectsCommands, addCommand, removeCommand, updateCommand }}>
       {children}
     </CommandContext.Provider>
   );

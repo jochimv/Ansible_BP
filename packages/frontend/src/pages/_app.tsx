@@ -30,7 +30,12 @@ import { open } from '@frontend/components/ClearModal/state/clearModalReducer';
 import ClearModal from '@frontend/components/ClearModal';
 import { Host, HostDetails, HostVariable, Project } from '@frontend/utils/types';
 import { SnackbarProvider } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
-import { Command, CommandsProvider, useCommandContext } from '@frontend/contexts/commandContext';
+import {
+  Command,
+  CommandsProvider,
+  ProjectCommand,
+  useCommandContext,
+} from '@frontend/contexts/commandContext';
 const queryClient = new QueryClient();
 
 const clientSideEmotionCache = createEmotionCache();
@@ -146,25 +151,25 @@ interface AutoSaveContextProviderProps {
 }
 const AutoSaveContextProvider = ({ children }: AutoSaveContextProviderProps) => {
   const codeChangesContextData = useCodeChangesContext();
-  const { commands } = useCommandContext();
+  const { projectsCommands } = useCommandContext();
   useEffect(() => {
     window.addEventListener('beforeunload', () =>
-      handleBeforeUnload(codeChangesContextData, commands),
+      handleBeforeUnload(codeChangesContextData, projectsCommands),
     );
 
     // Cleanup the event listener when the component is unmounted
     return () => {
       window.removeEventListener('beforeunload', () =>
-        handleBeforeUnload(codeChangesContextData, commands),
+        handleBeforeUnload(codeChangesContextData, projectsCommands),
       );
     };
-  }, [codeChangesContextData, commands]);
+  }, [codeChangesContextData, projectsCommands]);
   return <>{children}</>;
 };
 
 const handleBeforeUnload = (
   codeChangesContextData: CodeChangesState,
-  commandContextData: Command[],
+  commandContextData: ProjectCommand[],
 ) => {
   localStorage.setItem('commandsContext', JSON.stringify(commandContextData));
   localStorage.setItem('codeChangesContextData', JSON.stringify(codeChangesContextData));

@@ -11,9 +11,14 @@ export class FileProcessorController {
 
   @Get('/:projectName/details-playbooks')
   async getProjectDetailsAndPlaybooks(@Param('projectName') projectName: string) {
-    const projectDetails = await this.fileProcessorService.getProjectDetails(projectName);
+    const { projectExists, projectDetails } = await this.fileProcessorService.getProjectDetails(
+      projectName,
+    );
+    if (!projectExists) {
+      return { projectExists, projectDetails: null, projectPlaybooks: null };
+    }
     const projectPlaybooks = await this.fileProcessorService.getProjectPlaybooks(projectName);
-    return { projectDetails, projectPlaybooks };
+    return { projectDetails, projectPlaybooks, projectExists };
   }
 
   @Get('/:projectName/git')

@@ -11,12 +11,12 @@ import {
   IconButton,
   Button,
   ButtonGroup,
-  AutocompleteChangeReason,
-  AutocompleteChangeDetails,
+  AutocompleteRenderInputParams,
 } from '@mui/material';
+
 import Editor from '@monaco-editor/react';
 import React, { SyntheticEvent, useEffect, useState } from 'react';
-import { Command, useCommandContext } from '@frontend/contexts/commandContext';
+import { Command, ProjectCommand, useCommandContext } from '@frontend/contexts/commandContext';
 import { CloseButton } from '@frontend/components/CloseButton';
 import ConfirmButton from '@frontend/components/ConfirmButton';
 import { useQuery } from 'react-query';
@@ -55,7 +55,11 @@ const AddCommandDialog = ({
   const [commandAlias, setCommandAlias] = useState('');
   const { addCommand, updateCommand } = useCommandContext();
   const { projectName } = useRouter().query;
-  const { commands } = useCommandContext();
+  const { projectsCommands } = useCommandContext();
+  const commands =
+    projectsCommands.find(
+      (projectCommands: ProjectCommand) => projectCommands.projectName === projectName,
+    )?.commands || [];
 
   const sameAliasError =
     initialCommand === undefined
@@ -168,8 +172,9 @@ const AddCommandDialog = ({
 
   const { projectDetails, projectPlaybooks } = data;
   const handleAddCommand = () => {
-    if (commandAlias.trim()) {
+    if (commandAlias.trim() && typeof projectName === 'string') {
       addCommand(
+        projectName,
         resultCommand,
         commandAlias,
         mode,
@@ -189,9 +194,8 @@ const AddCommandDialog = ({
   };
 
   const inventoryTypes =
-    projectDetails?.projectDetails.map((detail: ProjectDetailsInventory) => detail.inventoryType) ||
-    [];
-  const selectedInventory = projectDetails?.projectDetails.find(
+    projectDetails.map((detail: ProjectDetailsInventory) => detail.inventoryType) || [];
+  const selectedInventory = projectDetails.find(
     (detail: ProjectDetailsInventory) => detail.inventoryType === selectedInventoryType,
   );
   const groupNames =
@@ -269,13 +273,13 @@ const AddCommandDialog = ({
                 options={inventoryTypes}
                 onChange={(event: SyntheticEvent, newValue) => {
                   setSelectedInventoryType(newValue);
-                  const selectedInventory = projectDetails?.projectDetails.find(
+                  const selectedInventory = projectDetails.find(
                     (inventory: any) => inventory.inventoryType === newValue,
                   );
                   setSelectedInventoryPath(selectedInventory.inventoryPath);
                 }}
                 value={selectedInventoryType}
-                renderInput={(params) => (
+                renderInput={(params: AutocompleteRenderInputParams) => (
                   <TextField
                     {...params}
                     label="Select Inventory Type"
@@ -296,7 +300,9 @@ const AddCommandDialog = ({
                       }
                     }}
                     value={selectedGroup}
-                    renderInput={(params) => <TextField {...params} label="Select Group" />}
+                    renderInput={(params: AutocompleteRenderInputParams) => (
+                      <TextField {...params} label="Select Group" />
+                    )}
                   />
                   <Typography>OR</Typography>
                   <Autocomplete
@@ -309,7 +315,9 @@ const AddCommandDialog = ({
                       }
                     }}
                     value={selectedHost}
-                    renderInput={(params) => <TextField {...params} label="Select Host" />}
+                    renderInput={(params: AutocompleteRenderInputParams) => (
+                      <TextField {...params} label="Select Host" />
+                    )}
                   />
                 </Stack>
               )}
@@ -354,8 +362,9 @@ const AddCommandDialog = ({
       <DialogActions>
         <ConfirmButton
           onClick={() => {
-            if (initialCommand) {
+            if (initialCommand && typeof projectName === 'string') {
               updateCommand(
+                projectName,
                 initialCommand.id,
                 resultCommand,
                 commandAlias,

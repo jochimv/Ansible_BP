@@ -15,14 +15,15 @@ import {
   TextField,
 } from '@mui/material';
 import { Delete as DeleteIcon, PlayCircle as PlayCircleIcon } from '@mui/icons-material';
-import axios from 'axios';
-import { Command, useCommandContext } from '@frontend/contexts/commandContext';
+import axios, { AxiosResponse } from 'axios';
+import { Command, ProjectCommand, useCommandContext } from '@frontend/contexts/commandContext';
 import { useMutation } from 'react-query';
 import { BE_IP_ADDRESS } from '@frontend/utils/constants';
 import AddCommandDialog from '@frontend/components/AddCommandDialog';
 import EditIcon from '@mui/icons-material/Edit';
 import { useSnackbar } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
 import { useRouter } from 'next/router';
+import LoadingPage from '@frontend/components/pages/Loading';
 
 const runCommand = (data: any) => axios.post(`http://${BE_IP_ADDRESS}:4000/run-command`, data);
 
@@ -53,7 +54,12 @@ const SeeOutputButton = (props: any) => <Button {...props}>output</Button>;
 const AnsibleCommandsPage: React.FC = () => {
   const { showMessage } = useSnackbar();
   const [commandOutput, setCommandOutput] = useState('');
-  const { commands, removeCommand } = useCommandContext();
+  const { projectsCommands, removeCommand } = useCommandContext();
+  const { projectName } = useRouter().query;
+  const commands = projectsCommands.find(
+    (projectCommands: ProjectCommand) => projectCommands.projectName === projectName,
+  )?.commands;
+
   const [openDialog, setOpenDialog] = useState(false);
   const [openOutputDialog, setOpenOutputDialog] = useState(false);
   const [currentCommand, setCurrentCommand] = useState<Command | undefined>();
@@ -61,11 +67,9 @@ const AnsibleCommandsPage: React.FC = () => {
 
   const [filterText, setFilterText] = useState('');
 
-  const filteredCommands = commands.filter((command: Command) => {
+  const filteredCommands = commands?.filter((command: Command) => {
     return command.alias.toLowerCase().includes(filterText.toLowerCase());
   });
-
-  const { projectName } = useRouter().query;
 
   const handleOpenOutputDialog = () => {
     setOpenOutputDialog(true);
@@ -91,11 +95,11 @@ const AnsibleCommandsPage: React.FC = () => {
     setOpenDialog(false);
   };
   const startRunningCommand = (commandId: number) => {
-    setRunningCommandIds((prev) => new Set([...prev, commandId]));
+    setRunningCommandIds((prev: Set<number>) => new Set([...prev, commandId]));
   };
 
   const stopRunningCommand = (commandId: number) => {
-    setRunningCommandIds((prev) => {
+    setRunningCommandIds((prev: Set<number>) => {
       const updatedSet = new Set([...prev]);
       updatedSet.delete(commandId);
       return updatedSet;
@@ -103,7 +107,7 @@ const AnsibleCommandsPage: React.FC = () => {
   };
 
   const { mutate } = useMutation(runCommand, {
-    onSuccess: (data) => {
+    onSuccess: (data: AxiosResponse<any>) => {
       const { error, output } = data.data;
       const command = JSON.parse(data.config.data);
       const { commandId, alias } = command;
@@ -116,6 +120,7 @@ const AnsibleCommandsPage: React.FC = () => {
       }
     },
   });
+
   return (
     <div>
       <AddCommandDialog
@@ -159,7 +164,7 @@ const AnsibleCommandsPage: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredCommands.map((commandObj: Command) => {
+            {filteredCommands?.map((commandObj: Command) => {
               const { id, alias, command } = commandObj;
               return (
                 <TableRow key={id}>
@@ -191,7 +196,14 @@ const AnsibleCommandsPage: React.FC = () => {
                           <PlayCircleIcon />
                         </IconButton>
                       )}
-                      <IconButton aria-label="delete" onClick={() => removeCommand(id)}>
+                      <IconButton
+                        aria-label="delete"
+                        onClick={() => {
+                          if (typeof projectName === 'string') {
+                            removeCommand(projectName, id);
+                          }
+                        }}
+                      >
                         <DeleteIcon />
                       </IconButton>
                     </Stack>
