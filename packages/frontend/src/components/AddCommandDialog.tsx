@@ -11,6 +11,8 @@ import {
   IconButton,
   Button,
   ButtonGroup,
+  AutocompleteChangeReason,
+  AutocompleteChangeDetails,
 } from '@mui/material';
 import Editor from '@monaco-editor/react';
 import React, { SyntheticEvent, useEffect, useState } from 'react';
@@ -299,9 +301,9 @@ const AddCommandDialog = ({
                   <Typography>OR</Typography>
                   <Autocomplete
                     fullWidth
-                    options={hostnames}
+                    options={[...new Set(hostnames)]}
                     onChange={(event, newValue) => {
-                      setSelectedHost(newValue);
+                      setSelectedHost(newValue as string | null);
                       if (newValue) {
                         setSelectedGroup(null);
                       }
