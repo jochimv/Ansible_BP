@@ -1,37 +1,44 @@
 import React, { useState } from 'react';
 import {
-  TextField,
   Button,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
   IconButton,
+  Stack,
+  TableHead,
+  TableRow,
+  TableCell,
+  Typography,
+  TableBody,
+  TableContainer,
+  Table,
+  CircularProgress,
+  Dialog,
+  TextField,
 } from '@mui/material';
 import { Delete as DeleteIcon, PlayCircle as PlayCircleIcon } from '@mui/icons-material';
 import axios from 'axios';
-import {
-  AnsibleCommandsProvider,
-  useAnsibleCommands,
-} from '@frontend/contexts/ansibleCommandContext';
+import { Command, useCommandContext } from '@frontend/contexts/commandContext';
 import { useMutation } from 'react-query';
-import {BE_IP_ADDRESS} from "@frontend/utils/constants";
+import { BE_IP_ADDRESS } from '@frontend/utils/constants';
+import AddCommandDialog from '@frontend/components/AddCommandDialog';
+import EditIcon from '@mui/icons-material/Edit';
+import { useSnackbar } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
+import { useRouter } from 'next/router';
 
-const postCommitData = (data: any) => axios.post(`http://${BE_IP_ADDRESS}:4000/run-command`, data);
+const runCommand = (data: any) => axios.post(`http://${BE_IP_ADDRESS}:4000/run-command`, data);
 
 const TerminalOutput: React.FC<{ output: string }> = ({ output }) => {
   const formattedOutput = output.replace(/\r\n/g, '\n');
   const outputLines = formattedOutput.split('\n');
-
   return (
     <pre
       style={{
         backgroundColor: '#000',
         color: '#fff',
         padding: '16px',
-        borderRadius: '8px',
+        borderRadius: '4px',
         whiteSpace: 'pre-wrap',
         wordWrap: 'break-word',
+        margin: 0,
       }}
     >
       {outputLines.map((line: string, index: number) => (
@@ -41,63 +48,165 @@ const TerminalOutput: React.FC<{ output: string }> = ({ output }) => {
   );
 };
 
+const SeeOutputButton = (props: any) => <Button {...props}>output</Button>;
+
 const AnsibleCommandsPage: React.FC = () => {
-  const [newCommand, setNewCommand] = useState('');
-  const [commandResult, setCommandResult] = useState('');
-  const { commands, addCommand, removeCommand } = useAnsibleCommands();
+  const { showMessage } = useSnackbar();
+  const [commandOutput, setCommandOutput] = useState('');
+  const { commands, removeCommand } = useCommandContext();
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openOutputDialog, setOpenOutputDialog] = useState(false);
+  const [currentCommand, setCurrentCommand] = useState<Command | undefined>();
+  const [runningCommandIds, setRunningCommandIds] = useState<Set<number>>(new Set());
 
-  const handleAddCommand = () => {
-    if (newCommand.trim()) {
-      addCommand(newCommand);
-      setNewCommand('');
-    }
-  };
+  const [filterText, setFilterText] = useState('');
 
-  const { mutate } = useMutation(postCommitData, {
-    onSuccess: (data) => {
-      console.log('command finished successfully: ', JSON.stringify(data.data));
-      setCommandResult(data.data);
-    },
+  const filteredCommands = commands.filter((command: Command) => {
+    return command.alias.toLowerCase().includes(filterText.toLowerCase());
   });
 
+  const { projectName } = useRouter().query;
+
+  const handleOpenOutputDialog = () => {
+    setOpenOutputDialog(true);
+  };
+
+  const handleCloseOutputDialog = () => {
+    setOpenOutputDialog(false);
+  };
+
+  const showMessageWithOutput = (message: string, variant: 'success' | 'error') => {
+    showMessage(
+      message,
+      variant,
+      <SeeOutputButton color={variant} onClick={handleOpenOutputDialog} />,
+    );
+  };
+
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+  const startRunningCommand = (commandId: number) => {
+    setRunningCommandIds((prev) => new Set([...prev, commandId]));
+  };
+
+  const stopRunningCommand = (commandId: number) => {
+    setRunningCommandIds((prev) => {
+      const updatedSet = new Set([...prev]);
+      updatedSet.delete(commandId);
+      return updatedSet;
+    });
+  };
+
+  const { mutate } = useMutation(runCommand, {
+    onSuccess: (data) => {
+      const { error, output } = data.data;
+      const command = JSON.parse(data.config.data);
+      const { commandId, alias } = command;
+      stopRunningCommand(commandId);
+      setCommandOutput(output);
+      if (!error) {
+        showMessageWithOutput(`${alias} finished successfully`, 'success');
+      } else {
+        showMessageWithOutput(`Could not execute ${alias}`, 'error');
+      }
+    },
+  });
   return (
     <div>
-      <TextField
-        label="New Ansible Command"
-        value={newCommand}
-        onChange={(e) => setNewCommand(e.target.value)}
-        fullWidth
-        margin="normal"
+      <AddCommandDialog
+        open={openDialog}
+        onClose={() => {
+          handleCloseDialog();
+        }}
+        TransitionProps={{
+          onExited: () => {
+            setCurrentCommand(undefined);
+          },
+        }}
+        initialCommand={currentCommand}
       />
-      <Button variant="contained" color="primary" onClick={handleAddCommand}>
-        Add Command
-      </Button>
-      <List>
-        {commands.map((cmd) => (
-          <ListItem key={cmd.id}>
-            <ListItemText primary={cmd.command} />
-            <ListItemSecondaryAction>
-              <IconButton
-                edge="end"
-                aria-label="delete"
-                onClick={() => mutate({ command: cmd.command })}
-              >
-                <PlayCircleIcon />
-              </IconButton>
-              <IconButton edge="end" aria-label="delete" onClick={() => removeCommand(cmd.id)}>
-                <DeleteIcon />
-              </IconButton>
-            </ListItemSecondaryAction>
-          </ListItem>
-        ))}
-      </List>
-      <TerminalOutput output={commandResult} />
+      <Stack direction="row" spacing={3} mb={2}>
+        <Button variant="contained" color="primary" onClick={handleOpenDialog}>
+          Add Command
+        </Button>
+        <TextField
+          size="small"
+          label="Filter by alias"
+          value={filterText}
+          onChange={(e) => setFilterText(e.target.value)}
+          variant="outlined"
+        />
+      </Stack>
+
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell width="30%">
+                <Typography fontWeight="bold">Alias</Typography>
+              </TableCell>
+              <TableCell width="60%">
+                <Typography fontWeight="bold">Command</Typography>
+              </TableCell>
+              <TableCell width="10%">
+                <Typography fontWeight="bold">Actions</Typography>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredCommands.map((commandObj: Command) => {
+              const { id, alias, command } = commandObj;
+              return (
+                <TableRow key={id}>
+                  <TableCell>{alias}</TableCell>
+                  <TableCell>{command}</TableCell>
+                  <TableCell>
+                    <Stack direction="row" columnGap={2} alignItems="center">
+                      <IconButton
+                        edge="end"
+                        aria-label="edit"
+                        onClick={() => {
+                          setCurrentCommand(commandObj);
+                          handleOpenDialog();
+                        }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      {runningCommandIds.has(id) ? (
+                        <CircularProgress size={30} />
+                      ) : (
+                        <IconButton
+                          edge="end"
+                          aria-label="delete"
+                          onClick={() => {
+                            startRunningCommand(id);
+                            mutate({ command, commandId: id, alias, projectName });
+                          }}
+                        >
+                          <PlayCircleIcon />
+                        </IconButton>
+                      )}
+                      <IconButton aria-label="delete" onClick={() => removeCommand(id)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <Dialog open={openOutputDialog} onClose={handleCloseOutputDialog} maxWidth="md" fullWidth>
+        <TerminalOutput output={commandOutput} />
+      </Dialog>
     </div>
   );
 };
 
-export default () => (
-  <AnsibleCommandsProvider>
-    <AnsibleCommandsPage />
-  </AnsibleCommandsProvider>
-);
+export default AnsibleCommandsPage;

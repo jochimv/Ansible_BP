@@ -4,10 +4,11 @@ import { parse as parseIni } from 'ini';
 import { join } from 'path';
 import { parse as parseYaml, stringify } from 'yaml';
 import { extname } from 'path';
+import * as path from 'path';
 
 export const ansibleReposPath =
   process.env.STAGE === 'development'
-    ? 'C:\\Users\\VJochim\\Desktop\\Ansible_BP\\packages\\backend\\ansible_repos'
+    ? 'C:\\Users\\Dell\\Desktop\\ansible_bp\\packages\\backend\\ansible_repos'
     : '/app/ansible_repos'; // "/app/ansible_repos" inside docker container
 const possibleInventoryFiles = ['hosts.ini', 'hosts', 'hosts.yaml'];
 const directoriesToIgnore = [
@@ -50,6 +51,10 @@ export const getProjectDetails = async (projectName: string) => {
   const inventoryFilesPaths = getInventoryFilesPaths(projectPath);
   const projectDetails = [];
   for (const inventoryFilePath of inventoryFilesPaths) {
+    const inventoryPathFromRoot = path.relative(
+      join(ansibleReposPath, projectName),
+      inventoryFilePath,
+    );
     const inventoryType = getLastPathSegment(extractDirectoryPath(inventoryFilePath));
     const inventoryDirectoryPath = extractDirectoryPath(inventoryFilePath);
     const fileContent = readFileSync(inventoryFilePath, 'utf-8');
@@ -106,7 +111,7 @@ export const getProjectDetails = async (projectName: string) => {
         }),
       };
     });
-    projectDetails.push({ inventoryType, groupHosts });
+    projectDetails.push({ inventoryType, inventoryPath: inventoryPathFromRoot, groupHosts });
   }
   return { projectDetails, projectExists: true };
 };
@@ -204,9 +209,9 @@ const getInventoryFilesPaths = (dir: string): string[] => {
   return inventoryFilesPaths;
 };
 const extractDirectoryPath = (filePath: string): string => {
-  const parts = filePath.split('\\');
+  const parts = filePath.split(/[\\/]/);
   parts.pop();
-  return parts.join('\\');
+  return parts.join(path.sep);
 };
 const getLastPathSegment = (path: string): string => {
   const segments = path.split(/[\\/]/); // split path by forward slash or backslash
@@ -261,7 +266,6 @@ export const getHostDetails = async (projectName: string, hostName: string) => {
     const inventoryHosts = extractHostsFromInventory(inventoryFilePath);
     if (inventoryHosts.includes(hostName)) {
       hostExists = true;
-
       const variables = [];
       const inventoryDirectoryPath = extractDirectoryPath(inventoryFilePath);
       const inventoryType = getLastPathSegment(inventoryDirectoryPath);
@@ -269,7 +273,6 @@ export const getHostDetails = async (projectName: string, hostName: string) => {
       const hostVarsFilePath = join(inventoryDirectoryPath, 'host_vars', `${hostName}.yml`);
 
       let hostVariables;
-      console.log('looking for host vairables at path ', hostVarsFilePath);
       if (existsSync(hostVarsFilePath)) {
         hostVariables = {
           type: 'host',

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { writeFileSync, existsSync, rmSync } from 'fs';
+import { writeFileSync, existsSync, rmSync, readdirSync, readFileSync } from 'fs';
 
 import { join } from 'path';
 import { SimpleGit, simpleGit } from 'simple-git';
@@ -46,6 +46,16 @@ export class FileProcessorService {
   getProjectDetails = async (projectName: string) => {
     return await getProjectDetails(projectName);
   };
+
+  getProjectPlaybooks = async (projectName: string) => {
+    const projectPath = join(ansibleReposPath, projectName);
+    const playbookNames = readdirSync(projectPath).filter((name) => name.includes('playbook'));
+    return playbookNames.map((playbookName: string) => {
+      const fullPath = join(projectPath, playbookName);
+      const content = readFileSync(fullPath, 'utf-8');
+      return { playbookName, content };
+    });
+  };
   getMainBranchName = async (projectName: string) => {
     const projectPath = join(ansibleReposPath, projectName);
     if (!existsSync(projectPath)) {
@@ -81,7 +91,6 @@ export class FileProcessorService {
     console.log('starting to download repository');
     try {
       const projectName = extractSecondToLastPathSegment(gitRepositoryUrl);
-      console.log('projectName: ', projectName);
       const projectDestinationPath = join(ansibleReposPath, projectName);
 
       if (existsSync(projectDestinationPath)) {
