@@ -317,7 +317,7 @@ export const getHostDetails = async (projectName: string, hostName: string) => {
       };
       variables.unshift({
         type: 'applied',
-        pathInProject: 'Read only',
+        pathInProject: 'Applied variables',
         values: stringify(appliedVariables),
         updated: false,
       });

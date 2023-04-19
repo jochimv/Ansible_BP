@@ -31,7 +31,6 @@ import ClearModal from '@frontend/components/ClearModal';
 import { Host, HostDetails, HostVariable, Project } from '@frontend/utils/types';
 import { SnackbarProvider } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
 import {
-  Command,
   CommandsProvider,
   ProjectCommand,
   useCommandContext,
