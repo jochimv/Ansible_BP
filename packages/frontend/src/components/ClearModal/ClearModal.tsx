@@ -39,7 +39,7 @@ import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Project } from '@frontend/utils/types';
 
-const findIfAnyVariableWasUpdated = (projects: Project[]) => {
+const findIfAnyVariableWasUpdated = (projects: Project[]): boolean => {
   for (const project of projects) {
     for (const host of project.hosts) {
       for (const inventoryType of host.hostDetailsByInventoryType) {
@@ -62,27 +62,23 @@ const ClearModal = () => {
   const closeModal = () => dispatch(close());
   const router = useRouter();
 
-  const handleRollbackAllProjects = () => {
-    switch (router.pathname) {
-      case '/[projectName]/[hostname]': {
-        codeChangesDispatch(clearAllProjectUpdatesFromEditor(router.query));
-        break;
-      }
-      default: {
-        codeChangesDispatch(clearAllProjectsUpdates());
-      }
+  const handleRollbackAllProjects = (): void => {
+    if (router.pathname === '/[projectName]/[hostname]') {
+      codeChangesDispatch(clearAllProjectUpdatesFromEditor(router.query));
+    } else {
+      codeChangesDispatch(clearAllProjectsUpdates());
     }
   };
 
-  const handleRollbackProject = (projectName: string) => {
-    switch (router.pathname) {
-      case '/[projectName]/[hostname]': {
-        codeChangesDispatch(clearProjectUpdatesFromEditor(router.query));
-        break;
-      }
-      default: {
-        codeChangesDispatch(clearProjectUpdates(projectName));
-      }
+  const handleRollbackProject = (projectNameToRollback: string): void => {
+    const currentProject = router.query.projectName;
+    if (
+      currentProject === projectNameToRollback &&
+      router.pathname === '/[projectName]/[hostname]'
+    ) {
+      codeChangesDispatch(clearProjectUpdatesFromEditor(router.query));
+    } else {
+      codeChangesDispatch(clearProjectUpdates(projectNameToRollback));
     }
   };
 
@@ -119,7 +115,7 @@ const ClearModal = () => {
                         <TableCell>
                           <Stack spacing={2} direction="row">
                             <Typography>{updatedFilesPaths.length}</Typography>
-                            <Tooltip title={updatedFilesPaths.map((path) => `${path},\n `)}>
+                            <Tooltip title={updatedFilesPaths.map((path: string) => `${path},\n `)}>
                               <HelpOutline sx={{ color: 'info.main' }} />
                             </Tooltip>
                           </Stack>

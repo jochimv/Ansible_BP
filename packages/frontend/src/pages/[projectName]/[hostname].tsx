@@ -147,7 +147,7 @@ const HostDetailsPage = () => {
           <Typography>{hostname}</Typography>
         </Box>
         <Box>
-          <Heading>Inventory</Heading>
+          <Heading>Inventories</Heading>
           <ToggleButtonGroup
             orientation="horizontal"
             exclusive
