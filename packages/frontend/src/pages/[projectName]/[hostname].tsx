@@ -204,11 +204,11 @@ const HostDetailsPage = () => {
       </Stack>
       {selectedVariables?.values !== undefined ? (
         <Stack direction="column" flexGrow={1} spacing={2}>
-          <Typography ml={4}>
+          <Box ml={4}>
             {selectedVariables?.type === 'applied'
               ? selectedVariables?.pathInProject
               : renderBreadcrumbs(selectedVariables?.pathInProject)}
-          </Typography>
+          </Box>
           <Editor
             options={{ readOnly: selectedVariables?.type === 'applied' || !isInEditMode }}
             language="yaml"

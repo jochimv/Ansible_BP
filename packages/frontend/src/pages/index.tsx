@@ -72,7 +72,7 @@ const HomePage = () => {
       <Stack spacing={3} sx={{ width: 'min-content' }}>
         <Autocomplete
           renderInput={(params: AutocompleteRenderInputParams) => (
-            <TextField {...params} label="Vyhledat projekt" />
+            <TextField {...params} label="Search project" />
           )}
           options={projectNames}
           sx={{ width: 300 }}
@@ -92,7 +92,7 @@ const HomePage = () => {
           }
           sx={{ width: 300 }}
           renderInput={(params: AutocompleteRenderInputParams) => (
-            <TextField {...params} label="Vyhledat server" />
+            <TextField {...params} label="Search server" />
           )}
           onChange={(
             event: SyntheticEvent,

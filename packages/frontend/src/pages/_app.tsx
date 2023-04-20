@@ -93,9 +93,9 @@ const AppBarResolver = () => {
           </Typography>
           <ClearModal />
           {/* todo - delete this */}
-          <Button color={'inherit'} onClick={() => codeChangesDispatch({ type: 'clear' })}>
+          {/*<Button color={'inherit'} onClick={() => codeChangesDispatch({ type: 'clear' })}>
             Clear state
-          </Button>
+          </Button>*/}
           <Button
             color="inherit"
             startIcon={<PlayCircleOutlineIcon />}
@@ -140,7 +140,7 @@ const AppBarResolver = () => {
             Overview
           </Button>
           <Button color="inherit" startIcon={<Search />} component={Link} href="/">
-            Hledat
+            Search
           </Button>
         </Toolbar>
       </AppBar>
