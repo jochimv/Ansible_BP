@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { Box, Typography } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
@@ -16,7 +16,7 @@ const HostInfoBox = () => {
   const dispatch = useCodeChangesDispatchContext();
 
   return (
-    <Box>
+    <Stack spacing={3}>
       <Box>
         <Typography fontWeight="bold">Project name</Typography>
         <Typography id="project-name-label">{projectName}</Typography>
@@ -32,6 +32,7 @@ const HostInfoBox = () => {
       <ToggleButtonGroupWrapper
         items={selectedHostDetailsByInventoryType}
         selectedItem={selectedHostDetails}
+        comparisonKey="inventoryType"
         onChange={(newSelectedHostDetails) => {
           if (newSelectedHostDetails !== null) {
             const type = selectedVariables.type;
@@ -46,6 +47,7 @@ const HostInfoBox = () => {
       <ToggleButtonGroupWrapper
         items={selectedHostDetails?.variables}
         selectedItem={selectedVariables}
+        comparisonKey="pathInProject"
         onChange={(newCurrentHostVariables) => {
           if (newCurrentHostVariables !== null) {
             dispatch(showVariables(newCurrentHostVariables));
@@ -54,7 +56,7 @@ const HostInfoBox = () => {
         label="Variables"
         buttonIdPrefix="variables-button"
       />
-    </Box>
+    </Stack>
   );
 };
 

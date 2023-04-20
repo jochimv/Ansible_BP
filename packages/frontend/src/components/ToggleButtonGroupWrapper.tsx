@@ -7,6 +7,7 @@ interface ToggleButtonGroupWrapperProps {
   onChange: (newValue: any) => void;
   label: string;
   buttonIdPrefix: string;
+  comparisonKey: string;
 }
 
 const ToggleButtonGroupWrapper: React.FC<ToggleButtonGroupWrapperProps> = ({
@@ -15,6 +16,7 @@ const ToggleButtonGroupWrapper: React.FC<ToggleButtonGroupWrapperProps> = ({
   onChange,
   label,
   buttonIdPrefix,
+  comparisonKey,
 }) => {
   return (
     <Box>
@@ -35,7 +37,7 @@ const ToggleButtonGroupWrapper: React.FC<ToggleButtonGroupWrapperProps> = ({
           return (
             <ToggleButton
               id={`${buttonIdPrefix}-${identifier}`}
-              disabled={item === selectedItem}
+              disabled={item[comparisonKey] === selectedItem[comparisonKey]}
               key={index}
               value={item}
               size="small"

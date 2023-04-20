@@ -23,6 +23,7 @@ const fetchHostDetails = async (
   return response.data;
 };
 
+// todo - když v common vars dám error, a pak přepnu na ty stejné common vars jinde, neodrazí se to. Vlastně ani když tam error není
 const HostDetailsPage = () => {
   const router = useRouter();
   const { projectName, hostname } = router.query;

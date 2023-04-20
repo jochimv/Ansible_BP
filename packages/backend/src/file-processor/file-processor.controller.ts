@@ -44,9 +44,7 @@ export class FileProcessorController {
   async getProjectDetails(
     @Param('projectName') projectName: string,
   ): Promise<ProjectDetailsResponse> {
-    const result = await this.fileProcessorService.getProjectDetails(projectName);
-    console.log('result: ', JSON.stringify(result));
-    return result;
+    return await this.fileProcessorService.getProjectDetails(projectName);
   }
 
   @Get('/:projectName/host/:hostname')
