@@ -314,6 +314,8 @@ export const codeChangesReducer = (
       const { projectName, hostname } = action.payload;
       const { selectedHostDetailsByInventoryType, selectedHostDetails, selectedVariables } =
         extractOriginalStateValues(state, projectName, hostname);
+
+      console.log('Clearing project updates FROM EDITOR of project ', projectName);
       return {
         ...state,
         originalDiff: null,
@@ -364,6 +366,7 @@ export const codeChangesReducer = (
     }
     case actionTypes.CLEAR_PROJECT_UPDATES: {
       const projectName = action.payload;
+      console.log('Clearing project updates of project ', projectName);
       return {
         ...state,
         originalDiff: null,
@@ -592,14 +595,12 @@ export const codeChangesReducer = (
     case actionTypes.SHOW_DIFF: {
       const { originalVars, updatedVars } = state;
       const newSelectedDiffPath = action.payload;
-
       const originalDiff = originalVars?.find(
         (variable: HostVariable) => variable.pathInProject === newSelectedDiffPath,
       );
       const updatedDiff = updatedVars?.find(
         (variable: HostVariable) => variable.pathInProject === newSelectedDiffPath,
       );
-
       return {
         ...state,
         originalDiff,

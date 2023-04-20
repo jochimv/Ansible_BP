@@ -16,7 +16,7 @@ const buildTree = (paths: string[]): TreeNode => {
   const tree: TreeNode = {};
 
   for (const path of paths) {
-    const parts = path.split('\\').slice(1);
+    const parts = path.split('\\');
     let currentNode: TreeNode = tree;
 
     for (const part of parts) {
@@ -31,10 +31,10 @@ const buildTree = (paths: string[]): TreeNode => {
 
 const renderTree = (nodes: TreeNode | undefined, path: string, dispatch: Dispatch<any>) => {
   if (Object.keys(nodes ?? {}).length === 0) {
-    return;
+    return <div />;
   }
   return Object.entries(nodes ?? {}).map(([nodeName, children]) => {
-    const newPath = `${path}\\${nodeName}`;
+    const newPath = path === '' ? nodeName : `${path}\\${nodeName}`;
     const isLeaf = Object.keys(children ?? {}).length === 0;
     return (
       <TreeItem
@@ -76,17 +76,16 @@ const GitChangesFileTree = () => {
 
   const dispatch = useCodeChangesDispatchContext();
 
-  const paths = originalVars
-    ?.map((originalVar: HostVariable) => originalVar.pathInProject)
-    // only show diff for the current project
-    .filter((path: string) => path.split('\\')[1] === selectedProjectName) || [];
-
+  const paths =
+    originalVars
+      ?.map((originalVar: HostVariable) => originalVar.pathInProject)
+      // only show diff for the current project
+      .filter((path: string) => path.split('\\')[0] === selectedProjectName) || [];
   const treeData = buildTree(paths);
   const selectedNodeId = originalDiff?.pathInProject || paths[0];
 
   const allPaths = paths?.flatMap((path) => getPathHierarchy(path));
   const [expanded, setExpanded] = useState<string[]>(allPaths);
-
   const handleToggle = (event: SyntheticEvent, nodeIds: string[]) => {
     setExpanded(nodeIds);
   };

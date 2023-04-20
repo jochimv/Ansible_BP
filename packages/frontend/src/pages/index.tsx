@@ -68,7 +68,7 @@ const HomePage = () => {
     },
   });
   return (
-    <Box display="flex" justifyContent="center" alignItems="center">
+    <Box display="flex" justifyContent="center" alignItems="center" mt={1}>
       <Stack spacing={3} sx={{ width: 'min-content' }}>
         <Autocomplete
           renderInput={(params: AutocompleteRenderInputParams) => (
