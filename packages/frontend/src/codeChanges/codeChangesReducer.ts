@@ -16,6 +16,32 @@ const projectHasUpdatedVariables = (project: Project) => {
   return false;
 };
 
+const processVariables = (
+  variable: Omit<any, 'updated'> | HostVariable,
+  commonVariables: Omit<any, 'updated'> | undefined,
+  groupVariables: Omit<any, 'updated'> | undefined,
+  hostVariables: Omit<any, 'updated'> | undefined,
+) => {
+  try {
+    const appliedVariables = {
+      ...(commonVariables && parseYaml(commonVariables.values)),
+      ...(groupVariables && parseYaml(groupVariables.values)),
+      ...(hostVariables && parseYaml(hostVariables.values)),
+    };
+
+    const stringifiedAppliedVariables = stringify(appliedVariables);
+    const appliedVariablesToShow =
+      stringifiedAppliedVariables === '{}\n' ? '' : stringifiedAppliedVariables;
+
+    return {
+      ...variable,
+      values: appliedVariablesToShow,
+    };
+  } catch (e) {
+    return variable;
+  }
+};
+
 const findVariableObject = (
   projects: Project[],
   path: string,
@@ -65,39 +91,6 @@ const findHostDetailsByInventoryType = (
   return null;
 };
 
-const findAppliedVariableObject = (
-  projects: Project[],
-  projectName: string,
-  hostname: string,
-  inventoryType: string | undefined,
-): HostVariable | undefined => {
-  const project = projects.find((p: Project) => p.projectName === projectName);
-
-  if (!project) {
-    return undefined;
-  }
-
-  const host = project.hosts.find((h: Host) => h.hostname === hostname);
-
-  if (!host) {
-    return undefined;
-  }
-  const inventory = host.hostDetailsByInventoryType.find(
-    (hostDetail: HostDetails) => hostDetail.inventoryType === inventoryType,
-  );
-  if (!inventory) {
-    return undefined;
-  }
-
-  for (const variable of inventory.variables) {
-    if (variable.type === 'applied') {
-      return variable;
-    }
-  }
-
-  return undefined;
-};
-
 const replaceVariableInProjectsArray = (
   newVariable: HostVariable,
   projects: Project[],
@@ -120,30 +113,20 @@ const replaceVariableInProjectsArray = (
 
           let updatedVariablesAll = updatedVariables;
           if (hostDetailVariablesChanged) {
-            updatedVariablesAll = updatedVariables.map((variable) => {
+            //@ts-ignore
+            updatedVariablesAll = updatedVariables.map((variable: HostVariable) => {
               if (variable.type === 'applied') {
                 const commonVariables = updatedVariables.find(
-                  (variable) => variable.type === 'common',
+                  (variable: HostVariable) => variable.type === 'common',
                 );
                 const groupVariables = updatedVariables.find(
-                  (variable) => variable.type === 'group',
+                  (variable: HostVariable) => variable.type === 'group',
                 );
-                const hostVariables = updatedVariables.find((variable) => variable.type === 'host');
+                const hostVariables = updatedVariables.find(
+                  (variable: HostVariable) => variable.type === 'host',
+                );
 
-                const appliedVariables = {
-                  ...(commonVariables && parseYaml(commonVariables.values)),
-                  ...(groupVariables && parseYaml(groupVariables.values)),
-                  ...(hostVariables && parseYaml(hostVariables.values)),
-                };
-
-                const stringifiedAppliedVariables = stringify(appliedVariables);
-                const appliedVariablesToShow =
-                  stringifiedAppliedVariables === '{}\n' ? '' : stringifiedAppliedVariables;
-
-                return {
-                  ...variable,
-                  values: appliedVariablesToShow,
-                };
+                return processVariables(variable, commonVariables, groupVariables, hostVariables);
               } else {
                 return variable;
               }
@@ -240,7 +223,7 @@ const extractOriginalStateValues = (
       selectedHostDetail.inventoryType === state.selectedHostDetails?.inventoryType,
   );
   const selectedVariables = selectedHostDetails?.variables.find(
-    (variable) => variable.type === state.selectedVariables.type,
+    (variable: HostVariable) => variable.type === state.selectedVariables.type,
   );
   return {
     selectedHostDetailsByInventoryType,
@@ -323,7 +306,7 @@ export const codeChangesReducer = (
         selectedHostDetails,
         selectedVariables,
         updatedProjects: state.updatedProjects?.filter(
-          (project) => project.projectName !== projectName,
+          (project: Project) => project.projectName !== projectName,
         ),
       };
     }
@@ -331,7 +314,7 @@ export const codeChangesReducer = (
     case actionTypes.CREATE_DIFF: {
       const projectName = action.payload;
       const selectedProject = state.updatedProjects?.find(
-        (project) => project.projectName === projectName,
+        (project: Project) => project.projectName === projectName,
       );
       const selectedProjectUpdatedVars = getProjectUpdatedVars(selectedProject);
 
@@ -436,7 +419,7 @@ export const codeChangesReducer = (
             { projectName, hosts: [{ hostname, hostDetailsByInventoryType }] },
           ];
           updatedUpdatedProjects = state.updatedProjects;
-          // if the project is present, but host is not inside the project, add the host there. common vars or group vars could be updated via another host, thats why we need to map hostDetailsByInventoryType to search for already updated variables
+          // if the project is present, but host is not inside the project, add the host there. common vars or group vars could be updated via another host, that's why we need to map hostDetailsByInventoryType to search for already updated variables
         } else if (originalProject && !hostPresentInOriginalProject) {
           updatedOriginalProjects = state.originalProjects.map((originalProject: Project) => {
             if (originalProject.projectName === projectName) {
@@ -482,50 +465,20 @@ export const codeChangesReducer = (
                     (variable: HostVariable) => {
                       if (variable.type === 'applied') {
                         const commonVariables = updatedHostDetailByInventoryType.variables.find(
-                          (variable) => variable.type === 'common',
+                          (variable: HostVariable) => variable.type === 'common',
                         );
                         const groupVariables = updatedHostDetailByInventoryType.variables.find(
-                          (variable) => variable.type === 'group',
+                          (variable: HostVariable) => variable.type === 'group',
                         );
                         const hostVariables = updatedHostDetailByInventoryType.variables.find(
-                          (variable) => variable.type === 'host',
+                          (variable: HostVariable) => variable.type === 'host',
                         );
-
-                        try {
-                          const appliedVariables = {
-                            ...(commonVariables && parseYaml(commonVariables.values)),
-                            ...(groupVariables && parseYaml(groupVariables.values)),
-                            ...(hostVariables && parseYaml(hostVariables.values)),
-                          };
-
-                          // prevent monaco editor showing {}
-                          const stringifiedAppliedVariables = stringify(appliedVariables);
-                          const appliedVariablesToShow =
-                            stringifiedAppliedVariables === '{}\n'
-                              ? ''
-                              : stringifiedAppliedVariables;
-
-                          const updatedAppliedVariables = omit(['updated'], {
-                            ...variable,
-                            values: appliedVariablesToShow,
-                          });
-
-                          const originalAppliedVariables = findAppliedVariableObject(
-                            state.originalProjects,
-                            projectName,
-                            hostname,
-                            state.selectedHostDetails?.inventoryType,
-                          );
-
-                          return {
-                            ...updatedAppliedVariables,
-                            updated:
-                              JSON.stringify(updatedAppliedVariables) !==
-                              JSON.stringify(originalAppliedVariables),
-                          };
-                        } catch (e) {
-                          return variable;
-                        }
+                        return processVariables(
+                          variable,
+                          commonVariables,
+                          groupVariables,
+                          hostVariables,
+                        );
                       } else {
                         return variable;
                       }
@@ -536,7 +489,7 @@ export const codeChangesReducer = (
             );
 
             const updatedProject = state.updatedProjects.find(
-              (updatedProject) => updatedProject.projectName === projectName,
+              (updatedProject: Project) => updatedProject.projectName === projectName,
             );
             const hostPresentInUpdatedProject = !!updatedProject?.hosts.find(
               (host: Host) => host.hostname === hostname,
@@ -669,7 +622,7 @@ export const codeChangesReducer = (
 
       const updatedVariablesAll = error
         ? updatedVariablesSelectedOnly
-        : updatedVariablesSelectedOnly?.map((variable) => {
+        : updatedVariablesSelectedOnly?.map((variable: Omit<any, 'updated'> | HostVariable) => {
             if (variable.type === 'applied') {
               const commonVariables = updatedVariablesSelectedOnly?.find(
                 (variable) => variable.type === 'common',
@@ -681,42 +634,7 @@ export const codeChangesReducer = (
                 (variable) => variable.type === 'host',
               );
 
-              try {
-                const appliedVariables = {
-                  ...(commonVariables && parseYaml(commonVariables.values)),
-                  ...(groupVariables && parseYaml(groupVariables.values)),
-                  ...(hostVariables && parseYaml(hostVariables.values)),
-                };
-                // prevent monaco editor showing {}
-                const stringifiedAppliedVariables = stringify(appliedVariables);
-                const appliedVariablesToShow =
-                  stringifiedAppliedVariables === '{}\n' ? '' : stringifiedAppliedVariables;
-
-                const updatedAppliedVariables = omit(['updated'], {
-                  ...variable,
-                  values: appliedVariablesToShow,
-                });
-                const originalAppliedVariables = omit(
-                  ['updated'],
-                  findAppliedVariableObject(
-                    state.originalProjects,
-                    projectName,
-                    hostname,
-                    state.selectedHostDetails?.inventoryType,
-                  ),
-                );
-
-                updatedAppliedVariablesAreNotSameAsOriginalUpdatedVariables =
-                  JSON.stringify(updatedAppliedVariables) !==
-                  JSON.stringify(originalAppliedVariables);
-
-                return {
-                  ...updatedAppliedVariables,
-                  updated: updatedAppliedVariablesAreNotSameAsOriginalUpdatedVariables,
-                };
-              } catch (e) {
-                return variable;
-              }
+              return processVariables(variable, commonVariables, groupVariables, hostVariables);
             } else {
               return variable;
             }
@@ -724,7 +642,7 @@ export const codeChangesReducer = (
 
       // @ts-ignore
       const updatedSelectedHostDetailsByInventoryType: HostDetails[] =
-        state.selectedHostDetailsByInventoryType?.map((hostDetail) => {
+        state.selectedHostDetailsByInventoryType?.map((hostDetail: HostDetails) => {
           if (hostDetail.inventoryType === state.selectedHostDetails?.inventoryType) {
             return {
               ...hostDetail,
@@ -742,12 +660,12 @@ export const codeChangesReducer = (
       };
 
       const updatedProjectInState = state.updatedProjects?.find(
-        (project) => project.projectName === projectName,
+        (project: Project) => project.projectName === projectName,
       );
       const updatedProjectExistsInState = !!updatedProjectInState;
 
       const hostExistInUpdatedProject = updatedProjectInState?.hosts.find(
-        (host) => host.hostname === hostname,
+        (host: Host) => host.hostname === hostname,
       );
 
       let updatedProjects: Project[];
@@ -757,11 +675,11 @@ export const codeChangesReducer = (
           if (project.projectName === projectName) {
             return {
               projectName,
-              hosts: project.hosts.map((host) => {
+              hosts: project.hosts.map((host: Host) => {
                 return {
                   ...host,
                   hostDetailsByInventoryType: host.hostDetailsByInventoryType.map(
-                    (hostDetailByInventoryType) => {
+                    (hostDetailByInventoryType: HostDetails) => {
                       return {
                         ...hostDetailByInventoryType,
                         variables: hostDetailByInventoryType.variables.map((variable) => {
@@ -770,7 +688,7 @@ export const codeChangesReducer = (
                           } else if (variable.type === 'applied') {
                             const updatedVariableIsInCurrentHostDetailByInventoryType =
                               !!hostDetailByInventoryType.variables.find(
-                                (variable) =>
+                                (variable: HostVariable) =>
                                   variable.pathInProject === updatedSelectedVariables.pathInProject,
                               );
 
@@ -779,7 +697,7 @@ export const codeChangesReducer = (
                               updatedSelectedVariables.type === 'common'
                                 ? updatedSelectedVariables
                                 : hostDetailByInventoryType.variables?.find(
-                                    (variable) => variable.type === 'common',
+                                    (variable: HostVariable) => variable.type === 'common',
                                   );
 
                             const groupVariables =
@@ -787,10 +705,10 @@ export const codeChangesReducer = (
                               updatedSelectedVariables.type === 'group'
                                 ? updatedSelectedVariables
                                 : hostDetailByInventoryType.variables?.find(
-                                    (variable) => variable.type === 'group',
+                                    (variable: HostVariable) => variable.type === 'group',
                                   );
                             const hostVariables = hostDetailByInventoryType.variables?.find(
-                              (variable) => variable.type === 'host',
+                              (variable: HostVariable) => variable.type === 'host',
                             );
 
                             try {
@@ -824,33 +742,18 @@ export const codeChangesReducer = (
                                     error: 'Unfinished key',
                                   }),
                                 };
-
                                 throw new Error();
                               }
 
-                              // prevent monaco editor showing {}
                               const stringifiedAppliedVariables = stringify(appliedVariables);
                               const appliedVariablesToShow =
                                 stringifiedAppliedVariables === '{}\n'
                                   ? ''
                                   : stringifiedAppliedVariables;
 
-                              const updatedAppliedVariables = omit(['updated'], {
+                              return {
                                 ...variable,
                                 values: appliedVariablesToShow,
-                              });
-
-                              const originalAppliedVariables = findAppliedVariableObject(
-                                state.originalProjects,
-                                projectName,
-                                hostname,
-                                state.selectedHostDetails?.inventoryType,
-                              );
-                              return {
-                                ...updatedAppliedVariables,
-                                updated:
-                                  JSON.stringify(updatedAppliedVariables) !==
-                                  JSON.stringify(originalAppliedVariables),
                               };
                             } catch (e) {
                               return variable;
