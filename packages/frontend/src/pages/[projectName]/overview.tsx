@@ -194,7 +194,7 @@ const ProjectPage = () => {
     <Stack sx={{ height: '100%' }}>
       <Typography variant="h4">{projectName}</Typography>
       <Stack direction="row" sx={{ height: 'calc(100% - 40px)', display: 'flex' }}>
-        <Box sx={{ width: '30%', height: '100%', overflowY: 'auto' }}>
+        <Box sx={{ width: '30%', height: '100%' }}>
           <ProjectDetailsTree data={treeData} onNodeSelected={setSelectedHost} />
         </Box>
         <Box sx={{ width: '70%' }}>
