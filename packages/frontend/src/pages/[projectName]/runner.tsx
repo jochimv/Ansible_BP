@@ -25,30 +25,9 @@ import { useSnackbar } from '@frontend/components/ImportProjectModal/state/Snack
 import { useRouter } from 'next/router';
 import LoadingPage from '@frontend/components/pages/Loading';
 import ProjectNotFound from '@frontend/components/pages/ProjectNotFound';
+import Terminal from '@frontend/components/Terminal';
 
 const runCommand = (data: any) => axios.post(`http://${BE_IP_ADDRESS}:4000/run-command`, data);
-
-const TerminalOutput: React.FC<{ output: string }> = ({ output }) => {
-  const formattedOutput = output.replace(/\r\n/g, '\n');
-  const outputLines = formattedOutput.split('\n');
-  return (
-    <pre
-      style={{
-        backgroundColor: '#000',
-        color: '#fff',
-        padding: '16px',
-        borderRadius: '4px',
-        whiteSpace: 'pre-wrap',
-        wordWrap: 'break-word',
-        margin: 0,
-      }}
-    >
-      {outputLines.map((line: string, index: number) => (
-        <div key={index}>{line}</div>
-      ))}
-    </pre>
-  );
-};
 
 const fetchProjectExists = async (projectName: string) =>
   await axios.get(`http://${BE_IP_ADDRESS}:4000/${projectName}/exists`);
@@ -229,7 +208,7 @@ const AnsibleCommandsPage: React.FC = () => {
         </Table>
       </TableContainer>
       <Dialog open={openOutputDialog} onClose={handleCloseOutputDialog} maxWidth="md" fullWidth>
-        <TerminalOutput output={commandOutput} />
+        <Terminal output={commandOutput} />
       </Dialog>
     </div>
   );

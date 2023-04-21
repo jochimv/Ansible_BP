@@ -11,6 +11,7 @@ import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
 } from '@frontend/codeChanges/CodeChangesContext';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import { CodeChangesState, switchMode } from '@frontend/codeChanges/codeChangesReducer';
 import EditIcon from '@mui/icons-material/Edit';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
@@ -95,6 +96,14 @@ const AppBarResolver = () => {
           {/* todo - delete this */}
           <Button color={'inherit'} onClick={() => codeChangesDispatch({ type: 'clear' })}>
             Clear state
+          </Button>
+          <Button
+            color="inherit"
+            startIcon={<DashboardIcon />}
+            component={Link}
+            href={'/dashboard'}
+          >
+            Dashboard
           </Button>
           <Button
             color="inherit"
