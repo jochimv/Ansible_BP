@@ -1,6 +1,7 @@
 // src/command-runner/command-runner.controller.ts
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get } from '@nestjs/common';
 import { CommandRunnerService, RunCommandOutput } from './command-runner.service';
+import { CommandExecution } from './entities/command-execution.entity';
 
 @Controller()
 export class CommandRunnerController {
@@ -10,7 +11,13 @@ export class CommandRunnerController {
   async runCommand(
     @Body('command') command: string,
     @Body('projectName') projectName: string,
+    @Body('alias') alias: string,
   ): Promise<RunCommandOutput> {
-    return await this.commandRunnerService.runCommand(command, projectName);
+    return await this.commandRunnerService.runCommand(command, projectName, alias);
+  }
+
+  @Get('command-executions')
+  async getCommandExecutions(): Promise<CommandExecution[]> {
+    return await this.commandRunnerService.getCommandExecutions();
   }
 }
