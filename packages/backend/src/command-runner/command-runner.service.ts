@@ -31,6 +31,7 @@ export class CommandRunnerService {
           const commandExecution = new CommandExecution();
           commandExecution.alias = alias;
           commandExecution.output = output;
+          commandExecution.error = isError;
           commandExecution.projectName = projectName;
           commandExecution.executionDate = new Date();
           console.log('Saving the command to the database');

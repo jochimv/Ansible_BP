@@ -13,8 +13,9 @@
     "typescript": "^4.9.5"
   },
   "scripts": {
-    "dev": "concurrently \"yarn frontend\" \"yarn backend\"",
+    "dev": "concurrently \"yarn start-db\" \"yarn frontend\" \"yarn backend\"",
     "backend": "cd ./packages/backend && yarn start:dev",
-    "frontend": "cd ./packages/frontend && yarn dev"
+    "frontend": "cd ./packages/frontend && yarn dev",
+    "start-db": "docker-compose -f docker-compose.dev.yml up -d"
   }
 }

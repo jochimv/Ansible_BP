@@ -98,7 +98,7 @@ const HomePage = () => {
             event: SyntheticEvent,
             newValue: AutocompleteValue<unknown, false, false, false>,
           ) => {
-            router.push(`/${selectedProjectName}/${newValue}`);
+            router.push(`/${selectedProjectName}/host/${newValue}`);
           }}
         />
         <Divider style={{ width: '100%' }}>OR</Divider>

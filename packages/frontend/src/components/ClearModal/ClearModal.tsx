@@ -63,7 +63,7 @@ const ClearModal = () => {
   const router = useRouter();
 
   const handleRollbackAllProjects = (): void => {
-    if (router.pathname === '/[projectName]/[hostname]') {
+    if (router.pathname === '/[projectName]/host/[hostname]') {
       codeChangesDispatch(clearAllProjectUpdatesFromEditor(router.query));
     } else {
       codeChangesDispatch(clearAllProjectsUpdates());
@@ -74,7 +74,7 @@ const ClearModal = () => {
     const currentProject = router.query.projectName;
     if (
       currentProject === projectNameToRollback &&
-      router.pathname === '/[projectName]/[hostname]'
+      router.pathname === '/[projectName]/host/[hostname]'
     ) {
       codeChangesDispatch(clearProjectUpdatesFromEditor(router.query));
     } else {
