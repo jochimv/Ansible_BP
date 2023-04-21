@@ -41,7 +41,7 @@ export class CommandRunnerService {
     });
   }
 
-  async getCommandExecutions(): Promise<CommandExecution[]> {
-    return await this.commandExecutionRepository.find();
+  async getCommandExecutionsForProject(projectName: string): Promise<CommandExecution[]> {
+    return await this.commandExecutionRepository.getCommandExecutionsForProject(projectName);
   }
 }

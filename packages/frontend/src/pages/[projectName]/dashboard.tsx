@@ -25,29 +25,50 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { Close as CloseIcon, Done as DoneIcon } from '@mui/icons-material';
-
 import Terminal from '@frontend/components/Terminal';
 import LoadingPage from '@frontend/components/pages/Loading';
 import { CodeOff as CodeOffIcon } from '@mui/icons-material';
-const fetchCommandExecutions = async () => {
-  const { data } = await axios.get('http://127.0.0.1:4000/command-executions');
+import { useRouter } from 'next/router';
+import { useProjectExists } from '@frontend/pages/[projectName]/runner';
+import ProjectNotFound from '@frontend/components/pages/ProjectNotFound';
+import { BE_IP_ADDRESS } from '@frontend/utils/constants';
+const fetchCommandExecutions = async (projectName: string | string[] | undefined) => {
+  const { data } = await axios.get(
+    `http://${BE_IP_ADDRESS}:4000/${projectName}/command-executions`,
+  );
   return data;
 };
 
 const Dashboard = () => {
+  const { projectName } = useRouter().query;
+
+  const { data: projectExistsData, isLoading: isProjectExistsLoading } =
+    useProjectExists(projectName);
+
   const [openOutputDialog, setOpenOutputDialog] = useState(false);
   const [commandOutput, setCommandOutput] = useState('');
-  const { data, isLoading } = useQuery('commandExecutions', fetchCommandExecutions);
+  const {
+    data = [],
+    isLoading,
+    isSuccess,
+  } = useQuery('commandExecutions', () => {
+    if (typeof projectName === 'string') {
+      return fetchCommandExecutions(projectName);
+    }
+  });
 
+  if (isLoading || isProjectExistsLoading || !isSuccess) {
+    return <LoadingPage />;
+  } else if (!projectExistsData?.data) {
+    return <ProjectNotFound />;
+  }
   const handleCloseOutputDialog = () => setOpenOutputDialog(false);
-  const handleShowOutputDialog = (output) => {
+  const handleShowOutputDialog = (output: string) => {
     setCommandOutput(output);
     setOpenOutputDialog(true);
   };
 
-  if (isLoading) return <LoadingPage />;
-
-  const chartData = data.reduce((acc, item) => {
+  const chartData = data?.reduce((acc, item) => {
     const date = new Date(item.executionDate);
     const dateString = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 
@@ -63,7 +84,6 @@ const Dashboard = () => {
 
     return acc;
   }, {});
-
   const formattedChartData = Object.values(chartData);
   if (formattedChartData.length === 0) {
     return (

@@ -101,7 +101,7 @@ const AppBarResolver = () => {
             color="inherit"
             startIcon={<DashboardIcon />}
             component={Link}
-            href={'/dashboard'}
+            href={`/${selectedProjectName}/dashboard`}
           >
             Dashboard
           </Button>

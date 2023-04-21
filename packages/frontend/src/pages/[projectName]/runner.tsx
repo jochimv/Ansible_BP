@@ -32,14 +32,18 @@ const runCommand = (data: any) => axios.post(`http://${BE_IP_ADDRESS}:4000/run-c
 const fetchProjectExists = async (projectName: string) =>
   await axios.get(`http://${BE_IP_ADDRESS}:4000/${projectName}/exists`);
 
-const AnsibleCommandsPage: React.FC = () => {
-  const { projectName } = useRouter().query;
-
-  const { data, isLoading } = useQuery(['project-exists', projectName], () => {
+export const useProjectExists = (projectName: string | string[] | undefined) =>
+  useQuery(['project-exists', projectName], () => {
     if (typeof projectName === 'string') {
       return fetchProjectExists(projectName);
     }
   });
+
+const AnsibleCommandsPage: React.FC = () => {
+  const { projectName } = useRouter().query;
+
+  const { data, isLoading } = useProjectExists(projectName);
+
   const { showMessage } = useSnackbar();
   const [commandOutput, setCommandOutput] = useState('');
   const { projectsCommands, removeCommand } = useCommandContext();

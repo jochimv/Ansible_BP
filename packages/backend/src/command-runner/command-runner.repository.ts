@@ -10,10 +10,14 @@ export class CommandRunnerRepository {
     private readonly repository: Repository<CommandExecution>,
   ) {}
 
-  async find(): Promise<CommandExecution[]> {
-    return await this.repository.find();
-  }
   async save(commandExecution): Promise<CommandExecution[]> {
     return await this.repository.save(commandExecution);
+  }
+
+  async getCommandExecutionsForProject(projectName: string): Promise<CommandExecution[]> {
+    return await this.repository
+      .createQueryBuilder('command_execution')
+      .where('command_execution."projectName" = :projectName', { projectName })
+      .getMany();
   }
 }
