@@ -12,6 +12,7 @@ import {
   Button,
   Dialog,
   Typography,
+  Stack,
 } from '@mui/material';
 import {
   LineChart,
@@ -23,9 +24,11 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { Close as CloseIcon, Done as DoneIcon } from '@mui/icons-material';
 
 import Terminal from '@frontend/components/Terminal';
 import LoadingPage from '@frontend/components/pages/Loading';
+import { CodeOff as CodeOffIcon } from '@mui/icons-material';
 const fetchCommandExecutions = async () => {
   const { data } = await axios.get('http://127.0.0.1:4000/command-executions');
   return data;
@@ -34,7 +37,7 @@ const fetchCommandExecutions = async () => {
 const Dashboard = () => {
   const [openOutputDialog, setOpenOutputDialog] = useState(false);
   const [commandOutput, setCommandOutput] = useState('');
-  const { data, isLoading, error } = useQuery('commandExecutions', fetchCommandExecutions);
+  const { data, isLoading } = useQuery('commandExecutions', fetchCommandExecutions);
 
   const handleCloseOutputDialog = () => setOpenOutputDialog(false);
   const handleShowOutputDialog = (output) => {
@@ -52,28 +55,50 @@ const Dashboard = () => {
       acc[dateString] = { date: dateString, errors: 0, successes: 0 };
     }
 
-    if (item.error) {
-      acc[dateString].errors += 1;
-    } else {
+    if (item.success) {
       acc[dateString].successes += 1;
+    } else {
+      acc[dateString].errors += 1;
     }
 
     return acc;
   }, {});
 
   const formattedChartData = Object.values(chartData);
+  if (formattedChartData.length === 0) {
+    return (
+      <Stack height="100%" justifyContent="center" alignItems="center">
+        <CodeOffIcon sx={{ width: 50, height: 50 }} />
+        <Typography variant="h3">No commands executed yet</Typography>
+      </Stack>
+    );
+  }
 
   return (
     <>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={formattedChartData}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" />
-          <YAxis allowDecimals={false} />
+          <XAxis
+            dataKey="date"
+            style={{
+              fontFamily: 'Roboto',
+            }}
+          />
+          <YAxis
+            allowDecimals={false}
+            style={{
+              fontFamily: 'Roboto',
+            }}
+          />
           <Tooltip />
-          <Legend />
-          <Line type="monotone" dataKey="errors" stroke="#FF5733" />
-          <Line type="monotone" dataKey="successes" stroke="#33C2FF" />
+          <Legend
+            style={{
+              fontFamily: 'Roboto',
+            }}
+          />
+          <Line type="monotone" dataKey="errors" stroke="#d32f2f" />
+          <Line type="monotone" dataKey="successes" stroke="#2e7d32" />
         </LineChart>
       </ResponsiveContainer>
       <TableContainer
@@ -90,7 +115,7 @@ const Dashboard = () => {
                 <Typography fontWeight="bold">Alias</Typography>
               </TableCell>
               <TableCell>
-                <Typography fontWeight="bold">Error</Typography>
+                <Typography fontWeight="bold">Success</Typography>
               </TableCell>
               <TableCell>
                 <Typography fontWeight="bold">Execution Date</Typography>
@@ -105,7 +130,9 @@ const Dashboard = () => {
               <TableRow key={row.id}>
                 <TableCell>{row.projectName}</TableCell>
                 <TableCell>{row.alias}</TableCell>
-                <TableCell>{row.error ? 'Yes' : 'No'}</TableCell>
+                <TableCell>
+                  {row.success ? <DoneIcon color="success" /> : <CloseIcon color="error" />}
+                </TableCell>
                 <TableCell>{new Date(row.executionDate).toLocaleString()}</TableCell>
                 <TableCell>
                   <Button variant="contained" onClick={() => handleShowOutputDialog(row.output)}>

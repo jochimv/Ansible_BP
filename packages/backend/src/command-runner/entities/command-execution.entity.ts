@@ -9,7 +9,7 @@ export class CommandExecution {
   projectName: string;
 
   @Column()
-  error: boolean;
+  success: boolean;
 
   @Column()
   alias: string;

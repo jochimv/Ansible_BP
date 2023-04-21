@@ -10,3 +10,7 @@ body{
     display:flex;
     flex-direction: column;
 }
+
+.recharts-legend-item-text{
+    font-family: Roboto, Helvetica, SansSerif, serif
+}

@@ -4,7 +4,7 @@ import { CommandExecution } from './entities/command-execution.entity';
 import { CommandRunnerRepository } from './command-runner.repository';
 
 export interface RunCommandOutput {
-  error: boolean;
+  success: boolean;
   output: string;
 }
 
@@ -27,16 +27,15 @@ export class CommandRunnerService {
             output = stdout;
             isError = false;
           }
-          // Save the command execution
+          const isSuccess = !isError;
           const commandExecution = new CommandExecution();
           commandExecution.alias = alias;
           commandExecution.output = output;
-          commandExecution.error = isError;
+          commandExecution.success = isSuccess;
           commandExecution.projectName = projectName;
           commandExecution.executionDate = new Date();
-          console.log('Saving the command to the database');
           await this.commandExecutionRepository.save(commandExecution);
-          resolve({ output: output, error: isError });
+          resolve({ output: output, success: isSuccess });
         },
       );
     });

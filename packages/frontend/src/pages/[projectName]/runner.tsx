@@ -51,12 +51,12 @@ const AnsibleCommandsPage: React.FC = () => {
 
   const { mutate } = useMutation(runCommand, {
     onSuccess: (data: AxiosResponse<any>) => {
-      const { error, output } = data.data;
+      const { success, output } = data.data;
       const command = JSON.parse(data.config.data);
       const { commandId, alias } = command;
       stopRunningCommand(commandId);
       setCommandOutput(output);
-      if (!error) {
+      if (success) {
         showMessageWithOutput(`${alias} finished successfully`, 'success');
       } else {
         showMessageWithOutput(`Could not execute ${alias}`, 'error');
