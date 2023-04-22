@@ -271,10 +271,10 @@ export const codeChangesReducer = (
         ...state,
         selectedProjectName: null,
         originalProjects: state.originalProjects.filter(
-          (project) => project.projectName !== projectName,
+          (project: Project) => project.projectName !== projectName,
         ),
         updatedProjects: state.updatedProjects.filter(
-          (project) => project.projectName !== projectName,
+          (project: Project) => project.projectName !== projectName,
         ),
       };
     }
@@ -415,7 +415,7 @@ export const codeChangesReducer = (
         // if the project is not there at all, add it
         if (!originalProject) {
           updatedOriginalProjects = [
-            ...state.originalProjects,
+            ...(state.originalProjects || []),
             { projectName, hosts: [{ hostname, hostDetailsByInventoryType }] },
           ];
           updatedUpdatedProjects = state.updatedProjects;
@@ -789,7 +789,7 @@ export const codeChangesReducer = (
         });
       } else {
         updatedProjects = [
-          ...state.updatedProjects,
+          ...(state.updatedProjects || []),
           {
             projectName,
             hosts: [

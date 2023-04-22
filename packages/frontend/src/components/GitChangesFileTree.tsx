@@ -83,8 +83,6 @@ const GitChangesFileTree = () => {
       .filter((path: string) => path.split('\\')[0] === selectedProjectName) || [];
   const treeData = buildTree(paths);
   const selectedNodeId = originalDiff?.pathInProject || paths[0];
-  console.log('paths: ', JSON.stringify(paths));
-  console.log('treeData: ', JSON.stringify(treeData));
   const allPaths = paths?.flatMap((path) => getPathHierarchy(path));
   const [expanded, setExpanded] = useState<string[]>(allPaths);
   const handleToggle = (event: SyntheticEvent, nodeIds: string[]) => {

@@ -40,6 +40,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Project } from '@frontend/utils/types';
 
 const findIfAnyVariableWasUpdated = (projects: Project[]): boolean => {
+  if (!projects) {
+    return false;
+  }
   for (const project of projects) {
     for (const host of project.hosts) {
       for (const inventoryType of host.hostDetailsByInventoryType) {

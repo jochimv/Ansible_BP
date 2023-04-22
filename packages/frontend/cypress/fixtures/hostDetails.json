@@ -1,0 +1,42 @@
+{
+  "hostDetailsByInventoryType": [
+    {
+      "inventoryType": "test",
+      "groupName": "vm_machines",
+      "variables": [
+        {
+          "type": "applied",
+          "pathInProject": "Applied variables",
+          "values": "foo: bar",
+          "updated": false
+        },
+        {
+          "type": "host",
+          "pathInProject": "jochimv\\inventories\\test\\host_vars\\146.102.194.255.yml",
+          "values": "---\nfoo: bar",
+          "updated": false
+        }
+      ]
+    },
+    {
+      "inventoryType": "prod",
+      "groupName": "vm_machines",
+      "variables": [
+        {
+          "type": "applied",
+          "pathInProject": "Applied variables",
+          "values": "foo: bar",
+          "updated": false
+        },
+        {
+          "type": "host",
+          "pathInProject": "jochimv\\inventories\\prod\\host_vars\\146.102.194.255.yml",
+          "values": "---\nfoo: bar",
+          "updated": false
+        }
+      ]
+    }
+  ],
+  "hostExists": true,
+  "projectExists": true
+}

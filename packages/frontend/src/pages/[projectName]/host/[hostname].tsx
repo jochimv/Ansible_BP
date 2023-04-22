@@ -136,15 +136,15 @@ const HostDetailsPage = () => {
       <Stack spacing={3}>
         <Box>
           <HeadingNoSpacing>Project name</HeadingNoSpacing>
-          <Typography>{projectName}</Typography>
+          <Typography id="project-name-label">{projectName}</Typography>
         </Box>
         <Box>
           <HeadingNoSpacing>Group name</HeadingNoSpacing>
-          <Typography>{selectedHostDetails?.groupName}</Typography>
+          <Typography id="group-name-label">{selectedHostDetails?.groupName}</Typography>
         </Box>
         <Box>
           <HeadingNoSpacing>Host name</HeadingNoSpacing>
-          <Typography>{hostname}</Typography>
+          <Typography id="hostname-label">{hostname}</Typography>
         </Box>
         <Box>
           <Heading>Inventories</Heading>
@@ -164,6 +164,7 @@ const HostDetailsPage = () => {
               const inventoryType = hostDetail.inventoryType;
               return (
                 <ToggleButton
+                  id={`inventory-button-${inventoryType}`}
                   disabled={hostDetail.inventoryType === selectedHostDetails?.inventoryType}
                   key={inventoryType}
                   value={hostDetail}
@@ -190,6 +191,7 @@ const HostDetailsPage = () => {
               const variablesType = variableObj.type;
               return (
                 <ToggleButton
+                  id={`variables-button-${variablesType}`}
                   disabled={variableObj.pathInProject === selectedVariables.pathInProject}
                   size="small"
                   key={variablesType}

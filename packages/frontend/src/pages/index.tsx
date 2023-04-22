@@ -40,7 +40,7 @@ const HomePage = () => {
   });
 
   const router = useRouter();
-  const { selectedProjectName } = useCodeChangesContext();
+  const { selectedProjectName = '' } = useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();
   const [isImportProjectModalOpen, setIsImportProjectModalOpen] = useState(false);
   const { showMessage } = useSnackbar();

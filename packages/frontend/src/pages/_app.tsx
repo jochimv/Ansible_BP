@@ -93,11 +93,8 @@ const AppBarResolver = () => {
             {selectedProjectName ?? 'No project selected'}
           </Typography>
           <ClearModal />
-          {/* todo - delete this */}
-          <Button color={'inherit'} onClick={() => codeChangesDispatch({ type: 'clear' })}>
-            Clear state
-          </Button>
           <Button
+            id="button-dashboard"
             color="inherit"
             startIcon={<DashboardIcon />}
             component={Link}
@@ -106,6 +103,7 @@ const AppBarResolver = () => {
             Dashboard
           </Button>
           <Button
+            id="button-runner"
             color="inherit"
             startIcon={<PlayCircleOutlineIcon />}
             component={Link}
@@ -114,6 +112,7 @@ const AppBarResolver = () => {
             Runner
           </Button>
           <Button
+            id="button-clear"
             color="inherit"
             onClick={() => {
               clearModalDispatch(open());
@@ -123,6 +122,7 @@ const AppBarResolver = () => {
             Clear
           </Button>
           <Button
+            id="button-git"
             color="inherit"
             startIcon={
               <Badge badgeContent={updatedFilesPaths.length} color="warning">
@@ -135,6 +135,7 @@ const AppBarResolver = () => {
             Git
           </Button>
           <Button
+            id="button-mode"
             startIcon={isInEditMode ? <EditIcon /> : <LibraryBooksIcon />}
             color="inherit"
             onClick={() => codeChangesDispatch(switchMode())}
@@ -142,13 +143,20 @@ const AppBarResolver = () => {
             {isInEditMode ? 'Edit mode' : 'Read mode'}
           </Button>
           <Button
+            id="button-overview"
             color="inherit"
             onClick={() => router.push(`/${selectedProjectName}/overview`)}
             startIcon={<FontAwesomeIcon icon={faServer} style={{ width: 18, height: 18 }} />}
           >
             Overview
           </Button>
-          <Button color="inherit" startIcon={<Search />} component={Link} href="/">
+          <Button
+            id="button-search"
+            color="inherit"
+            startIcon={<Search />}
+            component={Link}
+            href="/"
+          >
             Search
           </Button>
         </Toolbar>
