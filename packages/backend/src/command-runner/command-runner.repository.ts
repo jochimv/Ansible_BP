@@ -18,6 +18,7 @@ export class CommandRunnerRepository {
     return await this.repository
       .createQueryBuilder('command_execution')
       .where('command_execution."projectName" = :projectName', { projectName })
+      .orderBy('command_execution."executionDate"', 'DESC')
       .getMany();
   }
 }

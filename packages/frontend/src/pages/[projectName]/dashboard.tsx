@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useQuery } from 'react-query';
 import {
@@ -13,6 +13,8 @@ import {
   Dialog,
   Typography,
   Stack,
+  CircularProgress,
+  IconButton,
 } from '@mui/material';
 import {
   LineChart,
@@ -27,11 +29,16 @@ import {
 import { Close as CloseIcon, Done as DoneIcon } from '@mui/icons-material';
 import Terminal from '@frontend/components/Terminal';
 import LoadingPage from '@frontend/components/pages/Loading';
-import { CodeOff as CodeOffIcon } from '@mui/icons-material';
+import {
+  CodeOff as CodeOffIcon,
+  Replay as ReplayIcon,
+  Terminal as TerminalIcon,
+} from '@mui/icons-material';
 import { useRouter } from 'next/router';
 import { useProjectExists } from '@frontend/pages/[projectName]/runner';
 import ProjectNotFound from '@frontend/components/pages/ProjectNotFound';
 import { BE_IP_ADDRESS } from '@frontend/utils/constants';
+import { useRunCommand } from '@frontend/hooks/useRunCommand';
 const fetchCommandExecutions = async (projectName: string | string[] | undefined) => {
   const { data } = await axios.get(
     `http://${BE_IP_ADDRESS}:4000/${projectName}/command-executions`,
@@ -39,27 +46,57 @@ const fetchCommandExecutions = async (projectName: string | string[] | undefined
   return data;
 };
 
+interface CommandExecution {
+  projectName: string;
+  id: number;
+  alias: string;
+  success: boolean;
+  output: string;
+  executionDate: string;
+  command: string;
+}
+
+interface ChartData {
+  [date: string]: {
+    date: string;
+    errors: number;
+    successes: number;
+  };
+}
+
 const Dashboard = () => {
   const { projectName } = useRouter().query;
 
   const { data: projectExistsData, isLoading: isProjectExistsLoading } =
     useProjectExists(projectName);
 
+  const projectExists = projectExistsData?.data;
   const [openOutputDialog, setOpenOutputDialog] = useState(false);
   const [commandOutput, setCommandOutput] = useState('');
-  const {
-    data = [],
-    isLoading,
-    isSuccess,
-  } = useQuery('commandExecutions', () => {
-    if (typeof projectName === 'string') {
-      return fetchCommandExecutions(projectName);
+
+  const commandExecutionQuery = useQuery(
+    'commandExecutions',
+    () => {
+      if (typeof projectName === 'string') {
+        return fetchCommandExecutions(projectName);
+      }
+    },
+    { enabled: projectExists },
+  );
+
+  const { data = [], isLoading, isSuccess } = commandExecutionQuery;
+
+  useEffect(() => {
+    if (projectExists) {
+      commandExecutionQuery.refetch();
     }
-  });
+  }, [projectExists, commandExecutionQuery]);
+
+  const { runCommand, runningCommandIds, OutputDialog } = useRunCommand();
 
   if (isLoading || isProjectExistsLoading || !isSuccess) {
     return <LoadingPage />;
-  } else if (!projectExistsData?.data) {
+  } else if (projectExists === false) {
     return <ProjectNotFound />;
   }
   const handleCloseOutputDialog = () => setOpenOutputDialog(false);
@@ -68,7 +105,7 @@ const Dashboard = () => {
     setOpenOutputDialog(true);
   };
 
-  const chartData = data?.reduce((acc, item) => {
+  const chartData = data?.reduce((acc: ChartData, item: CommandExecution) => {
     const date = new Date(item.executionDate);
     const dateString = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 
@@ -84,7 +121,8 @@ const Dashboard = () => {
 
     return acc;
   }, {});
-  const formattedChartData = Object.values(chartData);
+
+  const formattedChartData = Object.values(chartData).reverse();
   if (formattedChartData.length === 0) {
     return (
       <Stack height="100%" justifyContent="center" alignItems="center">
@@ -143,30 +181,52 @@ const Dashboard = () => {
               <TableCell>
                 <Typography fontWeight="bold">Output</Typography>
               </TableCell>
+              <TableCell>
+                <Typography fontWeight="bold">Actions</Typography>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.map((row) => (
-              <TableRow key={row.id}>
-                <TableCell>{row.projectName}</TableCell>
-                <TableCell>{row.alias}</TableCell>
-                <TableCell>
-                  {row.success ? <DoneIcon color="success" /> : <CloseIcon color="error" />}
-                </TableCell>
-                <TableCell>{new Date(row.executionDate).toLocaleString()}</TableCell>
-                <TableCell>
-                  <Button variant="contained" onClick={() => handleShowOutputDialog(row.output)}>
-                    View Output
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+            {data.map((row: CommandExecution) => {
+              const { projectName, id, alias, success, output, executionDate, command } = row;
+              return (
+                <TableRow key={id}>
+                  <TableCell>{projectName}</TableCell>
+                  <TableCell>{alias}</TableCell>
+                  <TableCell>
+                    {success ? <DoneIcon color="success" /> : <CloseIcon color="error" />}
+                  </TableCell>
+                  <TableCell>{new Date(executionDate).toLocaleString()}</TableCell>
+                  <TableCell>
+                    <IconButton onClick={() => handleShowOutputDialog(output)}>
+                      <TerminalIcon />
+                    </IconButton>
+                  </TableCell>
+                  <TableCell>
+                    {runningCommandIds.has(id) ? (
+                      <CircularProgress size={30} />
+                    ) : (
+                      <IconButton
+                        edge="end"
+                        aria-label="delete"
+                        onClick={() => {
+                          runCommand(id, alias, projectName, command);
+                        }}
+                      >
+                        <ReplayIcon />
+                      </IconButton>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
       <Dialog open={openOutputDialog} onClose={handleCloseOutputDialog} maxWidth="md" fullWidth>
         <Terminal output={commandOutput} />
       </Dialog>
+      <OutputDialog />
     </>
   );
 };

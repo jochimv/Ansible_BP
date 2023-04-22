@@ -15,6 +15,9 @@ export class CommandExecution {
   alias: string;
 
   @Column()
+  command: string;
+
+  @Column()
   output: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

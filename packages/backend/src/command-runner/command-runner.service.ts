@@ -32,6 +32,7 @@ export class CommandRunnerService {
           commandExecution.alias = alias;
           commandExecution.output = output;
           commandExecution.success = isSuccess;
+          commandExecution.command = command;
           commandExecution.projectName = projectName;
           commandExecution.executionDate = new Date();
           await this.commandExecutionRepository.save(commandExecution);
