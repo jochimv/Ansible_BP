@@ -5,6 +5,7 @@ const Terminal: React.FC<{ output: string }> = ({ output }) => {
   const outputLines = formattedOutput.split('\n');
   return (
     <pre
+      id="terminal"
       style={{
         backgroundColor: '#000',
         color: '#fff',

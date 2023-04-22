@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useMutation } from 'react-query';
 import axios, { AxiosResponse } from 'axios';
 import { BE_IP_ADDRESS } from '@frontend/utils/constants';
-import { Button, Dialog, IconButton } from '@mui/material';
+import { Dialog, IconButton } from '@mui/material';
 import { useSnackbar } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
 import Terminal from '@frontend/components/Terminal';
 import { Terminal as TerminalIcon } from '@mui/icons-material';
@@ -10,7 +10,7 @@ import { Terminal as TerminalIcon } from '@mui/icons-material';
 const performCommandExecutionOnBackend = (data: any) =>
   axios.post(`http://${BE_IP_ADDRESS}:4000/run-command`, data);
 
-export const useRunCommand = () => {
+export const useRunCommand = (requestFinishedCallback?: () => void) => {
   const [openOutputDialog, setOpenOutputDialog] = useState(false);
 
   const { showMessage } = useSnackbar();
@@ -59,6 +59,7 @@ export const useRunCommand = () => {
       } else {
         showMessageWithOutput(`Could not execute ${alias}`, 'error');
       }
+      requestFinishedCallback?.();
     },
   });
 

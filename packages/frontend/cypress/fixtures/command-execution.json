@@ -1,0 +1,20 @@
+[
+  {
+    "id": 2,
+    "projectName": "jochimz",
+    "success": true,
+    "alias": "ping microsoft",
+    "command": "ping microsoft.com",
+    "output": "\r\nPinging microsoft.com [20.81.111.85] with 32 bytes of data:\r\nReply from 20.81.111.85: bytes\u003d32 time\u003d98ms TTL\u003d106\r\nReply from 20.81.111.85: bytes\u003d32 time\u003d131ms TTL\u003d106\r\nReply from 20.81.111.85: bytes\u003d32 time\u003d131ms TTL\u003d106\r\nReply from 20.81.111.85: bytes\u003d32 time\u003d98ms TTL\u003d106\r\n\r\nPing statistics for 20.81.111.85:\r\n    Packets: Sent \u003d 4, Received \u003d 4, Lost \u003d 0 (0% loss),\r\nApproximate round trip times in milli-seconds:\r\n    Minimum \u003d 98ms, Maximum \u003d 131ms, Average \u003d 114ms\r\n",
+    "executionDate": "2023-04-21T23:02:57.439Z"
+  },
+  {
+    "id": 1,
+    "projectName": "jochimz",
+    "success": true,
+    "alias": "ping google",
+    "command": "ping google.com",
+    "output": "\r\nPinging google.com [142.251.36.78] with 32 bytes of data:\r\nReply from 142.251.36.78: bytes\u003d32 time\u003d3ms TTL\u003d114\r\nReply from 142.251.36.78: bytes\u003d32 time\u003d28ms TTL\u003d114\r\nReply from 142.251.36.78: bytes\u003d32 time\u003d47ms TTL\u003d114\r\nReply from 142.251.36.78: bytes\u003d32 time\u003d11ms TTL\u003d114\r\n\r\nPing statistics for 142.251.36.78:\r\n    Packets: Sent \u003d 4, Received \u003d 4, Lost \u003d 0 (0% loss),\r\nApproximate round trip times in milli-seconds:\r\n    Minimum \u003d 3ms, Maximum \u003d 47ms, Average \u003d 22ms\r\n",
+    "executionDate": "2023-04-21T23:02:56.837Z"
+  }
+]

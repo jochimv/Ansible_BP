@@ -9,7 +9,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Button,
   Dialog,
   Typography,
   Stack,
@@ -75,7 +74,7 @@ const Dashboard = () => {
   const [commandOutput, setCommandOutput] = useState('');
 
   const commandExecutionQuery = useQuery(
-    'commandExecutions',
+    ['commandExecutions', projectName],
     () => {
       if (typeof projectName === 'string') {
         return fetchCommandExecutions(projectName);
@@ -86,13 +85,9 @@ const Dashboard = () => {
 
   const { data = [], isLoading, isSuccess } = commandExecutionQuery;
 
-  useEffect(() => {
-    if (projectExists) {
-      commandExecutionQuery.refetch();
-    }
-  }, [projectExists, commandExecutionQuery]);
-
-  const { runCommand, runningCommandIds, OutputDialog } = useRunCommand();
+  const { runCommand, runningCommandIds, OutputDialog } = useRunCommand(() =>
+    commandExecutionQuery.refetch(),
+  );
 
   if (isLoading || isProjectExistsLoading || !isSuccess) {
     return <LoadingPage />;
@@ -198,7 +193,10 @@ const Dashboard = () => {
                   </TableCell>
                   <TableCell>{new Date(executionDate).toLocaleString()}</TableCell>
                   <TableCell>
-                    <IconButton onClick={() => handleShowOutputDialog(output)}>
+                    <IconButton
+                      id="button-show-output"
+                      onClick={() => handleShowOutputDialog(output)}
+                    >
                       <TerminalIcon />
                     </IconButton>
                   </TableCell>
