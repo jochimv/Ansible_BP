@@ -1,44 +1,20 @@
 import type { NextComponentType, NextPageContext } from 'next';
-import { QueryClientProvider, QueryClient } from 'react-query';
-import { createEmotionCache, theme } from '@frontend/utils/styling';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { createEmotionCache, theme } from '@frontend/styles';
 import { CacheProvider, EmotionCache } from '@emotion/react';
 import Head from 'next/head';
-import { Badge, Button, ThemeProvider, Toolbar, Typography } from '@mui/material';
-import { AppBar, Box } from '@mui/material';
-import { Search } from '@mui/icons-material';
-import Link from 'next/link';
-import {
-  useCodeChangesContext,
-  useCodeChangesDispatchContext,
-} from '@frontend/codeChanges/CodeChangesContext';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import { CodeChangesState, switchMode } from '@frontend/codeChanges/codeChangesReducer';
-import EditIcon from '@mui/icons-material/Edit';
-import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
-import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
-import CodeChangesProvider from '../codeChanges/CodeChangesProvider';
+import { Box, ThemeProvider } from '@mui/material';
 import { AppProps } from 'next/app';
-import '@frontend/styles/globals.css';
-import { useRouter } from 'next/router';
-import React, { ReactNode, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBroom, faServer } from '@fortawesome/free-solid-svg-icons';
-import { faGitAlt } from '@fortawesome/free-brands-svg-icons';
-import ClearModalProvider from '@frontend/components/ClearModal/state/ClearModalProvider';
-import { useClearModalDispatchContext } from '@frontend/components/ClearModal/state/ClearModalContext';
-import { open } from '@frontend/components/ClearModal/state/clearModalReducer';
-import ClearModal from '@frontend/components/ClearModal';
-import { Host, Project } from '@frontend/utils/types';
-import { SnackbarProvider } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
-import {
-  CommandsProvider,
-  ProjectCommand,
-  useCommandContext,
-} from '@frontend/contexts/commandContext';
+import '@frontend/css/globals.css';
+import React from 'react';
+import { SnackbarProvider } from '@frontend/contexts/SnackbarContext';
+import { CommandsProvider } from '@frontend/contexts/CommandContext';
+import { Appbar } from '@frontend/components/Appbar';
+import { AutoSaveContextProvider } from '@frontend/contexts/AutosaveContext';
+import CodeChangesProvider from '@frontend/contexts/CodeChangesContext';
+import ClearModalProvider from '@frontend/contexts/ClearModalContext';
+
 const queryClient = new QueryClient();
-import { HostVariable } from '@frontend/types';
-import { HostDetails } from '@frontend/types';
 const clientSideEmotionCache = createEmotionCache();
 
 interface MyAppProps extends AppProps {
@@ -46,154 +22,6 @@ interface MyAppProps extends AppProps {
   pageProps: Record<string, unknown>;
   emotionCache?: EmotionCache;
 }
-
-export const getUpdatedFilesPaths = (projects: Project[], projectName: string | null) => {
-  const updatedFilesPaths: string[] = [];
-
-  projects?.forEach(({ projectName: proj, hosts }: { projectName: string; hosts: Host[] }) => {
-    if (proj === projectName) {
-      hosts.forEach(
-        ({ hostDetailsByInventoryType }: { hostDetailsByInventoryType: HostDetails[] }) => {
-          hostDetailsByInventoryType.forEach(({ variables }: { variables: HostVariable[] }) => {
-            variables.forEach(({ type, pathInProject, updated }) => {
-              if (type !== 'applied' && updated) {
-                if (!updatedFilesPaths.includes(pathInProject)) {
-                  updatedFilesPaths.push(pathInProject);
-                }
-              }
-            });
-          });
-        },
-      );
-    }
-  });
-  return updatedFilesPaths;
-};
-
-const AppBarResolver = () => {
-  const { isInEditMode, selectedProjectName, updatedProjects } = useCodeChangesContext();
-  const codeChangesDispatch = useCodeChangesDispatchContext();
-  const router = useRouter();
-  const clearModalDispatch = useClearModalDispatchContext();
-
-  const updatedFilesPaths = getUpdatedFilesPaths(updatedProjects, selectedProjectName);
-  return (
-    <>
-      <AppBar>
-        <Toolbar sx={{ justifyContent: 'flex-end' }}>
-          <FolderOutlinedIcon sx={{ width: 20, height: 20 }} />
-          <Typography
-            sx={{
-              flexGrow: 1,
-              ml: 1,
-              textTransform: 'uppercase',
-              fontSize: '15px',
-              cursor: 'default',
-            }}
-          >
-            {selectedProjectName ?? 'No project selected'}
-          </Typography>
-          <ClearModal />
-          <Button
-            id="button-dashboard"
-            color="inherit"
-            startIcon={<DashboardIcon />}
-            component={Link}
-            href={`/${selectedProjectName}/dashboard`}
-          >
-            Dashboard
-          </Button>
-          <Button
-            id="button-runner"
-            color="inherit"
-            startIcon={<PlayCircleOutlineIcon />}
-            component={Link}
-            href={`/${selectedProjectName}/runner`}
-          >
-            Runner
-          </Button>
-          <Button
-            id="button-clear"
-            color="inherit"
-            onClick={() => {
-              clearModalDispatch(open());
-            }}
-            startIcon={<FontAwesomeIcon style={{ width: 18, height: 18 }} icon={faBroom} />}
-          >
-            Clear
-          </Button>
-          <Button
-            id="button-git"
-            color="inherit"
-            startIcon={
-              <Badge badgeContent={updatedFilesPaths.length} color="warning">
-                <FontAwesomeIcon icon={faGitAlt} />
-              </Badge>
-            }
-            component={Link}
-            href={`/${selectedProjectName}/git`}
-          >
-            Git
-          </Button>
-          <Button
-            id="button-mode"
-            startIcon={isInEditMode ? <EditIcon /> : <LibraryBooksIcon />}
-            color="inherit"
-            onClick={() => codeChangesDispatch(switchMode())}
-          >
-            {isInEditMode ? 'Edit mode' : 'Read mode'}
-          </Button>
-          <Button
-            id="button-overview"
-            color="inherit"
-            onClick={() => router.push(`/${selectedProjectName}/overview`)}
-            startIcon={<FontAwesomeIcon icon={faServer} style={{ width: 18, height: 18 }} />}
-          >
-            Overview
-          </Button>
-          <Button
-            id="button-search"
-            color="inherit"
-            startIcon={<Search />}
-            component={Link}
-            href="/"
-          >
-            Search
-          </Button>
-        </Toolbar>
-      </AppBar>
-      <Toolbar />
-    </>
-  );
-};
-
-interface AutoSaveContextProviderProps {
-  children: ReactNode;
-}
-const AutoSaveContextProvider = ({ children }: AutoSaveContextProviderProps) => {
-  const codeChangesContextData = useCodeChangesContext();
-  const { projectsCommands } = useCommandContext();
-  useEffect(() => {
-    window.addEventListener('beforeunload', () =>
-      handleBeforeUnload(codeChangesContextData, projectsCommands),
-    );
-
-    return () => {
-      window.removeEventListener('beforeunload', () =>
-        handleBeforeUnload(codeChangesContextData, projectsCommands),
-      );
-    };
-  }, [codeChangesContextData, projectsCommands]);
-  return <>{children}</>;
-};
-
-const handleBeforeUnload = (
-  codeChangesContextData: CodeChangesState,
-  commandContextData: ProjectCommand[],
-) => {
-  localStorage.setItem('commandsContext', JSON.stringify(commandContextData));
-  localStorage.setItem('codeChangesContextData', JSON.stringify(codeChangesContextData));
-};
 
 const App = ({ Component, pageProps, emotionCache = clientSideEmotionCache }: MyAppProps) => (
   <CacheProvider value={emotionCache}>
@@ -208,7 +36,7 @@ const App = ({ Component, pageProps, emotionCache = clientSideEmotionCache }: My
                   <title>Ansible manager</title>
                 </Head>
                 <ClearModalProvider>
-                  <AppBarResolver />
+                  <Appbar />
                 </ClearModalProvider>
                 <Box sx={{ mx: 5, mt: 4, mb: 4 }}>
                   <Component {...pageProps} />

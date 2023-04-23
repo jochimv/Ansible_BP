@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useContext, useState } from 'react';
-import Snackbar from '@frontend/components/ImportProjectModal/Snackbar';
+import Snackbar from '@frontend/components/Snackbar';
 import { AlertColor } from '@mui/lab/Alert/Alert';
 interface SnackbarContextType {
   showMessage: (message: string, severity: AlertColor, action?: ReactNode) => void;

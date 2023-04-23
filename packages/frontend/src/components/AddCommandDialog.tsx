@@ -16,21 +16,24 @@ import {
 
 import Editor from '@monaco-editor/react';
 import React, { SyntheticEvent, useEffect, useState } from 'react';
-import { Command, ProjectCommand, useCommandContext } from '@frontend/contexts/commandContext';
+import { useCommandContext } from '@frontend/contexts/CommandContext';
 import { CloseButton } from '@frontend/components/CloseButton';
 import ConfirmButton from '@frontend/components/ConfirmButton';
 import { useQuery } from 'react-query';
 import { useRouter } from 'next/router';
 import axios, { AxiosResponse } from 'axios';
-import { BE_IP_ADDRESS } from '@frontend/utils/constants';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 
 import {
+  Command,
+  ProjectCommand,
   ProjectDetailsAndPlaybooks,
   ProjectDetailsGroup,
   ProjectDetailsHost,
   ProjectDetailsInventory,
+  ProjectPlaybook,
 } from '@frontend/types';
+import { BE_IP_ADDRESS } from '@frontend/constants';
 
 interface AddCommandDialogProps {
   open: boolean;
@@ -39,10 +42,6 @@ interface AddCommandDialogProps {
   TransitionProps: any;
 }
 
-interface ProjectPlaybook {
-  playbookName: string;
-  content: string;
-}
 const fetchProjectPlaybooksAndDetails = async (
   projectName: string,
 ): Promise<ProjectDetailsAndPlaybooks> => {

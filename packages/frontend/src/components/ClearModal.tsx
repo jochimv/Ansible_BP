@@ -19,25 +19,25 @@ import { HelpOutline } from '@mui/icons-material';
 import {
   useClearModalContext,
   useClearModalDispatchContext,
-} from '@frontend/components/ClearModal/state/ClearModalContext';
+} from '@frontend/contexts/ClearModalContext';
 import { CloseButton } from '@frontend/components/CloseButton';
-import { close } from '@frontend/components/ClearModal/state/clearModalReducer';
+import { close } from '@frontend/reducers/clearModalReducer';
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
-} from '@frontend/codeChanges/CodeChangesContext';
+} from '@frontend/contexts/CodeChangesContext';
 import {
   clearAllProjectsUpdates,
   clearAllProjectUpdatesFromEditor,
   clearProjectUpdates,
   clearProjectUpdatesFromEditor,
-} from '@frontend/codeChanges/codeChangesReducer';
+} from '@frontend/reducers/codeChangesReducer';
 import { faBomb, faBroom } from '@fortawesome/free-solid-svg-icons';
-import { getUpdatedFilesPaths } from '@frontend/pages/_app';
 import { CodeOff as CodeOffIcon } from '@mui/icons-material';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Project } from '@frontend/utils/types';
+import { getUpdatedFilesPaths } from '@frontend/utils';
+import { Project } from '@frontend/types';
 
 const findIfAnyVariableWasUpdated = (projects: Project[]): boolean => {
   if (!projects) {

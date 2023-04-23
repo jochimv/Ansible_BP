@@ -3,7 +3,6 @@ import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs
 
 import { join } from 'path';
 import { SimpleGit, simpleGit } from 'simple-git';
-import { ansibleReposPath, getHostDetails, getProjectDetails, getProjectsHosts } from './utils';
 import {
   CommitResponse,
   HostDetailsResponse,
@@ -13,6 +12,7 @@ import {
   ProjectPlaybook,
   RepositoryActionResult,
 } from '../types';
+import { ansibleReposPath, getHostDetails, getProjectDetails, getProjectsHosts } from '../utils';
 
 const extractSecondToLastPathSegment = (url: string): string => {
   const urlSegments = url.split('/');

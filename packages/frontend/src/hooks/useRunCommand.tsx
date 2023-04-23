@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useMutation } from 'react-query';
 import axios, { AxiosResponse } from 'axios';
-import { BE_IP_ADDRESS } from '@frontend/utils/constants';
 import { Dialog, IconButton } from '@mui/material';
-import { useSnackbar } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
+import { useSnackbar } from '@frontend/contexts/SnackbarContext';
 import Terminal from '@frontend/components/Terminal';
 import { Terminal as TerminalIcon } from '@mui/icons-material';
 import { RunCommandOutput } from '@frontend/types';
 import { RunCommandDto } from '@frontend/dto';
+import { BE_IP_ADDRESS } from '@frontend/constants';
 const performCommandExecutionOnBackend = (data: any) =>
   axios.post(`http://${BE_IP_ADDRESS}:4000/run-command`, data);
 

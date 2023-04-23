@@ -16,8 +16,8 @@ import { useMutation } from 'react-query';
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
-} from '@frontend/codeChanges/CodeChangesContext';
-import { clearProjectUpdates } from '@frontend/codeChanges/codeChangesReducer';
+} from '@frontend/contexts/CodeChangesContext';
+import { clearProjectUpdates } from '@frontend/reducers/codeChangesReducer';
 import { faCodePullRequest } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -25,14 +25,14 @@ import {
   updateCommitBranchName,
   updateCommitMessage,
   updateResponse,
-} from '@frontend/components/CommitModal/state/commitModalReducer';
+} from '@frontend/reducers/commitModalReducer';
 import {
   useCommitModalContext,
   useCommitModalDispatchContext,
-} from '@frontend/components/CommitModal/state/CommitModalContext';
+} from '@frontend/contexts/CommitModalContext';
 import { CloseButton } from '@frontend/components/CloseButton';
-import { BE_IP_ADDRESS } from '@frontend/utils/constants';
 import { CommitResponse } from '@frontend/types';
+import { BE_IP_ADDRESS } from '@frontend/constants';
 
 const postCommitData = async (data: any): Promise<CommitResponse> => {
   const response: AxiosResponse<any> = await axios.post(

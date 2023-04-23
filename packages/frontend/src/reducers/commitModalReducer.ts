@@ -1,6 +1,6 @@
 import { useReducer } from 'react';
 import keyMirror from 'keymirror';
-import { ReducerAction } from '@frontend/utils/types';
+import { ReducerAction } from '@frontend/types';
 
 interface CommitModalReducerState {
   isModalOpen: boolean;

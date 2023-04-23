@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { FileProcessorService } from './file-processor.service';
 import { existsSync, readdirSync, readFileSync, rmSync } from 'fs';
 import { join } from 'path';
-import { getHostDetails, getProjectDetails, getProjectsHosts, ansibleReposPath } from './utils';
 import { simpleGit } from 'simple-git';
 import { RepositoryActionResult } from '../types';
+import { ansibleReposPath, getHostDetails, getProjectDetails, getProjectsHosts } from '../utils';
 jest.mock('fs', () => ({
   ...jest.requireActual('fs'),
   existsSync: jest.fn(),
@@ -66,7 +66,7 @@ describe('FileProcessorService', () => {
     (readdirSync as jest.Mock).mockReturnValue(playbookNames);
     await service.getProjectPlaybooks(projectName);
     expect(readdirSync).toHaveBeenCalledWith(projectPath);
-    playbookNames.forEach((playbookName) => {
+    playbookNames.forEach((playbookName: string) => {
       const fullPath = join(projectPath, playbookName);
       expect(readFileSync).toHaveBeenCalledWith(fullPath, 'utf-8');
     });

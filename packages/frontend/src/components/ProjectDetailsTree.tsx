@@ -5,12 +5,10 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { faServer } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { TreeViewInventoryItem } from '@frontend/utils/types';
+import { TreeViewInventoryItem } from '@frontend/types';
 interface ProjectDetailsTreeProps {
   data: TreeViewInventoryItem[];
-  onNodeSelected: React.Dispatch<
-    React.SetStateAction<{ id: string; name: string; appliedVariables: string }>
-  >;
+  onNodeSelected: React.Dispatch<React.SetStateAction<any>>;
 }
 
 const filterTreeItems = (
@@ -64,20 +62,26 @@ const ProjectDetailsTree = ({ data, onNodeSelected }: ProjectDetailsTreeProps) =
     setExpanded(nodeIds);
   };
 
+  const findNode = (
+    data: TreeViewInventoryItem[],
+    nodeId: string,
+  ): TreeViewInventoryItem | undefined => {
+    for (const inventory of data) {
+      for (const group of inventory?.children || []) {
+        for (const host of group?.children || []) {
+          if (host.id === nodeId) {
+            return host;
+          }
+        }
+      }
+    }
+  };
+
   const handleSelect = (event: React.SyntheticEvent, nodeId: string) => {
     if (nodeId.startsWith('host-')) {
       setSelected(nodeId);
 
-      let selectedNode;
-      data.forEach((inventory: TreeViewInventoryItem) => {
-        inventory?.children?.forEach((group) => {
-          group?.children?.forEach((host) => {
-            if (host.id === nodeId) {
-              selectedNode = host;
-            }
-          });
-        });
-      });
+      const selectedNode = findNode(data, nodeId);
 
       if (selectedNode && onNodeSelected) {
         onNodeSelected(selectedNode);
@@ -96,7 +100,7 @@ const ProjectDetailsTree = ({ data, onNodeSelected }: ProjectDetailsTreeProps) =
         size="small"
         sx={{ my: 2 }}
       />
-      <Box sx={{ height: '100%', width: '100%', overflowY: 'auto' }}>
+      <Box sx={{ height: '87%', width: '100%', overflowY: 'auto' }}>
         <TreeView
           expanded={expanded}
           selected={selected}

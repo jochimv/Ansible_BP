@@ -2,146 +2,16 @@ import { useRouter } from 'next/router';
 import { Box, Stack, Typography } from '@mui/material';
 import ProjectDetailsTree from '@frontend/components/ProjectDetailsTree';
 import Editor from '@monaco-editor/react';
-import { useState, useEffect } from 'react';
-import ProjectNotFound from '@frontend/components/pages/ProjectNotFound';
-import { useCodeChangesContext } from '@frontend/codeChanges/CodeChangesContext';
-import { parse as parseYaml, stringify } from 'yaml';
-import { Host, Project } from '@frontend/utils/types';
-import axios from 'axios';
+import { useEffect, useState } from 'react';
+import ProjectNotFound from '@frontend/components/ProjectNotFound';
+import { useCodeChangesContext } from '@frontend/contexts/CodeChangesContext';
 import { useQuery } from 'react-query';
-import LoadingPage from '@frontend/components/pages/Loading';
-import { BE_IP_ADDRESS } from '@frontend/utils/constants';
-import { HostVariable } from '@frontend/types';
+import LoadingPage from '@frontend/components/Loading';
 import {
-  HostDetails,
-  ProjectDetailsGroup,
-  ProjectDetailsHost,
-  ProjectDetailsInventory,
-  ProjectDetailsResponse,
-} from '@frontend/types';
-
-const convertProjectDetailsToTreeOfIds = (projectDetails: ProjectDetailsInventory[]) => {
-  return projectDetails.flatMap(
-    ({ inventoryType, groupHosts }: ProjectDetailsInventory, idx: number) => {
-      return {
-        id: `inventory-${idx}`,
-        name: inventoryType,
-        children: groupHosts.flatMap(
-          ({ groupName, hosts }: ProjectDetailsGroup, groupIdx: number) => {
-            return {
-              id: `group-${idx}-${groupIdx}`,
-              name: groupName,
-              children: hosts.map(
-                ({ hostname, appliedVariables }: ProjectDetailsHost, hostIdx: number) => ({
-                  id: `host-${idx}-${groupIdx}-${hostIdx}`,
-                  name: hostname,
-                  appliedVariables,
-                }),
-              ),
-            };
-          },
-        ),
-      };
-    },
-  );
-};
-export const getStringifiedAppliedVariablesFromVariablesArray = (
-  variables: HostVariable[],
-  originalAppliedVariables: string,
-) => {
-  const commonVariables = variables.find((variable: HostVariable) => variable.type === 'common');
-  const groupVariables = variables.find((variable: HostVariable) => variable.type === 'group');
-  const hostVariables = variables.find((variable: HostVariable) => variable.type === 'host');
-  const appliedVariables = {
-    ...(commonVariables && parseYaml(commonVariables.values)),
-    ...(groupVariables && parseYaml(groupVariables.values)),
-    ...(hostVariables && parseYaml(hostVariables.values)),
-  };
-  if ('0' in appliedVariables) {
-    return originalAppliedVariables;
-  }
-  const stringifiedAppliedVariables = stringify(appliedVariables);
-  return stringifiedAppliedVariables === '{}\n' ? '' : stringifiedAppliedVariables;
-};
-
-const updateAppliedVariables = (
-  projectDetails: ProjectDetailsInventory[],
-  updatedProjects: Project[],
-  projectName: string | string[] | undefined,
-) => {
-  const updatedDetails = JSON.parse(JSON.stringify(projectDetails));
-
-  const updatedProject = updatedProjects.find(
-    (project: Project) => project.projectName === projectName,
-  );
-  updatedDetails?.forEach((detail: ProjectDetailsInventory) => {
-    detail?.groupHosts.forEach((groupHost: ProjectDetailsGroup) => {
-      groupHost?.hosts?.forEach((host: ProjectDetailsHost) => {
-        const inventoryType = detail.inventoryType;
-        const groupName = groupHost.groupName;
-        const hostname = host.hostname;
-        let hostVariables;
-        let groupVariables;
-        let commonVariables;
-        const sourceForAppliedVariables: HostVariable[] = [];
-        updatedProject?.hosts.forEach((host: Host) => {
-          host?.hostDetailsByInventoryType.forEach((hostDetail: HostDetails) => {
-            if (
-              host.hostname === hostname &&
-              hostDetail.inventoryType === inventoryType &&
-              hostDetail.groupName === groupName
-            ) {
-              hostVariables = hostDetail.variables.find(
-                (variable: HostVariable) => variable.type === 'host',
-              );
-              groupVariables = hostDetail.variables.find(
-                (variable: HostVariable) => variable.type === 'group',
-              );
-              commonVariables = hostDetail.variables.find(
-                (variable: HostVariable) => variable.type === 'common',
-              );
-            } else if (
-              hostDetail.inventoryType === inventoryType &&
-              hostDetail.groupName === groupName
-            ) {
-              groupVariables = hostDetail.variables.find(
-                (variable: HostVariable) => variable.type === 'group',
-              );
-              commonVariables = hostDetail.variables.find(
-                (variable: HostVariable) => variable.type === 'common',
-              );
-            } else if (hostDetail.inventoryType === inventoryType) {
-              commonVariables = hostDetail.variables.find(
-                (variable: HostVariable) => variable.type === 'common',
-              );
-            }
-          });
-        });
-        if (hostVariables) {
-          sourceForAppliedVariables.push(hostVariables);
-        }
-        if (groupVariables) {
-          sourceForAppliedVariables.push(groupVariables);
-        }
-        if (commonVariables) {
-          sourceForAppliedVariables.push(commonVariables);
-        }
-        if (sourceForAppliedVariables.length !== 0) {
-          host.appliedVariables = getStringifiedAppliedVariablesFromVariablesArray(
-            sourceForAppliedVariables,
-            host.appliedVariables,
-          );
-        }
-      });
-    });
-  });
-  return updatedDetails;
-};
-
-const getProjectDetails = async (projectName: string): Promise<ProjectDetailsResponse> => {
-  const data = await axios.get(`http://${BE_IP_ADDRESS}:4000/${projectName}/details`);
-  return data.data;
-};
+  convertProjectDetailsToTreeOfIds,
+  getProjectDetails,
+  updateAppliedVariables,
+} from '@frontend/utils';
 
 const ProjectPage = () => {
   const { projectName } = useRouter().query;

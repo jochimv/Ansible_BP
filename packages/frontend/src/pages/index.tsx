@@ -13,17 +13,17 @@ import { useRouter } from 'next/router';
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
-} from '@frontend/codeChanges/CodeChangesContext';
-import { deleteProject, selectProject } from '@frontend/codeChanges/codeChangesReducer';
+} from '@frontend/contexts/CodeChangesContext';
+import { deleteProject, selectProject } from '@frontend/reducers/codeChangesReducer';
 import DownloadIcon from '@mui/icons-material/Download';
 import ImportProjectModal from '@frontend/components/ImportProjectModal';
 import { FolderOff } from '@mui/icons-material';
 import axios, { AxiosResponse } from 'axios';
 import { useMutation, useQuery } from 'react-query';
-import { useSnackbar } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
+import { useSnackbar } from '@frontend/contexts/SnackbarContext';
 import ConfirmDialog from '@frontend/components/ConfirmDialog';
-import { BE_IP_ADDRESS } from '@frontend/utils/constants';
 import { ProjectHosts, RepositoryActionResult } from '@frontend/types';
+import { BE_IP_ADDRESS } from '@frontend/constants';
 const fetchProjectsHosts = async (): Promise<ProjectHosts[]> => {
   const response = await axios.get(`http://${BE_IP_ADDRESS}:4000/projects`);
   return response.data;

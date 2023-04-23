@@ -1,15 +1,14 @@
-import { Response, SimpleGit, simpleGit } from 'simple-git';
-import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
-import { parse as parseIni } from 'ini';
-import { join } from 'path';
-import { parse as parseYaml, stringify } from 'yaml';
-import { extname } from 'path';
-import * as path from 'path';
 import { HostDetailsResponse, HostVariable, ProjectDetailsResponse, ProjectHosts } from '../types';
-
+//import path, { extname, join } from 'path';
+import * as path from 'path';
+import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
+import { parse as parseYaml, stringify } from 'yaml';
+import { Response, simpleGit, SimpleGit } from 'simple-git';
+import { parse as parseIni } from 'ini';
+const { join, extname } = path;
 export const ansibleReposPath =
   process.env.STAGE === 'development'
-    ? 'C:\\Users\\Dell\\Desktop\\ansible_bp\\packages\\backend\\ansible_repos'
+    ? 'C:\\Users\\VJochim\\Desktop\\Ansible_BP\\packages\\backend\\ansible_repos'
     : '/app/ansible_repos';
 const possibleInventoryFiles = ['hosts.ini', 'hosts', 'hosts.yaml'];
 const directoriesToIgnore = [
@@ -173,12 +172,10 @@ export const getProjectsHosts = async (): Promise<ProjectHosts[]> => {
   }
   return removeDuplicateHosts(projectsHosts);
 };
-
 const isIni = (inventoryPath: string): boolean => {
   const inventoryExtension = extname(inventoryPath);
   return inventoryExtension === '.ini' || inventoryExtension === '';
 };
-
 const extractHostsFromInventory = (inventoryPath: string): string[] => {
   if (isIni(inventoryPath)) {
     return extractHostsFromIniFile(inventoryPath);

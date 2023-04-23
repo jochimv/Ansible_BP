@@ -1,14 +1,19 @@
-import { useReducer, useEffect, ReactNode } from 'react';
-
+import { createContext, Dispatch, ReactNode, useContext, useEffect, useReducer } from 'react';
 import {
-  CodeChangesContext,
-  CodeChangesDispatchContext,
-} from '@frontend/codeChanges/CodeChangesContext';
-import {
-  initialState,
   codeChangesReducer,
+  CodeChangesState,
   initializeContext,
-} from '@frontend/codeChanges/codeChangesReducer';
+  initialState,
+} from '@frontend/reducers/codeChangesReducer';
+import { ReducerAction } from '@frontend/types';
+
+type CodeChangesDispatch = Dispatch<ReducerAction>;
+export const CodeChangesContext = createContext<CodeChangesState>(initialState);
+export const CodeChangesDispatchContext = createContext<CodeChangesDispatch>(() => {});
+export const useCodeChangesContext = (): CodeChangesState => useContext(CodeChangesContext);
+
+export const useCodeChangesDispatchContext = (): CodeChangesDispatch =>
+  useContext(CodeChangesDispatchContext);
 
 interface CodeChangesProviderProps {
   children: ReactNode;
@@ -32,5 +37,4 @@ const CodeChangesProvider = ({ children }: CodeChangesProviderProps) => {
     </CodeChangesContext.Provider>
   );
 };
-
 export default CodeChangesProvider;

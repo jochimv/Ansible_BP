@@ -81,3 +81,73 @@ export interface ProjectMainBranch {
 export interface ProjectDetailsAndPlaybooks extends ProjectDetailsResponse {
   projectPlaybooks: ProjectPlaybook[];
 }
+
+export interface ChartData {
+  [date: string]: {
+    date: string;
+    errors: number;
+    successes: number;
+  };
+}
+
+export interface Host {
+  hostname: string;
+  hostDetailsByInventoryType: HostDetails[];
+}
+
+export interface Project {
+  projectName: string;
+  hosts: Host[];
+}
+
+export interface TreeViewInventoryItem {
+  id: string;
+  name: string;
+  children?: TreeViewInventoryItem[];
+  appliedVariables?: string;
+}
+
+export interface ReducerAction {
+  type: string;
+  payload?: any;
+}
+
+export interface Command {
+  id: number;
+  command: string;
+  alias: string;
+  mode: 'builder' | 'ad-hoc';
+  builderData?: {
+    selectedPlaybook: any;
+    selectedInventoryType: string | null;
+    selectedInventoryPath: string | null;
+    selectedGroup: string | null;
+    selectedHost: string | null;
+    additionalVariables: string;
+  };
+}
+
+export interface ProjectCommand {
+  projectName: string;
+  commands: Command[];
+}
+
+export interface CommandsContextValue {
+  projectsCommands: ProjectCommand[];
+  addCommand: (
+    projectName: string,
+    command: string,
+    alias: string,
+    mode: 'builder' | 'ad-hoc',
+    builderData?: any,
+  ) => void;
+  removeCommand: (projectName: string, id: number) => void;
+  updateCommand: (
+    projectName: string,
+    id: number,
+    command: string,
+    alias: string,
+    mode: 'builder' | 'ad-hoc',
+    builderData?: any,
+  ) => void;
+}

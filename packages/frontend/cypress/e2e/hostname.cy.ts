@@ -1,5 +1,6 @@
-import { HostVariable } from '@frontend/utils/types';
+import { HostVariable } from '@frontend/types';
 import { Interception } from 'cypress/types/net-stubbing';
+import { HostDetails } from '@frontend/types';
 
 describe('Host Details Page', () => {
   const goToHostDetailsPage = () => {

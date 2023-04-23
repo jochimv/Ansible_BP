@@ -2,43 +2,45 @@ import React, { useState } from 'react';
 import axios, { AxiosResponse } from 'axios';
 import { useQuery } from 'react-query';
 import {
+  CircularProgress,
+  Dialog,
+  IconButton,
+  Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  Dialog,
   Typography,
-  Stack,
-  CircularProgress,
-  IconButton,
 } from '@mui/material';
 import {
-  LineChart,
+  CartesianGrid,
+  Legend,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from 'recharts';
-import { Close as CloseIcon, Done as DoneIcon } from '@mui/icons-material';
-import Terminal from '@frontend/components/Terminal';
-import LoadingPage from '@frontend/components/pages/Loading';
 import {
+  Close as CloseIcon,
   CodeOff as CodeOffIcon,
+  Done as DoneIcon,
   Replay as ReplayIcon,
   Terminal as TerminalIcon,
 } from '@mui/icons-material';
+import Terminal from '@frontend/components/Terminal';
+import LoadingPage from '@frontend/components/Loading';
 import { useRouter } from 'next/router';
-import { useProjectExists } from '@frontend/pages/[projectName]/runner';
-import ProjectNotFound from '@frontend/components/pages/ProjectNotFound';
-import { BE_IP_ADDRESS } from '@frontend/utils/constants';
+import ProjectNotFound from '@frontend/components/ProjectNotFound';
 import { useRunCommand } from '@frontend/hooks/useRunCommand';
-import { CommandExecution } from '@frontend/types';
+import { ChartData, CommandExecution } from '@frontend/types';
+import { useProjectExists } from '@frontend/hooks/useProjectExists';
+import { BE_IP_ADDRESS } from '@frontend/constants';
+
 const fetchCommandExecutions = async (
   projectName: string | string[] | undefined,
 ): Promise<CommandExecution[]> => {
@@ -47,14 +49,6 @@ const fetchCommandExecutions = async (
   );
   return response.data;
 };
-
-interface ChartData {
-  [date: string]: {
-    date: string;
-    errors: number;
-    successes: number;
-  };
-}
 
 const Dashboard = () => {
   const { projectName } = useRouter().query;

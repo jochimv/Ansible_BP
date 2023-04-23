@@ -1,7 +1,11 @@
-import { ReactNode } from 'react';
-import { CommitModalContext } from '@frontend/components/CommitModal/state/CommitModalContext';
-import { CommitModalDispatchContext } from '@frontend/components/CommitModal/state/CommitModalContext';
-import { useCommitModalReducer } from '@frontend/components/CommitModal/state/commitModalReducer';
+import { createContext, ReactNode, useContext } from 'react';
+import { initialState, useCommitModalReducer } from '../reducers/commitModalReducer';
+
+export const CommitModalContext = createContext(initialState);
+export const CommitModalDispatchContext = createContext(console.log);
+export const useCommitModalContext = () => useContext(CommitModalContext);
+
+export const useCommitModalDispatchContext = () => useContext(CommitModalDispatchContext);
 
 interface CodeChangesProviderProps {
   children: ReactNode;
@@ -17,5 +21,4 @@ const CommitModalProvider = ({ children }: CodeChangesProviderProps) => {
     </CommitModalContext.Provider>
   );
 };
-
 export default CommitModalProvider;

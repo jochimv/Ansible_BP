@@ -12,10 +12,10 @@ import DownloadIcon from '@mui/icons-material/Download';
 import React, { useState, ChangeEvent } from 'react';
 import axios, { AxiosResponse } from 'axios';
 import { useMutation } from 'react-query';
-import { useSnackbar } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
+import { useSnackbar } from '@frontend/contexts/SnackbarContext';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import { BE_IP_ADDRESS } from '@frontend/utils/constants';
 import { RepositoryActionResult } from '@frontend/types';
+import { BE_IP_ADDRESS } from '@frontend/constants';
 interface ImportProjectModalProps {
   isOpen: boolean;
   onClose: () => void;

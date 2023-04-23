@@ -12,23 +12,23 @@ import {
   Typography,
 } from '@mui/material';
 import Editor from '@monaco-editor/react';
-import { Breadcrumbs } from '@mui/material';
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
-} from '@frontend/codeChanges/CodeChangesContext';
+} from '@frontend/contexts/CodeChangesContext';
 import {
   initializeEditor,
   showHostDetails,
   showVariables,
   updateVariables,
-} from '@frontend/codeChanges/codeChangesReducer';
-import HostNotFound from '@frontend/components/pages/HostNotFound';
-import ProjectNotFound from '@frontend/components/pages/ProjectNotFound';
-import LoadingPage from '@frontend/components/pages/Loading';
-import { BE_IP_ADDRESS } from '@frontend/utils/constants';
-import { HostVariable } from '@frontend/types';
-import { HostDetailsResponse, HostDetails } from '@frontend/types';
+} from '@frontend/reducers/codeChangesReducer';
+import HostNotFound from '@frontend/components/HostNotFound';
+import ProjectNotFound from '@frontend/components/ProjectNotFound';
+import LoadingPage from '@frontend/components/Loading';
+import { HostDetails, HostDetailsResponse, HostVariable } from '@frontend/types';
+import { formatErrorMessage, getVariablesByType, renderBreadcrumbs } from '@frontend/utils';
+import { BE_IP_ADDRESS } from '@frontend/constants';
+
 const fetchHostDetails = async (
   projectName: string,
   hostname: string | string[],
@@ -38,48 +38,17 @@ const fetchHostDetails = async (
   );
   return response.data;
 };
-const getVariablesByType = (obj: any, type: string) => {
-  const variablesArray = obj.variables;
-  for (let i = 0; i < variablesArray.length; i++) {
-    if (variablesArray[i].type === type) {
-      return variablesArray[i];
-    }
-  }
-  return null;
-};
 
-const renderBreadcrumbs = (path: string) => {
-  const segments = path.split('\\');
-
-  return (
-    <Breadcrumbs aria-label="breadcrumb">
-      {segments.map((segment: string, index: number) => (
-        <Typography key={index}>{segment}</Typography>
-      ))}
-    </Breadcrumbs>
-  );
-};
-
-const formatErrorMessage = (message: string): JSX.Element => {
-  const lines = message.split('\n');
-  return (
-    <div>
-      {lines.map((line: string, index: number) => (
-        <div key={index}>{line || '\u00A0'}</div>
-      ))}
-    </div>
-  );
-};
-
-const Heading = styled(Typography)({
+const HeadingWithBottomPadding = styled(Typography)({
   fontWeight: 'bold',
   paddingBottom: '4px',
 });
 
-const HeadingNoSpacing = styled(Typography)({
+const Heading = styled(Typography)({
   fontWeight: 'bold',
 });
 
+// todo - nějak se tam kvůli react query přepínají tlačítka když unfocusnu window
 const HostDetailsPage = () => {
   const router = useRouter();
   const { projectName, hostname } = router.query;
@@ -139,19 +108,19 @@ const HostDetailsPage = () => {
     <Stack direction="row" sx={{ height: '100%' }}>
       <Stack spacing={3}>
         <Box>
-          <HeadingNoSpacing>Project name</HeadingNoSpacing>
+          <Heading>Project name</Heading>
           <Typography id="project-name-label">{projectName}</Typography>
         </Box>
         <Box>
-          <HeadingNoSpacing>Group name</HeadingNoSpacing>
+          <Heading>Group name</Heading>
           <Typography id="group-name-label">{selectedHostDetails?.groupName}</Typography>
         </Box>
         <Box>
-          <HeadingNoSpacing>Host name</HeadingNoSpacing>
+          <Heading>Host name</Heading>
           <Typography id="hostname-label">{hostname}</Typography>
         </Box>
         <Box>
-          <Heading>Inventories</Heading>
+          <HeadingWithBottomPadding>Inventories</HeadingWithBottomPadding>
           <ToggleButtonGroup
             orientation="horizontal"
             exclusive
@@ -181,7 +150,7 @@ const HostDetailsPage = () => {
           </ToggleButtonGroup>
         </Box>
         <Box>
-          <Heading>Variables</Heading>
+          <HeadingWithBottomPadding>Variables</HeadingWithBottomPadding>
           <ToggleButtonGroup
             orientation="horizontal"
             exclusive

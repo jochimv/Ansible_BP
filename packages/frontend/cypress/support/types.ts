@@ -11,5 +11,4 @@ declare global {
   }
 }
 
-// Add this line to the end of types.ts
 export {};

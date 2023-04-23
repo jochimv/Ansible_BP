@@ -1,39 +1,28 @@
 import React, { useState } from 'react';
 import {
   Button,
+  CircularProgress,
   IconButton,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
   TableHead,
   TableRow,
-  TableCell,
-  Typography,
-  TableBody,
-  TableContainer,
-  Table,
-  CircularProgress,
   TextField,
+  Typography,
 } from '@mui/material';
 import { Delete as DeleteIcon, PlayCircle as PlayCircleIcon } from '@mui/icons-material';
-import axios from 'axios';
-import { Command, ProjectCommand, useCommandContext } from '@frontend/contexts/commandContext';
-import { useQuery } from 'react-query';
-import { BE_IP_ADDRESS } from '@frontend/utils/constants';
+import { useCommandContext } from '@frontend/contexts/CommandContext';
 import AddCommandDialog from '@frontend/components/AddCommandDialog';
 import EditIcon from '@mui/icons-material/Edit';
 import { useRouter } from 'next/router';
-import LoadingPage from '@frontend/components/pages/Loading';
-import ProjectNotFound from '@frontend/components/pages/ProjectNotFound';
+import LoadingPage from '@frontend/components/Loading';
+import ProjectNotFound from '@frontend/components/ProjectNotFound';
 import { useRunCommand } from '@frontend/hooks/useRunCommand';
-
-const fetchProjectExists = async (projectName: string) =>
-  await axios.get(`http://${BE_IP_ADDRESS}:4000/${projectName}/exists`);
-
-export const useProjectExists = (projectName: string | string[] | undefined) =>
-  useQuery(['project-exists', projectName], () => {
-    if (typeof projectName === 'string') {
-      return fetchProjectExists(projectName);
-    }
-  });
+import { useProjectExists } from '@frontend/hooks/useProjectExists';
+import { Command, ProjectCommand } from '@frontend/types';
 
 const AnsibleCommandsPage: React.FC = () => {
   const { projectName } = useRouter().query;
@@ -69,7 +58,8 @@ const AnsibleCommandsPage: React.FC = () => {
   };
 
   return (
-    <div>
+    <>
+      <OutputDialog />
       <AddCommandDialog
         open={openDialog}
         onClose={() => {
@@ -160,8 +150,7 @@ const AnsibleCommandsPage: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
-      <OutputDialog />
-    </div>
+    </>
   );
 };
 

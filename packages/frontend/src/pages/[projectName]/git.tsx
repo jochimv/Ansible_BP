@@ -8,24 +8,25 @@ import {
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
-} from '../../codeChanges/CodeChangesContext';
-import { createDiff, rollback } from '../../codeChanges/codeChangesReducer';
+} from '../../contexts/CodeChangesContext';
+import { createDiff, rollback } from '../../reducers/codeChangesReducer';
 import GitChangesFileTree from '../../components/GitChangesFileTree';
-import CommitModal from '@frontend/components/CommitModal/CommitModal';
-import { open } from '@frontend/components/CommitModal/state/commitModalReducer';
-import { useCommitModalDispatchContext } from '@frontend/components/CommitModal/state/CommitModalContext';
-import CommitModalProvider from '@frontend/components/CommitModal/state/CommitModalProvider';
+import CommitModal from '@frontend/components/CommitModal';
+import { open } from '@frontend/reducers/commitModalReducer';
+import CommitModalProvider, {
+  useCommitModalDispatchContext,
+} from '@frontend/contexts/CommitModalContext';
 import { useRouter } from 'next/router';
-import ProjectNotFound from '@frontend/components/pages/ProjectNotFound';
+import ProjectNotFound from '@frontend/components/ProjectNotFound';
 import axios, { AxiosResponse } from 'axios';
 import { useQuery } from 'react-query';
-import LoadingPage from '@frontend/components/pages/Loading';
-import { BE_IP_ADDRESS } from '@frontend/utils/constants';
+import LoadingPage from '@frontend/components/Loading';
 const stackPropsIfNoChanges = {
   alignItems: 'center',
   justifyContent: 'center',
 };
 import { ProjectMainBranch } from '@frontend/types';
+import { BE_IP_ADDRESS } from '@frontend/constants';
 
 const fetchMainBranchName = async (projectName: string): Promise<ProjectMainBranch> => {
   const response: AxiosResponse<any> = await axios.get(
