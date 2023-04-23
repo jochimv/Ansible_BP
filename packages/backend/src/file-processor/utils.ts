@@ -1,11 +1,11 @@
-import { SimpleGit, simpleGit } from 'simple-git';
+import { Response, SimpleGit, simpleGit } from 'simple-git';
 import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
 import { parse as parseIni } from 'ini';
 import { join } from 'path';
 import { parse as parseYaml, stringify } from 'yaml';
 import { extname } from 'path';
 import * as path from 'path';
-import { HostDetailsResponse, ProjectDetailsResponse, ProjectHosts } from '../types';
+import { HostDetailsResponse, HostVariable, ProjectDetailsResponse, ProjectHosts } from '../types';
 
 export const ansibleReposPath =
   process.env.STAGE === 'development'
@@ -26,7 +26,7 @@ const directoriesToIgnore = [
   'group_vars',
   'host_vars',
 ];
-export const getMainBranchName = async (git: SimpleGit) =>
+export const getMainBranchName = async (git: SimpleGit): Promise<Response<string>> =>
   await git.revparse(['--abbrev-ref', 'HEAD']);
 const checkAndUpdateProject = async (projectPath: string) => {
   const git = await simpleGit(projectPath);
@@ -126,11 +126,11 @@ const extractHostsFromIniFile = (inventoryPath: string): string[] => {
   }
   return [...new Set(hosts)];
 };
-const parseYamlFile = (path: string) => {
+const parseYamlFile = (path: string): any => {
   const fileContent = readFileSync(path, 'utf-8');
   return parseYaml(fileContent);
 };
-const parseIniFile = (path: string) => {
+const parseIniFile = (path: string): { [p: string]: any } => {
   const fileContent = readFileSync(path, 'utf-8');
   return parseIni(fileContent);
 };
@@ -179,7 +179,7 @@ const isIni = (inventoryPath: string): boolean => {
   return inventoryExtension === '.ini' || inventoryExtension === '';
 };
 
-const extractHostsFromInventory = (inventoryPath: string) => {
+const extractHostsFromInventory = (inventoryPath: string): string[] => {
   if (isIni(inventoryPath)) {
     return extractHostsFromIniFile(inventoryPath);
   } else {
@@ -212,8 +212,8 @@ const extractDirectoryPath = (filePath: string): string => {
   return parts.join(path.sep);
 };
 const getLastPathSegment = (path: string): string => {
-  const segments = path.split(/[\\/]/); // split path by forward slash or backslash
-  return segments[segments.length - 1]; // return the last segment
+  const segments = path.split(/[\\/]/);
+  return segments[segments.length - 1];
 };
 const getGroupNameFromIniInventory = (filePath: string, serverName: string): string | undefined => {
   const iniData = parseIniFile(filePath);
@@ -236,7 +236,7 @@ const extractBeforeColon = (str: string) => {
     return str.substring(0, colonIndex);
   }
 };
-const getCommonVariablesObj = (filePath: string) => {
+const getCommonVariablesObj = (filePath: string): HostVariable => {
   return {
     type: 'common',
     pathInProject: removeAnsibleReposPathFromPath(filePath),

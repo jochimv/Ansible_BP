@@ -248,7 +248,7 @@ const tryToParseYml = (newEditorValue: string) => {
 };
 
 export const codeChangesReducer = (
-  state = initialState,
+  state: CodeChangesState = initialState,
   action: ReducerAction,
 ): CodeChangesState => {
   switch (action.type) {
