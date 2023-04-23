@@ -35,7 +35,6 @@ describe('CommandRunnerRepository', () => {
   it('should be defined', () => {
     expect(commandRunnerRepository).toBeDefined();
   });
-
   it('should save the commandExecution and return it', async () => {
     const commandExecution = new CommandExecution();
     commandExecution.projectName = 'sample-project';

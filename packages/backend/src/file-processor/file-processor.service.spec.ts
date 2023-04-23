@@ -46,16 +46,12 @@ describe('FileProcessorService', () => {
     expect(service).toBeDefined();
   });
 
-  // Test cases go here
-
-  // getProjectDetails
   it('should call getProjectDetails from utils', async () => {
     const projectName = 'sample-project';
     await service.getProjectDetails(projectName);
     expect(getProjectDetails).toHaveBeenCalledWith(projectName);
   });
 
-  // projectExists
   it('should check if a project exists', () => {
     const projectName = 'sample-project';
     const projectPath = join(ansibleReposPath, projectName);
@@ -63,7 +59,6 @@ describe('FileProcessorService', () => {
     expect(existsSync).toHaveBeenCalledWith(projectPath);
   });
 
-  // getProjectPlaybooks
   it('should get project playbooks', async () => {
     const projectName = 'sample-project';
     const projectPath = join(ansibleReposPath, projectName);
@@ -77,7 +72,6 @@ describe('FileProcessorService', () => {
     });
   });
 
-  // getHostDetails
   it('should call getHostDetails from utils', async () => {
     const projectName = 'sample-project';
     const hostname = 'sample-host';
@@ -85,14 +79,12 @@ describe('FileProcessorService', () => {
     expect(getHostDetails).toHaveBeenCalledWith(projectName, hostname);
   });
 
-  // getProjectsHosts
   it('should call getProjectsHosts from utils', async () => {
     await service.getProjectsHosts();
     expect(getProjectsHosts).toHaveBeenCalled();
   });
 
-  // deleteRepository
-  it('should delete a repository', async () => {
+  it('should deleteRepository', async () => {
     const projectName = 'sample-project';
     const projectPath = join(ansibleReposPath, projectName);
     (existsSync as jest.Mock).mockReturnValue(true);
@@ -103,8 +95,7 @@ describe('FileProcessorService', () => {
     expect(result).toEqual(expectedResult);
   });
 
-  // downloadRepository
-  it('should download a repository', async () => {
+  it('should downloadRepository', async () => {
     const gitRepositoryUrl = 'https://bitbucket.org/scm/sample-project/ansible-weblogic.git.git';
     const projectName = 'sample-project';
     const projectDestinationPath = join(ansibleReposPath, projectName);
@@ -118,7 +109,6 @@ describe('FileProcessorService', () => {
     expect(result).toEqual(expectedResult);
   });
 
-  // getMainBranchName
   it('should get the main branch name of a project', async () => {
     const projectName = 'sample-project';
     const projectPath = join(ansibleReposPath, projectName);
@@ -133,7 +123,6 @@ describe('FileProcessorService', () => {
     expect(mainBranchName).toBe('main');
   });
 
-  // commit
   it('should commit changes', async () => {
     const commitDto = {
       commitMessage: 'Test commit',

@@ -35,52 +35,48 @@ describe('CommandRunnerController', () => {
     expect(controller).toBeDefined();
   });
 
-  describe('runCommand', () => {
-    it('should call runCommand from CommandRunnerService with the provided params', async () => {
-      const runCommandDto: RunCommandDto = {
-        commandId: 1,
-        command: 'test-command',
-        projectName: 'test-project',
-        alias: 'test-alias',
-      };
+  it('should call runCommand from CommandRunnerService with the provided params', async () => {
+    const runCommandDto: RunCommandDto = {
+      commandId: 1,
+      command: 'test-command',
+      projectName: 'test-project',
+      alias: 'test-alias',
+    };
 
-      const expectedResult: RunCommandOutput = {
-        success: true,
-        output: 'Command executed successfully',
-      };
+    const expectedResult: RunCommandOutput = {
+      success: true,
+      output: 'Command executed successfully',
+    };
 
-      jest.spyOn(service, 'runCommand').mockImplementation(() => Promise.resolve(expectedResult));
+    jest.spyOn(service, 'runCommand').mockImplementation(() => Promise.resolve(expectedResult));
 
-      const result = await controller.runCommand(runCommandDto);
+    const result = await controller.runCommand(runCommandDto);
 
-      expect(result).toEqual(expectedResult);
-      expect(service.runCommand).toHaveBeenCalledWith(runCommandDto);
-    });
+    expect(result).toEqual(expectedResult);
+    expect(service.runCommand).toHaveBeenCalledWith(runCommandDto);
   });
 
-  describe('getCommandExecutionsForProject', () => {
-    it('should call getCommandExecutionsForProject from CommandRunnerService with the provided projectName', async () => {
-      const projectName = 'test-project';
-      const expectedResult: CommandExecution[] = [
-        {
-          id: 1,
-          alias: 'test-alias',
-          command: 'test-command',
-          projectName: 'test-project',
-          output: 'Command executed successfully',
-          success: true,
-          executionDate: new Date(),
-        },
-      ];
+  it('should call getCommandExecutionsForProject from CommandRunnerService with the provided projectName', async () => {
+    const projectName = 'test-project';
+    const expectedResult: CommandExecution[] = [
+      {
+        id: 1,
+        alias: 'test-alias',
+        command: 'test-command',
+        projectName: 'test-project',
+        output: 'Command executed successfully',
+        success: true,
+        executionDate: new Date(),
+      },
+    ];
 
-      jest
-        .spyOn(service, 'getCommandExecutionsForProject')
-        .mockImplementation(() => Promise.resolve(expectedResult));
+    jest
+      .spyOn(service, 'getCommandExecutionsForProject')
+      .mockImplementation(() => Promise.resolve(expectedResult));
 
-      const result = await controller.getCommandExecutionsForProject(projectName);
+    const result = await controller.getCommandExecutionsForProject(projectName);
 
-      expect(result).toEqual(expectedResult);
-      expect(service.getCommandExecutionsForProject).toHaveBeenCalledWith(projectName);
-    });
+    expect(result).toEqual(expectedResult);
+    expect(service.getCommandExecutionsForProject).toHaveBeenCalledWith(projectName);
   });
 });

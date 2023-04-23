@@ -37,55 +37,51 @@ describe('CommandRunnerService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('runCommand', () => {
-    it('should execute a command and save the result to the repository', async () => {
-      const runCommandDto: RunCommandDto = {
-        commandId: 1,
-        command: 'test-command',
-        projectName: 'test-project',
-        alias: 'test-alias',
-      };
-      const expectedResult: RunCommandOutput = {
-        success: true,
-        output: 'Command executed successfully',
-      };
+  it('should execute a command and save the result to the repository', async () => {
+    const runCommandDto: RunCommandDto = {
+      commandId: 1,
+      command: 'test-command',
+      projectName: 'test-project',
+      alias: 'test-alias',
+    };
+    const expectedResult: RunCommandOutput = {
+      success: true,
+      output: 'Command executed successfully',
+    };
 
-      (exec as unknown as jest.Mock).mockImplementation((_, callback) =>
-        callback(null, expectedResult.output, ''),
-      );
-      jest
-        .spyOn(repository, 'save')
-        .mockImplementation((commandExecution) => Promise.resolve(commandExecution));
+    (exec as unknown as jest.Mock).mockImplementation((_, callback) =>
+      callback(null, expectedResult.output, ''),
+    );
+    jest
+      .spyOn(repository, 'save')
+      .mockImplementation((commandExecution) => Promise.resolve(commandExecution));
 
-      const result = await service.runCommand(runCommandDto);
+    const result = await service.runCommand(runCommandDto);
 
-      expect(result).toEqual(expectedResult);
-      expect(repository.save).toHaveBeenCalled();
-    });
+    expect(result).toEqual(expectedResult);
+    expect(repository.save).toHaveBeenCalled();
   });
 
-  describe('getCommandExecutionsForProject', () => {
-    it('should fetch command executions for a project from the repository', async () => {
-      const projectName = 'test-project';
-      const expectedResult: CommandExecution[] = [
-        {
-          id: 1,
-          alias: 'test-alias',
-          command: 'test-command',
-          projectName: 'test-project',
-          output: 'Command executed successfully',
-          success: true,
-          executionDate: new Date(),
-        },
-      ];
-      jest
-        .spyOn(repository, 'getCommandExecutionsForProject')
-        .mockImplementation(() => Promise.resolve(expectedResult));
+  it('should fetch command executions for a project from the repository', async () => {
+    const projectName = 'test-project';
+    const expectedResult: CommandExecution[] = [
+      {
+        id: 1,
+        alias: 'test-alias',
+        command: 'test-command',
+        projectName: 'test-project',
+        output: 'Command executed successfully',
+        success: true,
+        executionDate: new Date(),
+      },
+    ];
+    jest
+      .spyOn(repository, 'getCommandExecutionsForProject')
+      .mockImplementation(() => Promise.resolve(expectedResult));
 
-      const result = await service.getCommandExecutionsForProject(projectName);
+    const result = await service.getCommandExecutionsForProject(projectName);
 
-      expect(result).toEqual(expectedResult);
-      expect(repository.getCommandExecutionsForProject).toHaveBeenCalledWith(projectName);
-    });
+    expect(result).toEqual(expectedResult);
+    expect(repository.getCommandExecutionsForProject).toHaveBeenCalledWith(projectName);
   });
 });
