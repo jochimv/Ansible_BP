@@ -1,8 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CommandRunnerService, RunCommandOutput } from './command-runner.service';
+import { CommandRunnerService } from './command-runner.service';
 import { CommandRunnerRepository } from './command-runner.repository';
 import { CommandExecution } from './entities/command-execution.entity';
 import { exec } from 'child_process';
+import { RunCommandOutput } from './types';
 
 jest.mock('child_process', () => ({
   exec: jest.fn(),

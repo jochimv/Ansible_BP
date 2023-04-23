@@ -1,7 +1,7 @@
 describe('Home page', () => {
   beforeEach(() => {
     cy.intercept(`http://127.0.0.1:4000/projects`, {
-      fixture: 'projectHosts.json', // hostDetails.json should be created in cypress/fixtures with the provided data
+      fixture: 'projectHosts.json',
     }).as('fetchProjectsHosts');
 
     cy.visit('http://localhost:3000');
@@ -9,7 +9,7 @@ describe('Home page', () => {
 
   it('searches for a project', () => {
     cy.wait('@fetchProjectsHosts').then(({ response }) => {
-      const projectName = response?.body[0]?.project;
+      const projectName: string = response?.body[0]?.project;
       cy.get('#projects').type(projectName).type('{downarrow}').type('{enter}');
       cy.get('#projects').should('have.value', projectName);
     });
@@ -17,8 +17,8 @@ describe('Home page', () => {
 
   it('searches for a server', () => {
     cy.wait('@fetchProjectsHosts').then(({ response }) => {
-      const projectName = response?.body[0]?.project;
-      const server = response?.body[0]?.hosts[0];
+      const projectName: string = response?.body[0]?.project;
+      const server: string = response?.body[0]?.hosts[0];
 
       cy.get('#projects').type(projectName).type('{downarrow}').type('{enter}');
       cy.get('#servers').type(server).type('{downarrow}').type('{enter}');
@@ -33,7 +33,7 @@ describe('Home page', () => {
 
   it('opens delete repository confirm dialog', () => {
     cy.wait('@fetchProjectsHosts').then(({ response }) => {
-      const projectName = response?.body[0]?.project;
+      const projectName: string = response?.body[0]?.project;
 
       cy.get('#projects').type(projectName).type('{downarrow}').type('{enter}');
       cy.get('button').contains('Delete selected repository').click();

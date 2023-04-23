@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommandRunnerController } from './command-runner.controller';
 import { CommandRunnerService } from './command-runner.service';
-import { RunCommandOutput } from './command-runner.service';
 import { CommandExecution } from './entities/command-execution.entity';
 import { CommandRunnerRepository } from './command-runner.repository';
+import { RunCommandOutput } from './types';
 
 describe('CommandRunnerController', () => {
   let controller: CommandRunnerController;

@@ -1,7 +1,7 @@
-// src/command-runner/command-runner.controller.ts
 import { Controller, Post, Body, Get, Param } from '@nestjs/common';
-import { CommandRunnerService, RunCommandOutput } from './command-runner.service';
+import { CommandRunnerService } from './command-runner.service';
 import { CommandExecution } from './entities/command-execution.entity';
+import { RunCommandOutput } from './types';
 
 @Controller()
 export class CommandRunnerController {

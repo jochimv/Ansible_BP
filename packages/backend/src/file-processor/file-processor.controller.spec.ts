@@ -42,7 +42,7 @@ describe('FileProcessorController', () => {
     const projectName = 'sample-project';
     // @ts-ignore
     jest.spyOn(service, 'projectExists').mockResolvedValueOnce(true);
-    const result = await controller.projectExists(projectName);
+    const result = controller.projectExists(projectName);
     expect(result).toBeTruthy();
     expect(service.projectExists).toHaveBeenCalledWith(projectName);
   });

@@ -2,11 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { exec } from 'child_process';
 import { CommandExecution } from './entities/command-execution.entity';
 import { CommandRunnerRepository } from './command-runner.repository';
-
-export interface RunCommandOutput {
-  success: boolean;
-  output: string;
-}
+import { RunCommandOutput } from './types';
 
 @Injectable()
 export class CommandRunnerService {

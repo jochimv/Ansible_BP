@@ -1,4 +1,3 @@
-// commands.ts
 // @ts-ignore
 Cypress.Commands.add('getUrlParams', () => {
   return cy.url().then((url: string) => {

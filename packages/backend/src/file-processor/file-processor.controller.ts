@@ -10,7 +10,7 @@ export class FileProcessorController {
   constructor(private fileProcessorService: FileProcessorService) {}
 
   @Get('/:projectName/exists')
-  async projectExists(@Param('projectName') projectName: string) {
+  async projectExists(@Param('projectName') projectName: string): Promise<boolean> {
     return this.fileProcessorService.projectExists(projectName);
   }
 
@@ -23,6 +23,7 @@ export class FileProcessorController {
       return { projectExists, projectDetails: null, projectPlaybooks: null };
     }
     const projectPlaybooks = await this.fileProcessorService.getProjectPlaybooks(projectName);
+    console.log('result: ', JSON.stringify({ projectDetails, projectPlaybooks, projectExists }));
     return { projectDetails, projectPlaybooks, projectExists };
   }
 
