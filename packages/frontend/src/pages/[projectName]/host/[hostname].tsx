@@ -1,6 +1,6 @@
 import { useQuery } from 'react-query';
 import { useRouter } from 'next/router';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import {
   Alert,
   Box,
@@ -26,12 +26,18 @@ import {
 import HostNotFound from '@frontend/components/pages/HostNotFound';
 import ProjectNotFound from '@frontend/components/pages/ProjectNotFound';
 import LoadingPage from '@frontend/components/pages/Loading';
-import { HostDetails } from '@frontend/utils/types';
 import { BE_IP_ADDRESS } from '@frontend/utils/constants';
-
-const fetchHostDetails = async (projectName: string, hostname: string | string[]) =>
-  await axios.get(`http://${BE_IP_ADDRESS}:4000/${projectName}/${hostname}`);
-
+import { HostVariable } from '@frontend/types';
+import { HostDetailsResponse, HostDetails } from '@frontend/types';
+const fetchHostDetails = async (
+  projectName: string,
+  hostname: string | string[],
+): Promise<HostDetailsResponse> => {
+  const response: AxiosResponse<any> = await axios.get(
+    `http://${BE_IP_ADDRESS}:4000/${projectName}/host/${hostname}`,
+  );
+  return response.data;
+};
 const getVariablesByType = (obj: any, type: string) => {
   const variablesArray = obj.variables;
   for (let i = 0; i < variablesArray.length; i++) {
@@ -98,18 +104,16 @@ const HostDetailsPage = () => {
     },
     {
       enabled: !!projectName && !!hostname,
-      onSuccess: (data) => {
-        if (data?.data) {
-          const { hostDetailsByInventoryType, projectExists, hostExists } = data.data;
-          if (projectExists && hostExists) {
-            dispatch(
-              initializeEditor({
-                hostDetailsByInventoryType,
-                projectName,
-                hostname,
-              }),
-            );
-          }
+      onSuccess: (response: HostDetailsResponse) => {
+        const { hostDetailsByInventoryType, projectExists, hostExists } = response;
+        if (projectExists && hostExists) {
+          dispatch(
+            initializeEditor({
+              hostDetailsByInventoryType,
+              projectName,
+              hostname,
+            }),
+          );
         }
       },
     },
@@ -119,7 +123,7 @@ const HostDetailsPage = () => {
     return <LoadingPage />;
   }
 
-  const { projectExists, hostExists } = data?.data || {};
+  const { projectExists, hostExists } = data || {};
 
   if (!projectExists) {
     return <ProjectNotFound />;
@@ -187,7 +191,7 @@ const HostDetailsPage = () => {
               }
             }}
           >
-            {selectedHostDetails?.variables.map((variableObj) => {
+            {selectedHostDetails?.variables.map((variableObj: HostVariable) => {
               const variablesType = variableObj.type;
               return (
                 <ToggleButton

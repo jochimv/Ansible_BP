@@ -1,4 +1,4 @@
-import { HostDetails, HostVariable } from '@frontend/utils/types';
+import { HostVariable } from '@frontend/utils/types';
 import { Interception } from 'cypress/types/net-stubbing';
 
 describe('Host Details Page', () => {

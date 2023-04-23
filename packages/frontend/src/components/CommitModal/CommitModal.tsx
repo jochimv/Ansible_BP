@@ -11,7 +11,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Cancel, CheckCircle, Replay as ReplayIcon, Send as SendIcon } from '@mui/icons-material';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { useMutation } from 'react-query';
 import {
   useCodeChangesContext,
@@ -31,12 +31,19 @@ import {
   useCommitModalDispatchContext,
 } from '@frontend/components/CommitModal/state/CommitModalContext';
 import { CloseButton } from '@frontend/components/CloseButton';
-import {BE_IP_ADDRESS} from "@frontend/utils/constants";
+import { BE_IP_ADDRESS } from '@frontend/utils/constants';
+import { CommitResponse } from '@frontend/types';
 
-const postCommitData = (data: any) => axios.post(`http://${BE_IP_ADDRESS}:4000/commit`, data);
+const postCommitData = async (data: any): Promise<CommitResponse> => {
+  const response: AxiosResponse<any> = await axios.post(
+    `http://${BE_IP_ADDRESS}:4000/commit`,
+    data,
+  );
+  return response.data;
+};
 
 interface CommitModalProps {
-  mainBranchName: string;
+  mainBranchName: string | null;
 }
 
 const CommitModal = ({ mainBranchName }: CommitModalProps) => {
@@ -51,7 +58,7 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
   };
 
   const { isLoading, reset, mutateAsync } = useMutation(postCommitData, {
-    onSuccess: (data) => commitModalDispatch(updateResponse(data.data)),
+    onSuccess: (data: CommitResponse) => commitModalDispatch(updateResponse(data)),
   });
   const { updatedVars, selectedProjectName } = useCodeChangesContext();
   const codeChangesDispatch = useCodeChangesDispatchContext();
@@ -66,7 +73,7 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
       updatedVars,
       projectName: selectedProjectName,
     });
-    if (!data.data?.error) {
+    if (!data.error) {
       codeChangesDispatch(clearProjectUpdates(selectedProjectName));
     }
   };

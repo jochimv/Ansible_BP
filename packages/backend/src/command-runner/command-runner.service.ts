@@ -2,13 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { exec } from 'child_process';
 import { CommandExecution } from './entities/command-execution.entity';
 import { CommandRunnerRepository } from './command-runner.repository';
-import { RunCommandOutput } from './types';
+import { RunCommandDto } from '../dto';
+import { RunCommandOutput, CommandExecution as ICommandExecution } from '../types';
 
 @Injectable()
 export class CommandRunnerService {
   constructor(private commandExecutionRepository: CommandRunnerRepository) {}
 
-  async runCommand(command: string, projectName: string, alias: string): Promise<RunCommandOutput> {
+  async runCommand(runCommandDto: RunCommandDto): Promise<RunCommandOutput> {
+    const { projectName, command, alias }: RunCommandDto = runCommandDto;
     return new Promise((resolve) => {
       exec(
         `cd ansible_repos && cd ${projectName} && ${command}`,
@@ -38,7 +40,7 @@ export class CommandRunnerService {
     });
   }
 
-  async getCommandExecutionsForProject(projectName: string): Promise<CommandExecution[]> {
+  async getCommandExecutionsForProject(projectName: string): Promise<ICommandExecution[]> {
     return await this.commandExecutionRepository.getCommandExecutionsForProject(projectName);
   }
 }

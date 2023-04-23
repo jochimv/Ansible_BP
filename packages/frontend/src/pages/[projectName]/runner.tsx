@@ -130,7 +130,7 @@ const AnsibleCommandsPage: React.FC = () => {
                         <EditIcon />
                       </IconButton>
                       {runningCommandIds.has(id) ? (
-                        <CircularProgress size={30} />
+                        <CircularProgress size={28} />
                       ) : (
                         <IconButton
                           edge="end"

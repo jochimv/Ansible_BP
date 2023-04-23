@@ -5,6 +5,7 @@ import { join } from 'path';
 import { parse as parseYaml, stringify } from 'yaml';
 import { extname } from 'path';
 import * as path from 'path';
+import { HostDetailsResponse, ProjectDetailsResponse, ProjectHosts } from '../types';
 
 export const ansibleReposPath =
   process.env.STAGE === 'development'
@@ -40,7 +41,7 @@ const checkAndUpdateAllProjects = async (projectPaths: string[]) => {
   const tasks = projectPaths.map((path: string) => checkAndUpdateProject(path));
   await Promise.all(tasks);
 };
-export const getProjectDetails = async (projectName: string) => {
+export const getProjectDetails = async (projectName: string): Promise<ProjectDetailsResponse> => {
   const projectPath = join(ansibleReposPath, projectName);
   if (!existsSync(projectPath)) {
     return { projectExists: false, projectDetails: null };
@@ -155,7 +156,7 @@ const removeDuplicateHosts = (arr: any) => {
     return item;
   });
 };
-export const getProjectsHosts = async () => {
+export const getProjectsHosts = async (): Promise<ProjectHosts[]> => {
   const projectsHosts = [];
   const projects = readdirSync(ansibleReposPath);
   const projectsPaths = projects.map((project) => join(ansibleReposPath, project));
@@ -173,7 +174,7 @@ export const getProjectsHosts = async () => {
   return removeDuplicateHosts(projectsHosts);
 };
 
-const isIni = (inventoryPath: string) => {
+const isIni = (inventoryPath: string): boolean => {
   const inventoryExtension = extname(inventoryPath);
   return inventoryExtension === '.ini' || inventoryExtension === '';
 };
@@ -227,14 +228,11 @@ const removeAnsibleReposPathFromPath = (filePath: string): string => {
   return path.relative(ansibleReposPath, filePath);
 };
 const extractBeforeColon = (str: string) => {
-  // find the index of the first colon in the string
   const colonIndex = str.indexOf(':');
 
   if (colonIndex === -1) {
-    // if the colon is not found, return the entire string
     return str;
   } else {
-    // extract the substring before the colon
     return str.substring(0, colonIndex);
   }
 };
@@ -247,8 +245,11 @@ const getCommonVariablesObj = (filePath: string) => {
     // don't put "updated" key here as it causes original and updated variables not to match
   };
 };
-export const getHostDetails = async (projectName: string, hostName: string) => {
-  const projectPath = join(ansibleReposPath, projectName);
+export const getHostDetails = async (
+  projectName: string,
+  hostName: string,
+): Promise<HostDetailsResponse> => {
+  const projectPath: string = join(ansibleReposPath, projectName);
 
   if (!existsSync(projectPath)) {
     return { projectExists: false, hostDetailsByInventoryType: null, hostExists: false };

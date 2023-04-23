@@ -1,8 +1,8 @@
 import keyMirror from 'keymirror';
 import { parse as parseYaml, stringify } from 'yaml';
 import { omit } from 'ramda';
-import { ReducerAction, Host, HostDetails, HostVariable, Project } from '@frontend/utils/types';
-
+import { ReducerAction, Host, Project } from '@frontend/utils/types';
+import { HostVariable, HostDetails } from '@frontend/types';
 const projectHasUpdatedVariables = (project: Project) => {
   for (const host of project.hosts) {
     for (const inventoryType of host.hostDetailsByInventoryType) {

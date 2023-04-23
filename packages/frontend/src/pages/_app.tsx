@@ -29,7 +29,7 @@ import ClearModalProvider from '@frontend/components/ClearModal/state/ClearModal
 import { useClearModalDispatchContext } from '@frontend/components/ClearModal/state/ClearModalContext';
 import { open } from '@frontend/components/ClearModal/state/clearModalReducer';
 import ClearModal from '@frontend/components/ClearModal';
-import { Host, HostDetails, HostVariable, Project } from '@frontend/utils/types';
+import { Host, Project } from '@frontend/utils/types';
 import { SnackbarProvider } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
 import {
   CommandsProvider,
@@ -37,7 +37,8 @@ import {
   useCommandContext,
 } from '@frontend/contexts/commandContext';
 const queryClient = new QueryClient();
-
+import { HostVariable } from '@frontend/types';
+import { HostDetails } from '@frontend/types';
 const clientSideEmotionCache = createEmotionCache();
 
 interface MyAppProps extends AppProps {
@@ -46,7 +47,7 @@ interface MyAppProps extends AppProps {
   emotionCache?: EmotionCache;
 }
 
-export function getUpdatedFilesPaths(projects: Project[], projectName: string | null) {
+export const getUpdatedFilesPaths = (projects: Project[], projectName: string | null) => {
   const updatedFilesPaths: string[] = [];
 
   projects?.forEach(({ projectName: proj, hosts }: { projectName: string; hosts: Host[] }) => {
@@ -67,7 +68,7 @@ export function getUpdatedFilesPaths(projects: Project[], projectName: string | 
     }
   });
   return updatedFilesPaths;
-}
+};
 
 const AppBarResolver = () => {
   const { isInEditMode, selectedProjectName, updatedProjects } = useCodeChangesContext();
@@ -177,7 +178,6 @@ const AutoSaveContextProvider = ({ children }: AutoSaveContextProviderProps) => 
       handleBeforeUnload(codeChangesContextData, projectsCommands),
     );
 
-    // Cleanup the event listener when the component is unmounted
     return () => {
       window.removeEventListener('beforeunload', () =>
         handleBeforeUnload(codeChangesContextData, projectsCommands),

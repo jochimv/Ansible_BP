@@ -10,12 +10,12 @@ import {
 import { CloseButton } from '@frontend/components/CloseButton';
 import DownloadIcon from '@mui/icons-material/Download';
 import React, { useState, ChangeEvent } from 'react';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { useMutation } from 'react-query';
 import { useSnackbar } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import {BE_IP_ADDRESS} from "@frontend/utils/constants";
-
+import { BE_IP_ADDRESS } from '@frontend/utils/constants';
+import { RepositoryActionResult } from '@frontend/types';
 interface ImportProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -24,14 +24,20 @@ interface ImportProjectModalProps {
 
 const gitRepoUrlRegex = /((git|ssh|http(s)?)|(git@[\w.]+))(:(\/\/)?)([\w.@/:~-]+)(\.git)(\/)?/;
 
-const importProjectByRepoUrl = (data: any) =>
-  axios.post(`http://${BE_IP_ADDRESS}:4000/downloadRepository`, data);
-
+const importProjectByRepoUrl = async (data: any): Promise<RepositoryActionResult> => {
+  const response: AxiosResponse<any> = await axios.post(
+    `http://${BE_IP_ADDRESS}:4000/downloadRepository`,
+    data,
+  );
+  return response.data;
+};
 const ImportProjectModal = ({ isOpen, onClose, onSuccess }: ImportProjectModalProps) => {
   const { showMessage } = useSnackbar();
   const { isLoading, mutate } = useMutation(importProjectByRepoUrl, {
-    onSuccess: (response) => {
-      if (response.data.success) {
+    onSuccess: (result: RepositoryActionResult) => {
+      const { success, error } = result;
+
+      if (success) {
         const url = new URL(gitRepositoryUrl);
         const pathSegments = url.pathname.split('/');
         const projectName = pathSegments[pathSegments.length - 2];
@@ -40,8 +46,11 @@ const ImportProjectModal = ({ isOpen, onClose, onSuccess }: ImportProjectModalPr
         if (isOpen) {
           onClose();
         }
+      }
+      if (typeof error === 'string') {
+        showMessage(error, 'error');
       } else {
-        showMessage(response.data.error, 'error');
+        showMessage('An unknown error occurred', 'error');
       }
     },
     onError: () => {

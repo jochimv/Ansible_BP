@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
+import axios, { AxiosResponse } from 'axios';
 import { useQuery } from 'react-query';
 import {
   Table,
@@ -38,22 +38,15 @@ import { useProjectExists } from '@frontend/pages/[projectName]/runner';
 import ProjectNotFound from '@frontend/components/pages/ProjectNotFound';
 import { BE_IP_ADDRESS } from '@frontend/utils/constants';
 import { useRunCommand } from '@frontend/hooks/useRunCommand';
-const fetchCommandExecutions = async (projectName: string | string[] | undefined) => {
-  const { data } = await axios.get(
+import { CommandExecution } from '@frontend/types';
+const fetchCommandExecutions = async (
+  projectName: string | string[] | undefined,
+): Promise<CommandExecution[]> => {
+  const response: AxiosResponse<any> = await axios.get(
     `http://${BE_IP_ADDRESS}:4000/${projectName}/command-executions`,
   );
-  return data;
+  return response.data;
 };
-
-interface CommandExecution {
-  projectName: string;
-  id: number;
-  alias: string;
-  success: boolean;
-  output: string;
-  executionDate: string;
-  command: string;
-}
 
 interface ChartData {
   [date: string]: {

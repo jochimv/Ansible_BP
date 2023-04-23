@@ -15,7 +15,6 @@ import {
   useCodeChangesDispatchContext,
 } from '@frontend/codeChanges/CodeChangesContext';
 import { deleteProject, selectProject } from '@frontend/codeChanges/codeChangesReducer';
-import { ProjectHosts } from '@frontend/utils/types';
 import DownloadIcon from '@mui/icons-material/Download';
 import ImportProjectModal from '@frontend/components/ImportProjectModal';
 import { FolderOff } from '@mui/icons-material';
@@ -24,13 +23,18 @@ import { useMutation, useQuery } from 'react-query';
 import { useSnackbar } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
 import ConfirmDialog from '@frontend/components/ConfirmDialog';
 import { BE_IP_ADDRESS } from '@frontend/utils/constants';
-
-const fetchProjectsHosts = async () => {
+import { ProjectHosts, RepositoryActionResult } from '@frontend/types';
+const fetchProjectsHosts = async (): Promise<ProjectHosts[]> => {
   const response = await axios.get(`http://${BE_IP_ADDRESS}:4000/projects`);
   return response.data;
 };
-const deleteRepository = (data: any) =>
-  axios.post(`http://${BE_IP_ADDRESS}:4000/deleteRepository`, data);
+const deleteRepository = async (data: any): Promise<RepositoryActionResult> => {
+  const response: AxiosResponse<any> = await axios.post(
+    `http://${BE_IP_ADDRESS}:4000/deleteRepository`,
+    data,
+  );
+  return response.data;
+};
 const HomePage = () => {
   const [projectNames, setProjectNames] = useState<string[]>([]);
   const { data: projectHosts } = useQuery('projectsHosts', fetchProjectsHosts, {
@@ -57,13 +61,18 @@ const HomePage = () => {
     );
 
   const { mutate } = useMutation(deleteRepository, {
-    onSuccess: (response: AxiosResponse<any>) => {
-      if (response.data.success) {
+    onSuccess: (response: RepositoryActionResult) => {
+      const { success, error } = response;
+      if (success) {
         showMessage(`${selectedProjectName} deleted successfully`, 'success');
         handleChangeProjectsAutocompleteValues();
         dispatch(deleteProject(selectedProjectName));
       } else {
-        showMessage(response.data.error, 'error');
+        if (typeof error === 'string') {
+          showMessage(error, 'error');
+        } else {
+          showMessage('An unknown error occurred', 'error');
+        }
       }
     },
   });

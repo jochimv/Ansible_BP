@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DownloadRepositoryResult, FileProcessorService } from './file-processor.service';
+import { FileProcessorService } from './file-processor.service';
 import { existsSync, readdirSync, readFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { getHostDetails, getProjectDetails, getProjectsHosts, ansibleReposPath } from './utils';
 import { simpleGit } from 'simple-git';
-
+import { RepositoryActionResult } from '../types';
 jest.mock('fs', () => ({
   ...jest.requireActual('fs'),
   existsSync: jest.fn(),
@@ -96,7 +96,7 @@ describe('FileProcessorService', () => {
     const projectName = 'sample-project';
     const projectPath = join(ansibleReposPath, projectName);
     (existsSync as jest.Mock).mockReturnValue(true);
-    const expectedResult: DownloadRepositoryResult = { success: true };
+    const expectedResult: RepositoryActionResult = { success: true };
     const result = await service.deleteRepository(projectName);
     expect(existsSync).toHaveBeenCalledWith(projectPath);
     expect(rmSync).toHaveBeenCalledWith(projectPath, { recursive: true, force: true });
@@ -111,7 +111,7 @@ describe('FileProcessorService', () => {
     (existsSync as jest.Mock).mockReturnValue(false);
     const gitMock = { clone: jest.fn().mockResolvedValue(undefined) };
     (simpleGit as jest.Mock).mockReturnValue(gitMock);
-    const expectedResult: DownloadRepositoryResult = { success: true };
+    const expectedResult: RepositoryActionResult = { success: true };
     const result = await service.downloadRepository(gitRepositoryUrl);
     expect(existsSync).toHaveBeenCalledWith(projectDestinationPath);
     expect(gitMock.clone).toHaveBeenCalledWith(gitRepositoryUrl, projectDestinationPath);

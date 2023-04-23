@@ -1,24 +1,30 @@
 import { Injectable } from '@nestjs/common';
-import { writeFileSync, existsSync, rmSync, readdirSync, readFileSync } from 'fs';
+import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 
 import { join } from 'path';
 import { SimpleGit, simpleGit } from 'simple-git';
 import { ansibleReposPath, getHostDetails, getProjectDetails, getProjectsHosts } from './utils';
-export interface CommitResponse {
-  error: string | boolean;
-  pullRequestUrl?: any;
-}
+import {
+  CommitResponse,
+  HostDetailsResponse,
+  ProjectDetailsResponse,
+  ProjectHosts,
+  ProjectMainBranch,
+  ProjectPlaybook,
+  RepositoryActionResult,
+} from '../types';
+
 const extractSecondToLastPathSegment = (url: string): string => {
   const urlSegments = url.split('/');
   return urlSegments[urlSegments.length - 2];
 };
 
-function addCredentialsToUrl(username, password, url) {
+const addCredentialsToUrl = (username: string, password: string, url: string) => {
   const urlWithCredentials = new URL(url);
   urlWithCredentials.username = username;
   urlWithCredentials.password = password;
   return urlWithCredentials.href;
-}
+};
 
 const removeCredentialsFromUrl = (urlWithCredentials) => {
   const urlWithoutCredentials = new URL(urlWithCredentials);
@@ -26,11 +32,6 @@ const removeCredentialsFromUrl = (urlWithCredentials) => {
   urlWithoutCredentials.password = '';
   return urlWithoutCredentials.href;
 };
-
-export interface DownloadRepositoryResult {
-  success: boolean;
-  error?: string;
-}
 
 export const getMainBranchName = async (git): Promise<string> => {
   try {
@@ -43,7 +44,7 @@ export const getMainBranchName = async (git): Promise<string> => {
 
 @Injectable()
 export class FileProcessorService {
-  getProjectDetails = async (projectName: string) => {
+  getProjectDetails = async (projectName: string): Promise<ProjectDetailsResponse> => {
     return await getProjectDetails(projectName);
   };
 
@@ -52,7 +53,7 @@ export class FileProcessorService {
     return existsSync(projectPath);
   };
 
-  getProjectPlaybooks = async (projectName: string) => {
+  getProjectPlaybooks = async (projectName: string): Promise<ProjectPlaybook[]> => {
     const projectPath = join(ansibleReposPath, projectName);
     const playbookNames = readdirSync(projectPath).filter((name) => name.includes('playbook'));
     return playbookNames.map((playbookName: string) => {
@@ -61,24 +62,25 @@ export class FileProcessorService {
       return { playbookName, content };
     });
   };
-  getMainBranchName = async (projectName: string) => {
+  getMainBranchName = async (projectName: string): Promise<ProjectMainBranch> => {
     const projectPath = join(ansibleReposPath, projectName);
     if (!existsSync(projectPath)) {
       return {
-        props: { mainBranchName: null, projectExists: false },
+        mainBranchName: null,
+        projectExists: false,
       };
     }
     const git = await simpleGit(projectPath);
     const mainBranchName = await getMainBranchName(git);
     return { projectExists: true, mainBranchName };
   };
-  getHostDetails = async (projectName: string, hostname: string) => {
+  getHostDetails = async (projectName: string, hostname: string): Promise<HostDetailsResponse> => {
     return await getHostDetails(projectName, hostname);
   };
-  getProjectsHosts = async () => {
+  getProjectsHosts = async (): Promise<ProjectHosts[]> => {
     return await getProjectsHosts();
   };
-  deleteRepository = async (projectName: string): Promise<DownloadRepositoryResult> => {
+  deleteRepository = async (projectName: string): Promise<RepositoryActionResult> => {
     const projectPath = join(ansibleReposPath, projectName);
     if (!existsSync(projectPath)) {
       return { success: false, error: `${projectName} not found` };
@@ -91,7 +93,7 @@ export class FileProcessorService {
       return { success: false, error: `Error during removal of ${projectPath}` };
     }
   };
-  downloadRepository = async (gitRepositoryUrl: string): Promise<DownloadRepositoryResult> => {
+  downloadRepository = async (gitRepositoryUrl: string): Promise<RepositoryActionResult> => {
     const git: SimpleGit = simpleGit();
     console.log('starting to download repository');
     try {

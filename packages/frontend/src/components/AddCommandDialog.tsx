@@ -21,15 +21,17 @@ import { CloseButton } from '@frontend/components/CloseButton';
 import ConfirmButton from '@frontend/components/ConfirmButton';
 import { useQuery } from 'react-query';
 import { useRouter } from 'next/router';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { BE_IP_ADDRESS } from '@frontend/utils/constants';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 
 import {
+  ProjectDetailsAndPlaybooks,
   ProjectDetailsGroup,
   ProjectDetailsHost,
   ProjectDetailsInventory,
-} from '@frontend/utils/types';
+} from '@frontend/types';
+
 interface AddCommandDialogProps {
   open: boolean;
   onClose: () => void;
@@ -41,8 +43,12 @@ interface ProjectPlaybook {
   playbookName: string;
   content: string;
 }
-const fetchProjectPlaybooksAndDetails = async (projectName: string) => {
-  const data = await axios.get(`http://${BE_IP_ADDRESS}:4000/${projectName}/details-playbooks`);
+const fetchProjectPlaybooksAndDetails = async (
+  projectName: string,
+): Promise<ProjectDetailsAndPlaybooks> => {
+  const data: AxiosResponse<any> = await axios.get(
+    `http://${BE_IP_ADDRESS}:4000/${projectName}/details-playbooks`,
+  );
   return data.data;
 };
 
@@ -170,7 +176,7 @@ const AddCommandDialog = ({
     );
   }
 
-  const { projectDetails, projectPlaybooks } = data;
+  const { projectDetails, projectPlaybooks } = data!;
   const handleAddCommand = () => {
     if (commandAlias.trim() && typeof projectName === 'string') {
       addCommand(
@@ -275,7 +281,7 @@ const AddCommandDialog = ({
                   setSelectedInventoryType(newValue);
                   const selectedInventory = projectDetails.find(
                     (inventory: any) => inventory.inventoryType === newValue,
-                  );
+                  )!;
                   setSelectedInventoryPath(selectedInventory.inventoryPath);
                 }}
                 value={selectedInventoryType}

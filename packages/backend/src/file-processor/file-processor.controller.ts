@@ -1,9 +1,14 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { FileProcessorService } from './file-processor.service';
 import {
   CommitResponse,
-  DownloadRepositoryResult,
-  FileProcessorService,
-} from './file-processor.service';
+  HostDetailsResponse,
+  ProjectDetailsAndPlaybooks,
+  ProjectDetailsResponse,
+  ProjectHosts,
+  ProjectPlaybook,
+  RepositoryActionResult,
+} from '../types';
 
 @Controller()
 export class FileProcessorController {
@@ -15,15 +20,18 @@ export class FileProcessorController {
   }
 
   @Get('/:projectName/details-playbooks')
-  async getProjectDetailsAndPlaybooks(@Param('projectName') projectName: string) {
+  async getProjectDetailsAndPlaybooks(
+    @Param('projectName') projectName: string,
+  ): Promise<ProjectDetailsAndPlaybooks> {
     const { projectExists, projectDetails } = await this.fileProcessorService.getProjectDetails(
       projectName,
     );
     if (!projectExists) {
       return { projectExists, projectDetails: null, projectPlaybooks: null };
     }
-    const projectPlaybooks = await this.fileProcessorService.getProjectPlaybooks(projectName);
-    console.log('result: ', JSON.stringify({ projectDetails, projectPlaybooks, projectExists }));
+    const projectPlaybooks: ProjectPlaybook[] = await this.fileProcessorService.getProjectPlaybooks(
+      projectName,
+    );
     return { projectDetails, projectPlaybooks, projectExists };
   }
 
@@ -33,20 +41,24 @@ export class FileProcessorController {
   }
 
   @Get('/:projectName/details')
-  async getProjectDetails(@Param('projectName') projectName: string) {
-    return await this.fileProcessorService.getProjectDetails(projectName);
+  async getProjectDetails(
+    @Param('projectName') projectName: string,
+  ): Promise<ProjectDetailsResponse> {
+    const result = await this.fileProcessorService.getProjectDetails(projectName);
+    console.log('result: ', JSON.stringify(result));
+    return result;
   }
 
-  @Get('/:projectName/:hostname')
+  @Get('/:projectName/host/:hostname')
   async getHostDetails(
     @Param('projectName') projectName: string,
     @Param('hostname') hostname: string,
-  ) {
+  ): Promise<HostDetailsResponse> {
     return await this.fileProcessorService.getHostDetails(projectName, hostname);
   }
   @Get('projects')
-  getProjectsHosts() {
-    return this.fileProcessorService.getProjectsHosts();
+  async getProjectsHosts(): Promise<ProjectHosts[]> {
+    return await this.fileProcessorService.getProjectsHosts();
   }
   @Post('commit')
   async commit(@Body() commitDto): Promise<CommitResponse> {
@@ -55,12 +67,12 @@ export class FileProcessorController {
   @Post('downloadRepository')
   async downloadRepository(
     @Body('gitRepositoryUrl') gitRepositoryUrl,
-  ): Promise<DownloadRepositoryResult> {
+  ): Promise<RepositoryActionResult> {
     return await this.fileProcessorService.downloadRepository(gitRepositoryUrl);
   }
 
   @Post('deleteRepository')
-  async deleteRepository(@Body('projectName') projectName): Promise<DownloadRepositoryResult> {
+  async deleteRepository(@Body('projectName') projectName): Promise<RepositoryActionResult> {
     return await this.fileProcessorService.deleteRepository(projectName);
   }
 }

@@ -6,8 +6,7 @@ import {
   useCodeChangesDispatchContext,
 } from '../codeChanges/CodeChangesContext';
 import { showDiff } from '../codeChanges/codeChangesReducer';
-import { HostVariable } from '@frontend/utils/types';
-
+import { HostVariable } from '@frontend/types';
 interface TreeNode {
   [key: string]: TreeNode | undefined;
 }

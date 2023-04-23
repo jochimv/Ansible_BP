@@ -16,9 +16,8 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@frontend/*": ["./src/*"],
-      "@backend/types": ["../backend/src/types.ts"]
-  }
+      "@frontend/*": ["./src/*"]
+    }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]

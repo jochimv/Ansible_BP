@@ -17,49 +17,54 @@ import { useCommitModalDispatchContext } from '@frontend/components/CommitModal/
 import CommitModalProvider from '@frontend/components/CommitModal/state/CommitModalProvider';
 import { useRouter } from 'next/router';
 import ProjectNotFound from '@frontend/components/pages/ProjectNotFound';
-import axios from 'axios';
-import {useQuery} from "react-query";
-import LoadingPage from "@frontend/components/pages/Loading";
-import {BE_IP_ADDRESS} from "@frontend/utils/constants";
+import axios, { AxiosResponse } from 'axios';
+import { useQuery } from 'react-query';
+import LoadingPage from '@frontend/components/pages/Loading';
+import { BE_IP_ADDRESS } from '@frontend/utils/constants';
 const stackPropsIfNoChanges = {
   alignItems: 'center',
   justifyContent: 'center',
 };
-const fetchMainBranchName = async (projectName : string) => {
-  const response = await axios.get(`http://${BE_IP_ADDRESS}:4000/${projectName}/mainBranchName`);
+import { ProjectMainBranch } from '@frontend/types';
+
+const fetchMainBranchName = async (projectName: string): Promise<ProjectMainBranch> => {
+  const response: AxiosResponse<any> = await axios.get(
+    `http://${BE_IP_ADDRESS}:4000/${projectName}/git`,
+  );
   return response.data;
 };
 
 const GitPage = () => {
-
   const codeChangesDispatch = useCodeChangesDispatchContext();
-  const {projectName}= useRouter().query;
+  const { projectName } = useRouter().query;
   const { originalDiff, updatedDiff } = useCodeChangesContext();
   const commitModalDispatch = useCommitModalDispatchContext();
   const { data, isLoading, isSuccess } = useQuery(
-      ['mainBranchName', projectName],
-      () => {
-        if(typeof projectName === 'string') {
-          return fetchMainBranchName(projectName)
-        }
-      },
-      { enabled: !!projectName, onSuccess: (data) => {
-        if (data.projectExists){
+    ['mainBranchName', projectName],
+    () => {
+      if (typeof projectName === 'string') {
+        return fetchMainBranchName(projectName);
+      }
+    },
+    {
+      enabled: !!projectName,
+      onSuccess: (data: ProjectMainBranch) => {
+        if (data?.projectExists) {
           codeChangesDispatch(createDiff(projectName));
         }
-        }}
+      },
+    },
   );
 
-  if(isLoading || !projectName || !isSuccess){
-    return <LoadingPage/>
+  if (isLoading || !projectName || !isSuccess) {
+    return <LoadingPage />;
   }
 
-  const {mainBranchName, projectExists} = data;
+  const { mainBranchName, projectExists } = data;
 
   if (!projectExists) {
     return <ProjectNotFound />;
   }
-
 
   return (
     <Stack

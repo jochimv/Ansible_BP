@@ -6,22 +6,21 @@ import { useState, useEffect } from 'react';
 import ProjectNotFound from '@frontend/components/pages/ProjectNotFound';
 import { useCodeChangesContext } from '@frontend/codeChanges/CodeChangesContext';
 import { parse as parseYaml, stringify } from 'yaml';
-import {
-  Host,
-  HostDetails,
-  HostVariable,
-  Project,
-  ProjectDetails,
-  ProjectDetailsGroup,
-  ProjectDetailsHost,
-  ProjectDetailsInventory,
-} from '@frontend/utils/types';
+import { Host, Project } from '@frontend/utils/types';
 import axios from 'axios';
 import { useQuery } from 'react-query';
 import LoadingPage from '@frontend/components/pages/Loading';
 import { BE_IP_ADDRESS } from '@frontend/utils/constants';
+import { HostVariable } from '@frontend/types';
+import {
+  HostDetails,
+  ProjectDetailsGroup,
+  ProjectDetailsHost,
+  ProjectDetailsInventory,
+  ProjectDetailsResponse,
+} from '@frontend/types';
 
-const convertProjectDetailsToTreeOfIds = (projectDetails: ProjectDetails) => {
+const convertProjectDetailsToTreeOfIds = (projectDetails: ProjectDetailsInventory[]) => {
   return projectDetails.flatMap(
     ({ inventoryType, groupHosts }: ProjectDetailsInventory, idx: number) => {
       return {
@@ -66,7 +65,7 @@ export const getStringifiedAppliedVariablesFromVariablesArray = (
 };
 
 const updateAppliedVariables = (
-  projectDetails: ProjectDetails,
+  projectDetails: ProjectDetailsInventory[],
   updatedProjects: Project[],
   projectName: string | string[] | undefined,
 ) => {
@@ -139,7 +138,7 @@ const updateAppliedVariables = (
   return updatedDetails;
 };
 
-const getProjectDetails = async (projectName: string) => {
+const getProjectDetails = async (projectName: string): Promise<ProjectDetailsResponse> => {
   const data = await axios.get(`http://${BE_IP_ADDRESS}:4000/${projectName}/details`);
   return data.data;
 };

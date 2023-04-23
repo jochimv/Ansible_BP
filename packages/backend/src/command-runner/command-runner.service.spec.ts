@@ -3,8 +3,8 @@ import { CommandRunnerService } from './command-runner.service';
 import { CommandRunnerRepository } from './command-runner.repository';
 import { CommandExecution } from './entities/command-execution.entity';
 import { exec } from 'child_process';
-import { RunCommandOutput } from './types';
-
+import { RunCommandOutput } from '../types';
+import { RunCommandDto } from '../dto';
 jest.mock('child_process', () => ({
   exec: jest.fn(),
 }));
@@ -39,9 +39,12 @@ describe('CommandRunnerService', () => {
 
   describe('runCommand', () => {
     it('should execute a command and save the result to the repository', async () => {
-      const command = 'test-command';
-      const projectName = 'test-project';
-      const alias = 'test-alias';
+      const runCommandDto: RunCommandDto = {
+        commandId: 1,
+        command: 'test-command',
+        projectName: 'test-project',
+        alias: 'test-alias',
+      };
       const expectedResult: RunCommandOutput = {
         success: true,
         output: 'Command executed successfully',
@@ -54,7 +57,7 @@ describe('CommandRunnerService', () => {
         .spyOn(repository, 'save')
         .mockImplementation((commandExecution) => Promise.resolve(commandExecution));
 
-      const result = await service.runCommand(command, projectName, alias);
+      const result = await service.runCommand(runCommandDto);
 
       expect(result).toEqual(expectedResult);
       expect(repository.save).toHaveBeenCalled();

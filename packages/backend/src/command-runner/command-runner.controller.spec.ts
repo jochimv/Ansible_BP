@@ -3,7 +3,8 @@ import { CommandRunnerController } from './command-runner.controller';
 import { CommandRunnerService } from './command-runner.service';
 import { CommandExecution } from './entities/command-execution.entity';
 import { CommandRunnerRepository } from './command-runner.repository';
-import { RunCommandOutput } from './types';
+import { RunCommandOutput } from '../types';
+import { RunCommandDto } from '../dto';
 
 describe('CommandRunnerController', () => {
   let controller: CommandRunnerController;
@@ -36,9 +37,13 @@ describe('CommandRunnerController', () => {
 
   describe('runCommand', () => {
     it('should call runCommand from CommandRunnerService with the provided params', async () => {
-      const command = 'test-command';
-      const projectName = 'test-project';
-      const alias = 'test-alias';
+      const runCommandDto: RunCommandDto = {
+        commandId: 1,
+        command: 'test-command',
+        projectName: 'test-project',
+        alias: 'test-alias',
+      };
+
       const expectedResult: RunCommandOutput = {
         success: true,
         output: 'Command executed successfully',
@@ -46,10 +51,10 @@ describe('CommandRunnerController', () => {
 
       jest.spyOn(service, 'runCommand').mockImplementation(() => Promise.resolve(expectedResult));
 
-      const result = await controller.runCommand(command, projectName, alias);
+      const result = await controller.runCommand(runCommandDto);
 
       expect(result).toEqual(expectedResult);
-      expect(service.runCommand).toHaveBeenCalledWith(command, projectName, alias);
+      expect(service.runCommand).toHaveBeenCalledWith(runCommandDto);
     });
   });
 

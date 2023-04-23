@@ -6,7 +6,8 @@ import { Dialog, IconButton } from '@mui/material';
 import { useSnackbar } from '@frontend/components/ImportProjectModal/state/SnackbarContext';
 import Terminal from '@frontend/components/Terminal';
 import { Terminal as TerminalIcon } from '@mui/icons-material';
-
+import { RunCommandOutput } from '@frontend/types';
+import { RunCommandDto } from '@frontend/dto';
 const performCommandExecutionOnBackend = (data: any) =>
   axios.post(`http://${BE_IP_ADDRESS}:4000/run-command`, data);
 
@@ -49,9 +50,9 @@ export const useRunCommand = (requestFinishedCallback?: () => void) => {
 
   const { mutate } = useMutation(performCommandExecutionOnBackend, {
     onSuccess: (data: AxiosResponse<any>) => {
-      const { success, output } = data.data;
-      const command = JSON.parse(data.config.data);
-      const { commandId, alias } = command;
+      const { success, output }: RunCommandOutput = data.data;
+      const command: RunCommandDto = JSON.parse(data.config.data);
+      const { commandId, alias }: RunCommandDto = command;
       stopRunningCommand(commandId);
       setCommandOutput(output);
       if (success) {

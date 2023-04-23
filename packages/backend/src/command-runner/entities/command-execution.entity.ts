@@ -1,7 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { CommandExecution as ICommandExecution } from '../../types';
 
 @Entity()
-export class CommandExecution {
+export class CommandExecution implements ICommandExecution {
   @PrimaryGeneratedColumn()
   id: number;
 

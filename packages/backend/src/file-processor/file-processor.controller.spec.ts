@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FileProcessorController } from './file-processor.controller';
 import { FileProcessorService } from './file-processor.service';
-import { CommitResponse, DownloadRepositoryResult } from './file-processor.service';
-
+import { CommitResponse, RepositoryActionResult } from '../types';
 jest.mock('./file-processor.service');
 
 describe('FileProcessorController', () => {
@@ -112,6 +111,7 @@ describe('FileProcessorController', () => {
       { projectName: 'project2', hosts: ['host3', 'host4'] },
     ];
 
+    // @ts-ignore
     jest.spyOn(service, 'getProjectsHosts').mockResolvedValueOnce(projectsHosts);
 
     const result = await controller.getProjectsHosts();
@@ -140,7 +140,7 @@ describe('FileProcessorController', () => {
 
   it('should call downloadRepository', async () => {
     const gitRepositoryUrl = 'https://github.com/sample/sample-project.git';
-    const downloadRepositoryResult: DownloadRepositoryResult = { success: true };
+    const downloadRepositoryResult: RepositoryActionResult = { success: true };
 
     jest.spyOn(service, 'downloadRepository').mockResolvedValueOnce(downloadRepositoryResult);
 
@@ -151,7 +151,7 @@ describe('FileProcessorController', () => {
 
   it('should call deleteRepository', async () => {
     const projectName = 'sample-project';
-    const downloadRepositoryResult: DownloadRepositoryResult = { success: true };
+    const downloadRepositoryResult: RepositoryActionResult = { success: true };
     jest.spyOn(service, 'deleteRepository').mockResolvedValueOnce(downloadRepositoryResult);
 
     const result = await controller.deleteRepository({ projectName });
