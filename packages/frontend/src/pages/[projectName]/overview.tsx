@@ -1,21 +1,17 @@
 import { useRouter } from 'next/router';
-import { Box, Stack, Typography } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import ProjectDetailsTree from '@frontend/components/ProjectDetailsTree';
 import Editor from '@monaco-editor/react';
 import { useEffect, useState } from 'react';
 import ProjectNotFound from '@frontend/components/ProjectNotFound';
-import { useCodeChangesContext } from '@frontend/context/CodeChangesContext';
 import { useQuery } from 'react-query';
 import LoadingPage from '@frontend/components/Loading';
-import {
-  convertProjectDetailsToTreeOfIds,
-  getProjectDetails,
-  updateAppliedVariables,
-} from '@frontend/utils';
+import { convertProjectDetailsToTreeOfIds, getProjectDetails } from '@frontend/utils';
+import { useUpdatedProjectDetails } from '@frontend/hooks/useUpdatedProjectDetails';
 
 const ProjectPage = () => {
   const { projectName } = useRouter().query;
-  const { updatedProjects } = useCodeChangesContext();
+  const [selectedHost, setSelectedHost] = useState({ id: '', name: '', appliedVariables: '' });
 
   const { data, isLoading } = useQuery(
     ['projectDetails', projectName],
@@ -29,23 +25,21 @@ const ProjectPage = () => {
     },
   );
 
-  const [selectedHost, setSelectedHost] = useState({ id: '', name: '', appliedVariables: '' });
+  const projectDetails = data?.projectDetails || [];
+
+  const updatedProjectDetails = useUpdatedProjectDetails(projectDetails, projectName);
 
   useEffect(() => {
     if (!isLoading && projectName && data) {
-      const { projectDetails, projectExists } = data;
-
+      const { projectExists } = data;
       if (projectExists) {
-        const newProjectDetails = updateAppliedVariables(
-          projectDetails,
-          updatedProjects,
-          projectName,
-        );
-        const treeData = convertProjectDetailsToTreeOfIds(newProjectDetails);
+        const treeData = convertProjectDetailsToTreeOfIds(updatedProjectDetails);
         setSelectedHost(treeData[0].children[0].children[0]);
       }
     }
-  }, [isLoading, projectName, data, updatedProjects]);
+  }, [isLoading, projectName, data]);
+
+  const treeData = convertProjectDetailsToTreeOfIds(updatedProjectDetails);
 
   if (isLoading || !projectName || !data) {
     return <LoadingPage />;
@@ -53,12 +47,6 @@ const ProjectPage = () => {
   if (!data.projectExists) {
     return <ProjectNotFound />;
   }
-
-  const { projectDetails } = data;
-  const treeData = convertProjectDetailsToTreeOfIds(
-    updateAppliedVariables(projectDetails, updatedProjects, projectName),
-  );
-
   return (
     <Stack sx={{ height: '100%' }}>
       <Stack direction="row" sx={{ height: '100%', display: 'flex' }}>

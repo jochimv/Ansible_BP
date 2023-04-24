@@ -1,5 +1,4 @@
 import { HostDetailsResponse, HostVariable, ProjectDetailsResponse, ProjectHosts } from '../types';
-//import path, { extname, join } from 'path';
 import * as path from 'path';
 import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
 import { parse as parseYaml, stringify } from 'yaml';

@@ -62,12 +62,16 @@ export const getStringifiedAppliedVariablesFromVariablesArray = (
   const stringifiedAppliedVariables = stringify(appliedVariables);
   return stringifiedAppliedVariables === '{}\n' ? '' : stringifiedAppliedVariables;
 };
-const findHostVariables = (
+export const findServerVariables = (
   host: Host,
   inventoryType: string,
   groupName: string,
   hostname: string,
-) => {
+): {
+  hostVariables: HostVariable | undefined;
+  groupVariables: HostVariable | undefined;
+  commonVariables: HostVariable | undefined;
+} => {
   let hostVariables, groupVariables, commonVariables;
 
   host?.hostDetailsByInventoryType.forEach((hostDetail: HostDetails) => {
@@ -98,53 +102,9 @@ const findHostVariables = (
       );
     }
   });
-
   return { hostVariables, groupVariables, commonVariables };
 };
-export const updateAppliedVariables = (
-  projectDetails: ProjectDetailsInventory[],
-  updatedProjects: Project[],
-  projectName: string | string[] | undefined,
-) => {
-  const updatedDetails = JSON.parse(JSON.stringify(projectDetails));
 
-  const updatedProject = updatedProjects.find(
-    (project: Project) => project.projectName === projectName,
-  );
-
-  updatedDetails?.forEach((detail: ProjectDetailsInventory) => {
-    detail?.groupHosts.forEach((groupHost: ProjectDetailsGroup) => {
-      groupHost?.hosts?.forEach((host: ProjectDetailsHost) => {
-        const inventoryType = detail.inventoryType;
-        const groupName = groupHost.groupName;
-        const hostname = host.hostname;
-        const sourceForAppliedVariables: HostVariable[] = [];
-
-        updatedProject?.hosts.forEach((projectHost: Host) => {
-          const { hostVariables, groupVariables, commonVariables } = findHostVariables(
-            projectHost,
-            inventoryType,
-            groupName,
-            hostname,
-          );
-
-          if (hostVariables) sourceForAppliedVariables.push(hostVariables);
-          if (groupVariables) sourceForAppliedVariables.push(groupVariables);
-          if (commonVariables) sourceForAppliedVariables.push(commonVariables);
-        });
-
-        if (sourceForAppliedVariables.length !== 0) {
-          host.appliedVariables = getStringifiedAppliedVariablesFromVariablesArray(
-            sourceForAppliedVariables,
-            host.appliedVariables,
-          );
-        }
-      });
-    });
-  });
-
-  return updatedDetails;
-};
 export const getProjectDetails = async (projectName: string): Promise<ProjectDetailsResponse> => {
   const data = await axios.get(`http://${BE_IP_ADDRESS}:4000/${projectName}/details`);
   return data.data;
@@ -192,7 +152,10 @@ export const getUpdatedFilesPaths = (projects: Project[], projectName: string | 
             ),
         ),
       )
-      .filter((pathInProject, index, self) => self.indexOf(pathInProject) === index) || []
+      .filter(
+        (pathInProject: string, index: number, self: string[]) =>
+          self.indexOf(pathInProject) === index,
+      ) || []
   );
 };
 export const projectHasUpdatedVariables = (project: Project) => {
@@ -369,7 +332,7 @@ export const extractOriginalStateValues = (
     selectedVariables,
   };
 };
-export const tryToParseYml = (newEditorValue: string) => {
+export const tryToParseYml = (newEditorValue: string): string | undefined => {
   try {
     const parsedYml = parseYaml(newEditorValue);
     if ('0' in parsedYml) {
@@ -418,7 +381,7 @@ export const renderTree = (nodes: TreeViewInventoryItem) => {
     </TreeItem>
   );
 };
-export const countServers = (treeData: TreeViewInventoryItem[]) => {
+export const countServers = (treeData: TreeViewInventoryItem[]): number => {
   let serverCount = 0;
   treeData.forEach((inventory: TreeViewInventoryItem) => {
     inventory.children?.forEach((group: TreeViewInventoryItem) => {

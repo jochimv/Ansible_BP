@@ -24,6 +24,7 @@ import { useSnackbar } from '@frontend/context/SnackbarContext';
 import ConfirmDialog from '@frontend/components/ConfirmDialog';
 import { ProjectHosts, RepositoryActionResult } from '@frontend/types';
 import { BE_IP_ADDRESS } from '@frontend/constants';
+import LoadingPage from '@frontend/components/Loading';
 const fetchProjectsHosts = async (): Promise<ProjectHosts[]> => {
   const response = await axios.get(`http://${BE_IP_ADDRESS}:4000/projects`);
   return response.data;
@@ -37,7 +38,7 @@ const deleteRepository = async (data: any): Promise<RepositoryActionResult> => {
 };
 const HomePage = () => {
   const [projectNames, setProjectNames] = useState<string[]>([]);
-  const { data: projectHosts } = useQuery('projectsHosts', fetchProjectsHosts, {
+  const { data: projectHosts, isLoading } = useQuery('projectsHosts', fetchProjectsHosts, {
     onSuccess: (projectHosts) => {
       setProjectNames(projectHosts.map((projectHost: ProjectHosts) => projectHost.project));
     },
@@ -76,6 +77,9 @@ const HomePage = () => {
       }
     },
   });
+  if (isLoading) {
+    return <LoadingPage />;
+  }
   return (
     <Box display="flex" justifyContent="center" alignItems="center" mt={1}>
       <Stack spacing={3} sx={{ width: 'min-content' }}>

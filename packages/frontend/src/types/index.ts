@@ -3,6 +3,7 @@ export interface HostVariable {
   pathInProject: string;
   values: string;
   updated?: boolean;
+  error?: string;
 }
 
 export interface CommitResponse {

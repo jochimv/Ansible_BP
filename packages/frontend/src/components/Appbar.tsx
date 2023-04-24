@@ -45,6 +45,9 @@ export const Appbar = () => {
             {selectedProjectName ?? 'No project selected'}
           </Typography>
           <ClearModal />
+          <Button color="inherit" onClick={() => codeChangesDispatch({ type: 'clear' })}>
+            Clear context
+          </Button>
           <Button
             id="button-clear"
             color="inherit"
