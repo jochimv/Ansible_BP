@@ -4,7 +4,7 @@ import ProjectDetailsTree from '@frontend/components/ProjectDetailsTree';
 import Editor from '@monaco-editor/react';
 import { useEffect, useState } from 'react';
 import ProjectNotFound from '@frontend/components/ProjectNotFound';
-import { useCodeChangesContext } from '@frontend/contexts/CodeChangesContext';
+import { useCodeChangesContext } from '@frontend/context/CodeChangesContext';
 import { useQuery } from 'react-query';
 import LoadingPage from '@frontend/components/Loading';
 import {
@@ -61,12 +61,11 @@ const ProjectPage = () => {
 
   return (
     <Stack sx={{ height: '100%' }}>
-      <Typography variant="h4">{projectName}</Typography>
-      <Stack direction="row" sx={{ height: 'calc(100% - 40px)', display: 'flex' }}>
+      <Stack direction="row" sx={{ height: '100%', display: 'flex' }}>
         <Box sx={{ width: '30%', height: '100%' }}>
           <ProjectDetailsTree data={treeData} onNodeSelected={setSelectedHost} />
         </Box>
-        <Box sx={{ width: '70%' }}>
+        <Box sx={{ width: '70%', height: '100%' }}>
           <Editor
             defaultLanguage="yaml"
             value={selectedHost ? selectedHost.appliedVariables : ''}

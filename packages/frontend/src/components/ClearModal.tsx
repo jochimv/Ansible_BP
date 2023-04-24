@@ -19,13 +19,13 @@ import { HelpOutline } from '@mui/icons-material';
 import {
   useClearModalContext,
   useClearModalDispatchContext,
-} from '@frontend/contexts/ClearModalContext';
+} from '@frontend/context/ClearModalContext';
 import { CloseButton } from '@frontend/components/CloseButton';
 import { close } from '@frontend/reducers/clearModalReducer';
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
-} from '@frontend/contexts/CodeChangesContext';
+} from '@frontend/context/CodeChangesContext';
 import {
   clearAllProjectsUpdates,
   clearAllProjectUpdatesFromEditor,

@@ -1,7 +1,7 @@
 import { CodeChangesState } from '@frontend/reducers/codeChangesReducer';
-import { useCommandContext } from '@frontend/contexts/CommandContext';
+import { useCommandContext } from '@frontend/context/CommandContext';
 import React, { ReactNode, useEffect } from 'react';
-import { useCodeChangesContext } from '@frontend/contexts/CodeChangesContext';
+import { useCodeChangesContext } from '@frontend/context/CodeChangesContext';
 import { ProjectCommand } from '@frontend/types';
 
 interface AutoSaveContextProviderProps {

@@ -16,7 +16,7 @@ import { useMutation } from 'react-query';
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
-} from '@frontend/contexts/CodeChangesContext';
+} from '@frontend/context/CodeChangesContext';
 import { clearProjectUpdates } from '@frontend/reducers/codeChangesReducer';
 import { faCodePullRequest } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -29,7 +29,7 @@ import {
 import {
   useCommitModalContext,
   useCommitModalDispatchContext,
-} from '@frontend/contexts/CommitModalContext';
+} from '@frontend/context/CommitModalContext';
 import { CloseButton } from '@frontend/components/CloseButton';
 import { CommitResponse } from '@frontend/types';
 import { BE_IP_ADDRESS } from '@frontend/constants';

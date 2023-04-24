@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useMutation } from 'react-query';
 import axios, { AxiosResponse } from 'axios';
 import { Dialog, IconButton } from '@mui/material';
-import { useSnackbar } from '@frontend/contexts/SnackbarContext';
+import { useSnackbar } from '@frontend/context/SnackbarContext';
 import Terminal from '@frontend/components/Terminal';
 import { Terminal as TerminalIcon } from '@mui/icons-material';
 import { RunCommandOutput } from '@frontend/types';

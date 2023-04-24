@@ -16,7 +16,7 @@ import {
 
 import Editor from '@monaco-editor/react';
 import React, { SyntheticEvent, useEffect, useState } from 'react';
-import { useCommandContext } from '@frontend/contexts/CommandContext';
+import { useCommandContext } from '@frontend/context/CommandContext';
 import { CloseButton } from '@frontend/components/CloseButton';
 import ConfirmButton from '@frontend/components/ConfirmButton';
 import { useQuery } from 'react-query';

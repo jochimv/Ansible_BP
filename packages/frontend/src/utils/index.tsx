@@ -7,12 +7,17 @@ import {
   ProjectDetailsHost,
   ProjectDetailsInventory,
   ProjectDetailsResponse,
+  TreeViewInventoryItem,
 } from '@frontend/types';
 import axios from 'axios';
 import { parse as parseYaml, stringify } from 'yaml';
 import { Breadcrumbs, Typography } from '@mui/material';
 import { CodeChangesState } from '@frontend/reducers/codeChangesReducer';
 import { BE_IP_ADDRESS } from '@frontend/constants';
+import { TreeItem } from '@mui/lab';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faServer } from '@fortawesome/free-solid-svg-icons';
+import React from 'react';
 
 export const convertProjectDetailsToTreeOfIds = (projectDetails: ProjectDetailsInventory[]) => {
   return projectDetails.flatMap(
@@ -375,6 +380,64 @@ export const tryToParseYml = (newEditorValue: string) => {
       return e.message;
     } else {
       return String(e);
+    }
+  }
+};
+export const filterTreeItems = (
+  nodes: TreeViewInventoryItem[],
+  searchTerm: string,
+): TreeViewInventoryItem[] => {
+  return nodes
+    .map((node: TreeViewInventoryItem) => {
+      if (node.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return node;
+      }
+      if (Array.isArray(node.children)) {
+        const filteredChildren = filterTreeItems(node.children, searchTerm);
+        if (filteredChildren.length > 0) {
+          return { ...node, children: filteredChildren };
+        }
+      }
+      return null;
+    })
+    .filter((node) => node !== null) as TreeViewInventoryItem[];
+};
+export const renderTree = (nodes: TreeViewInventoryItem) => {
+  return (
+    <TreeItem
+      icon={
+        Array.isArray(nodes.children) ? undefined : (
+          <FontAwesomeIcon icon={faServer} style={{ color: 'gray' }} />
+        )
+      }
+      key={nodes.id}
+      nodeId={nodes.id}
+      label={nodes.name}
+    >
+      {Array.isArray(nodes.children) ? nodes.children.map((node) => renderTree(node)) : null}
+    </TreeItem>
+  );
+};
+export const countServers = (treeData: TreeViewInventoryItem[]) => {
+  let serverCount = 0;
+  treeData.forEach((inventory: TreeViewInventoryItem) => {
+    inventory.children?.forEach((group: TreeViewInventoryItem) => {
+      serverCount += group.children?.length || 0;
+    });
+  });
+  return serverCount;
+};
+export const findNode = (
+  data: TreeViewInventoryItem[],
+  nodeId: string,
+): TreeViewInventoryItem | undefined => {
+  for (const inventory of data) {
+    for (const group of inventory?.children || []) {
+      for (const host of group?.children || []) {
+        if (host.id === nodeId) {
+          return host;
+        }
+      }
     }
   }
 };

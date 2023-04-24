@@ -149,9 +149,6 @@ const Dashboard = () => {
           <TableHead>
             <TableRow>
               <TableCell>
-                <Typography fontWeight="bold">Project Name</Typography>
-              </TableCell>
-              <TableCell>
                 <Typography fontWeight="bold">Alias</Typography>
               </TableCell>
               <TableCell>
@@ -170,10 +167,9 @@ const Dashboard = () => {
           </TableHead>
           <TableBody>
             {data.map((row: CommandExecution) => {
-              const { projectName, id, alias, success, output, executionDate, command } = row;
+              const { id, alias, success, output, executionDate, command } = row;
               return (
                 <TableRow key={id}>
-                  <TableCell>{projectName}</TableCell>
                   <TableCell>{alias}</TableCell>
                   <TableCell>
                     {success ? <DoneIcon color="success" /> : <CloseIcon color="error" />}

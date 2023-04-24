@@ -1,9 +1,9 @@
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
-} from '@frontend/contexts/CodeChangesContext';
+} from '@frontend/context/CodeChangesContext';
 import { useRouter } from 'next/router';
-import { useClearModalDispatchContext } from '@frontend/contexts/ClearModalContext';
+import { useClearModalDispatchContext } from '@frontend/context/ClearModalContext';
 import { getUpdatedFilesPaths } from '@frontend/utils';
 import { AppBar, Badge, Button, Toolbar, Typography } from '@mui/material';
 import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
@@ -46,6 +46,37 @@ export const Appbar = () => {
           </Typography>
           <ClearModal />
           <Button
+            id="button-clear"
+            color="inherit"
+            onClick={() => {
+              clearModalDispatch(open());
+            }}
+            startIcon={<FontAwesomeIcon style={{ width: 18, height: 18 }} icon={faBroom} />}
+          >
+            Clear
+          </Button>
+          <Button
+            id="button-mode"
+            startIcon={isInEditMode ? <EditIcon /> : <LibraryBooksIcon />}
+            color="inherit"
+            onClick={() => codeChangesDispatch(switchMode())}
+          >
+            {isInEditMode ? 'Edit mode' : 'Read mode'}
+          </Button>
+          <Button
+            id="button-git"
+            color="inherit"
+            startIcon={
+              <Badge badgeContent={updatedFilesPaths.length} color="warning">
+                <FontAwesomeIcon icon={faGitAlt} />
+              </Badge>
+            }
+            component={Link}
+            href={`/${selectedProjectName}/git`}
+          >
+            Git
+          </Button>
+          <Button
             id="button-dashboard"
             color="inherit"
             startIcon={<DashboardIcon />}
@@ -62,37 +93,6 @@ export const Appbar = () => {
             href={`/${selectedProjectName}/runner`}
           >
             Runner
-          </Button>
-          <Button
-            id="button-clear"
-            color="inherit"
-            onClick={() => {
-              clearModalDispatch(open());
-            }}
-            startIcon={<FontAwesomeIcon style={{ width: 18, height: 18 }} icon={faBroom} />}
-          >
-            Clear
-          </Button>
-          <Button
-            id="button-git"
-            color="inherit"
-            startIcon={
-              <Badge badgeContent={updatedFilesPaths.length} color="warning">
-                <FontAwesomeIcon icon={faGitAlt} />
-              </Badge>
-            }
-            component={Link}
-            href={`/${selectedProjectName}/git`}
-          >
-            Git
-          </Button>
-          <Button
-            id="button-mode"
-            startIcon={isInEditMode ? <EditIcon /> : <LibraryBooksIcon />}
-            color="inherit"
-            onClick={() => codeChangesDispatch(switchMode())}
-          >
-            {isInEditMode ? 'Edit mode' : 'Read mode'}
           </Button>
           <Button
             id="button-overview"

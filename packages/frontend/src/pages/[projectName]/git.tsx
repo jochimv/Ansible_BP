@@ -8,14 +8,14 @@ import {
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
-} from '../../contexts/CodeChangesContext';
+} from '../../context/CodeChangesContext';
 import { createDiff, rollback } from '../../reducers/codeChangesReducer';
 import GitChangesFileTree from '../../components/GitChangesFileTree';
 import CommitModal from '@frontend/components/CommitModal';
 import { open } from '@frontend/reducers/commitModalReducer';
 import CommitModalProvider, {
   useCommitModalDispatchContext,
-} from '@frontend/contexts/CommitModalContext';
+} from '@frontend/context/CommitModalContext';
 import { useRouter } from 'next/router';
 import ProjectNotFound from '@frontend/components/ProjectNotFound';
 import axios, { AxiosResponse } from 'axios';

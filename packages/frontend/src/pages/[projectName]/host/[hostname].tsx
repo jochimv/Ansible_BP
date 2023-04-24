@@ -15,7 +15,7 @@ import Editor from '@monaco-editor/react';
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
-} from '@frontend/contexts/CodeChangesContext';
+} from '@frontend/context/CodeChangesContext';
 import {
   initializeEditor,
   showHostDetails,
@@ -48,7 +48,6 @@ const Heading = styled(Typography)({
   fontWeight: 'bold',
 });
 
-// todo - nějak se tam kvůli react query přepínají tlačítka když unfocusnu window
 const HostDetailsPage = () => {
   const router = useRouter();
   const { projectName, hostname } = router.query;
@@ -73,6 +72,7 @@ const HostDetailsPage = () => {
     },
     {
       enabled: !!projectName && !!hostname,
+      refetchOnWindowFocus: false,
       onSuccess: (response: HostDetailsResponse) => {
         const { hostDetailsByInventoryType, projectExists, hostExists } = response;
         if (projectExists && hostExists) {

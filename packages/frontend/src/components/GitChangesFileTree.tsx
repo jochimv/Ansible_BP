@@ -4,7 +4,7 @@ import { Folder, Description } from '@mui/icons-material';
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
-} from '../contexts/CodeChangesContext';
+} from '../context/CodeChangesContext';
 import { showDiff } from '../reducers/codeChangesReducer';
 import { HostVariable } from '@frontend/types';
 interface TreeNode {

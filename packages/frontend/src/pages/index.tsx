@@ -13,14 +13,14 @@ import { useRouter } from 'next/router';
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
-} from '@frontend/contexts/CodeChangesContext';
+} from '@frontend/context/CodeChangesContext';
 import { deleteProject, selectProject } from '@frontend/reducers/codeChangesReducer';
 import DownloadIcon from '@mui/icons-material/Download';
 import ImportProjectModal from '@frontend/components/ImportProjectModal';
 import { FolderOff } from '@mui/icons-material';
 import axios, { AxiosResponse } from 'axios';
 import { useMutation, useQuery } from 'react-query';
-import { useSnackbar } from '@frontend/contexts/SnackbarContext';
+import { useSnackbar } from '@frontend/context/SnackbarContext';
 import ConfirmDialog from '@frontend/components/ConfirmDialog';
 import { ProjectHosts, RepositoryActionResult } from '@frontend/types';
 import { BE_IP_ADDRESS } from '@frontend/constants';

@@ -7,12 +7,12 @@ import { Box, ThemeProvider } from '@mui/material';
 import { AppProps } from 'next/app';
 import '@frontend/css/globals.css';
 import React from 'react';
-import { SnackbarProvider } from '@frontend/contexts/SnackbarContext';
-import { CommandsProvider } from '@frontend/contexts/CommandContext';
+import { SnackbarProvider } from '@frontend/context/SnackbarContext';
+import { CommandsProvider } from '@frontend/context/CommandContext';
 import { Appbar } from '@frontend/components/Appbar';
-import { AutoSaveContextProvider } from '@frontend/contexts/AutosaveContext';
-import CodeChangesProvider from '@frontend/contexts/CodeChangesContext';
-import ClearModalProvider from '@frontend/contexts/ClearModalContext';
+import { AutoSaveContextProvider } from '@frontend/context/AutosaveContext';
+import CodeChangesProvider from '@frontend/context/CodeChangesContext';
+import ClearModalProvider from '@frontend/context/ClearModalContext';
 
 const queryClient = new QueryClient();
 const clientSideEmotionCache = createEmotionCache();

@@ -12,7 +12,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import React, { useState, ChangeEvent } from 'react';
 import axios, { AxiosResponse } from 'axios';
 import { useMutation } from 'react-query';
-import { useSnackbar } from '@frontend/contexts/SnackbarContext';
+import { useSnackbar } from '@frontend/context/SnackbarContext';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { RepositoryActionResult } from '@frontend/types';
 import { BE_IP_ADDRESS } from '@frontend/constants';

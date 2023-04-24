@@ -14,7 +14,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Delete as DeleteIcon, PlayCircle as PlayCircleIcon } from '@mui/icons-material';
-import { useCommandContext } from '@frontend/contexts/CommandContext';
+import { useCommandContext } from '@frontend/context/CommandContext';
 import AddCommandDialog from '@frontend/components/AddCommandDialog';
 import EditIcon from '@mui/icons-material/Edit';
 import { useRouter } from 'next/router';
