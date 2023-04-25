@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Box, Stack, TextField, Typography } from '@mui/material';
+import { Box, InputAdornment, Stack, TextField, Typography } from '@mui/material';
 import { TreeView } from '@mui/lab';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { TreeViewInventoryItem } from '@frontend/types';
 import { countServers, filterTreeItems, findNode, renderTree } from '@frontend/utils';
 import { useRouter } from 'next/router';
+import { Search } from '@mui/icons-material';
 
 interface ProjectDetailsTreeProps {
   data: TreeViewInventoryItem[];
@@ -59,6 +60,13 @@ const ProjectDetailsTree = ({ data, onNodeSelected }: ProjectDetailsTreeProps) =
         fullWidth
         size="small"
         sx={{ my: 2 }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search />
+            </InputAdornment>
+          ),
+        }}
       />
       <Box sx={{ height: '82%', width: '100%', overflowY: 'auto' }}>
         <TreeView

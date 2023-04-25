@@ -35,6 +35,7 @@ const fetchMainBranchName = async (projectName: string): Promise<ProjectMainBran
   return response.data;
 };
 
+// todo - z nějakého důvodu se mi tam ukazuje empty diff jako diff
 const GitPage = () => {
   const codeChangesDispatch = useCodeChangesDispatchContext();
   const { projectName } = useRouter().query;
