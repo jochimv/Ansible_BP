@@ -1,7 +1,13 @@
 import keyMirror from 'keymirror';
 import { parse as parseYaml, stringify } from 'yaml';
 import { omit } from 'ramda';
-import { ReducerAction, Host, HostDetails, HostVariable, Project } from '@frontend/utils/types';
+import { ReducerAction, Host, HostDetails, HostVariable, Project } from '@frontend/types';
+import {
+  findHostDetailsByInventoryType,
+  findVariableObject,
+  processVariables,
+  replaceVariableInProjectsArray,
+} from '@frontend/utils';
 
 const projectHasUpdatedVariables = (project: Project) => {
   for (const host of project.hosts) {
@@ -14,133 +20,6 @@ const projectHasUpdatedVariables = (project: Project) => {
     }
   }
   return false;
-};
-
-const processVariables = (
-  variable: Omit<any, 'updated'> | HostVariable,
-  commonVariables: Omit<any, 'updated'> | undefined,
-  groupVariables: Omit<any, 'updated'> | undefined,
-  hostVariables: Omit<any, 'updated'> | undefined,
-) => {
-  try {
-    const appliedVariables = {
-      ...(commonVariables && parseYaml(commonVariables.values)),
-      ...(groupVariables && parseYaml(groupVariables.values)),
-      ...(hostVariables && parseYaml(hostVariables.values)),
-    };
-
-    const stringifiedAppliedVariables = stringify(appliedVariables);
-    const appliedVariablesToShow =
-      stringifiedAppliedVariables === '{}\n' ? '' : stringifiedAppliedVariables;
-
-    return {
-      ...variable,
-      values: appliedVariablesToShow,
-    };
-  } catch (e) {
-    return variable;
-  }
-};
-
-const findVariableObject = (
-  projects: Project[],
-  path: string,
-  projectName: string,
-  hostname: string,
-): HostVariable | undefined => {
-  const project = projects.find((p) => p.projectName === projectName);
-
-  if (!project) {
-    return undefined;
-  }
-
-  const host = project.hosts.find((h) => h.hostname === hostname);
-
-  if (!host) {
-    return undefined;
-  }
-
-  for (const inventoryType of host.hostDetailsByInventoryType) {
-    const variableObject = inventoryType.variables.find(
-      (v: HostVariable) => v.pathInProject === path,
-    );
-
-    if (variableObject) {
-      return variableObject;
-    }
-  }
-  return undefined;
-};
-
-const findHostDetailsByInventoryType = (
-  projectName: string,
-  hostname: string,
-  updatedProjects: Project[],
-) => {
-  for (let i = 0; i < updatedProjects?.length; i++) {
-    const project = updatedProjects[i];
-    if (project.projectName === projectName) {
-      for (let j = 0; j < project.hosts.length; j++) {
-        const host = project.hosts[j];
-        if (host.hostname === hostname) {
-          return host.hostDetailsByInventoryType;
-        }
-      }
-    }
-  }
-  return null;
-};
-
-const replaceVariableInProjectsArray = (
-  newVariable: HostVariable,
-  projects: Project[],
-): Project[] | undefined => {
-  return projects.map((project: Project) => ({
-    ...project,
-    hosts: project.hosts.map((host: Host) => ({
-      ...host,
-      hostDetailsByInventoryType: host.hostDetailsByInventoryType.map(
-        (hostDetails: HostDetails) => {
-          let hostDetailVariablesChanged;
-          const updatedVariables = hostDetails.variables.map((variable) => {
-            if (variable.pathInProject === newVariable.pathInProject) {
-              hostDetailVariablesChanged = true;
-              return newVariable;
-            } else {
-              return variable;
-            }
-          });
-
-          let updatedVariablesAll = updatedVariables;
-          if (hostDetailVariablesChanged) {
-            //@ts-ignore
-            updatedVariablesAll = updatedVariables.map((variable: HostVariable) => {
-              if (variable.type === 'applied') {
-                const commonVariables = updatedVariables.find(
-                  (variable: HostVariable) => variable.type === 'common',
-                );
-                const groupVariables = updatedVariables.find(
-                  (variable: HostVariable) => variable.type === 'group',
-                );
-                const hostVariables = updatedVariables.find(
-                  (variable: HostVariable) => variable.type === 'host',
-                );
-
-                return processVariables(variable, commonVariables, groupVariables, hostVariables);
-              } else {
-                return variable;
-              }
-            });
-          }
-
-          return {
-            ...hostDetails,
-            variables: updatedVariablesAll,
-          };
-        },
-      ),
-    })),
-  }));
 };
 
 export interface CodeChangesState {
@@ -373,7 +252,6 @@ export const codeChangesReducer = (
         hostname,
         state?.updatedProjects,
       );
-
       // if not present, try to find it in original code
       if (!selectedHostDetailsByInventoryType) {
         selectedHostDetailsByInventoryType = findHostDetailsByInventoryType(
@@ -429,14 +307,13 @@ export const codeChangesReducer = (
           });
 
           const updatedVars = getAllUpdatedVars(state.updatedProjects);
-
           let incomingHostDetailsByInventoryTypeVariablesWereUpdated;
 
           const updatedHostDetailsByInventoryType = hostDetailsByInventoryType.map(
             (hostDetailByInventoryType: HostDetails) => {
               return {
                 ...hostDetailByInventoryType,
-                variables: hostDetailByInventoryType.variables.map((variable) => {
+                variables: hostDetailByInventoryType.variables.map((variable: HostVariable) => {
                   const updatedVar = updatedVars.find((updatedVar) => {
                     return updatedVar.pathInProject === variable.pathInProject;
                   });
@@ -490,6 +367,10 @@ export const codeChangesReducer = (
             const hostPresentInUpdatedProject = !!updatedProject?.hosts.find(
               (host: Host) => host.hostname === hostname,
             );
+
+            selectedHostDetailsByInventoryType = updatedHostDetailsByInventoryTypeAll;
+            selectedHostDetails = updatedHostDetailsByInventoryTypeAll[0];
+            selectedVariables = updatedHostDetailsByInventoryTypeAll[0].variables[0];
 
             if (!updatedProject) {
               updatedUpdatedProjects = [
@@ -678,86 +559,89 @@ export const codeChangesReducer = (
                     (hostDetailByInventoryType: HostDetails) => {
                       return {
                         ...hostDetailByInventoryType,
-                        variables: hostDetailByInventoryType.variables.map((variable) => {
-                          if (variable.pathInProject === updatedSelectedVariables.pathInProject) {
-                            return updatedSelectedVariables;
-                          } else if (variable.type === 'applied') {
-                            const updatedVariableIsInCurrentHostDetailByInventoryType =
-                              !!hostDetailByInventoryType.variables.find(
-                                (variable: HostVariable) =>
-                                  variable.pathInProject === updatedSelectedVariables.pathInProject,
+                        variables: hostDetailByInventoryType.variables.map(
+                          (variable: HostVariable) => {
+                            if (variable.pathInProject === updatedSelectedVariables.pathInProject) {
+                              return updatedSelectedVariables;
+                            } else if (variable.type === 'applied') {
+                              const updatedVariableIsInCurrentHostDetailByInventoryType =
+                                !!hostDetailByInventoryType.variables.find(
+                                  (variable: HostVariable) =>
+                                    variable.pathInProject ===
+                                    updatedSelectedVariables.pathInProject,
+                                );
+
+                              const commonVariables =
+                                updatedVariableIsInCurrentHostDetailByInventoryType &&
+                                updatedSelectedVariables.type === 'common'
+                                  ? updatedSelectedVariables
+                                  : hostDetailByInventoryType.variables?.find(
+                                      (variable: HostVariable) => variable.type === 'common',
+                                    );
+
+                              const groupVariables =
+                                updatedVariableIsInCurrentHostDetailByInventoryType &&
+                                updatedSelectedVariables.type === 'group'
+                                  ? updatedSelectedVariables
+                                  : hostDetailByInventoryType.variables?.find(
+                                      (variable: HostVariable) => variable.type === 'group',
+                                    );
+                              const hostVariables = hostDetailByInventoryType.variables?.find(
+                                (variable: HostVariable) => variable.type === 'host',
                               );
 
-                            const commonVariables =
-                              updatedVariableIsInCurrentHostDetailByInventoryType &&
-                              updatedSelectedVariables.type === 'common'
-                                ? updatedSelectedVariables
-                                : hostDetailByInventoryType.variables?.find(
-                                    (variable: HostVariable) => variable.type === 'common',
-                                  );
-
-                            const groupVariables =
-                              updatedVariableIsInCurrentHostDetailByInventoryType &&
-                              updatedSelectedVariables.type === 'group'
-                                ? updatedSelectedVariables
-                                : hostDetailByInventoryType.variables?.find(
-                                    (variable: HostVariable) => variable.type === 'group',
-                                  );
-                            const hostVariables = hostDetailByInventoryType.variables?.find(
-                              (variable: HostVariable) => variable.type === 'host',
-                            );
-
-                            try {
-                              const appliedVariables = {
-                                ...(commonVariables && parseYaml(commonVariables.values)),
-                                ...(groupVariables && parseYaml(groupVariables.values)),
-                                ...(hostVariables && parseYaml(hostVariables.values)),
-                              };
-
-                              if ('0' in appliedVariables) {
-                                updatedVariablesSelectedOnly =
-                                  state.selectedHostDetails?.variables.map(
-                                    (variable: HostVariable) => {
-                                      if (
-                                        variable.pathInProject ===
-                                          state.selectedVariables.pathInProject &&
-                                        variable.type !== 'applied'
-                                      ) {
-                                        return {
-                                          ...updatedSelectedVariables,
-                                          error: 'Unfinished key',
-                                        };
-                                      } else {
-                                        return variable;
-                                      }
-                                    },
-                                  );
-                                updatedSelectedVariables = {
-                                  ...updatedSelectedVariables,
-                                  ...(updatedSelectedVariables.type !== 'applied' && {
-                                    error: 'Unfinished key',
-                                  }),
+                              try {
+                                const appliedVariables = {
+                                  ...(commonVariables && parseYaml(commonVariables.values)),
+                                  ...(groupVariables && parseYaml(groupVariables.values)),
+                                  ...(hostVariables && parseYaml(hostVariables.values)),
                                 };
-                                throw new Error();
+
+                                if ('0' in appliedVariables) {
+                                  updatedVariablesSelectedOnly =
+                                    state.selectedHostDetails?.variables.map(
+                                      (variable: HostVariable) => {
+                                        if (
+                                          variable.pathInProject ===
+                                            state.selectedVariables.pathInProject &&
+                                          variable.type !== 'applied'
+                                        ) {
+                                          return {
+                                            ...updatedSelectedVariables,
+                                            error: 'Unfinished key',
+                                          };
+                                        } else {
+                                          return variable;
+                                        }
+                                      },
+                                    );
+                                  updatedSelectedVariables = {
+                                    ...updatedSelectedVariables,
+                                    ...(updatedSelectedVariables.type !== 'applied' && {
+                                      error: 'Unfinished key',
+                                    }),
+                                  };
+                                  throw new Error();
+                                }
+
+                                const stringifiedAppliedVariables = stringify(appliedVariables);
+                                const appliedVariablesToShow =
+                                  stringifiedAppliedVariables === '{}\n'
+                                    ? ''
+                                    : stringifiedAppliedVariables;
+
+                                return {
+                                  ...variable,
+                                  values: appliedVariablesToShow,
+                                };
+                              } catch (e) {
+                                return variable;
                               }
-
-                              const stringifiedAppliedVariables = stringify(appliedVariables);
-                              const appliedVariablesToShow =
-                                stringifiedAppliedVariables === '{}\n'
-                                  ? ''
-                                  : stringifiedAppliedVariables;
-
-                              return {
-                                ...variable,
-                                values: appliedVariablesToShow,
-                              };
-                            } catch (e) {
+                            } else {
                               return variable;
                             }
-                          } else {
-                            return variable;
-                          }
-                        }),
+                          },
+                        ),
                       };
                     },
                   ),
