@@ -8,6 +8,7 @@ import {
   AutocompleteValue,
   Button,
   Box,
+  InputAdornment,
 } from '@mui/material';
 import { useRouter } from 'next/router';
 import {
@@ -17,7 +18,7 @@ import {
 import { deleteProject, selectProject } from '@frontend/reducers/codeChangesReducer';
 import DownloadIcon from '@mui/icons-material/Download';
 import ImportProjectModal from '@frontend/components/ImportProjectModal';
-import { FolderOff } from '@mui/icons-material';
+import { FolderOff, FolderOutlined } from '@mui/icons-material';
 import axios, { AxiosResponse } from 'axios';
 import { useMutation, useQuery } from 'react-query';
 import { useSnackbar } from '@frontend/context/SnackbarContext';
@@ -25,6 +26,8 @@ import ConfirmDialog from '@frontend/components/ConfirmDialog';
 import { ProjectHosts, RepositoryActionResult } from '@frontend/types';
 import { BE_IP_ADDRESS } from '@frontend/constants';
 import LoadingPage from '@frontend/components/Loading';
+import { faServer } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 const fetchProjectsHosts = async (): Promise<ProjectHosts[]> => {
   const response = await axios.get(`http://${BE_IP_ADDRESS}:4000/projects`);
   return response.data;
@@ -85,7 +88,21 @@ const HomePage = () => {
       <Stack spacing={3} sx={{ width: 'min-content' }}>
         <Autocomplete
           renderInput={(params: AutocompleteRenderInputParams) => (
-            <TextField {...params} label="Search project" />
+            <TextField
+              {...params}
+              label="Search project"
+              InputProps={{
+                ...params.InputProps,
+                startAdornment: (
+                  <>
+                    <InputAdornment position="start">
+                      <FolderOutlined />
+                    </InputAdornment>
+                    {params.InputProps.startAdornment}
+                  </>
+                ),
+              }}
+            />
           )}
           options={projectNames}
           sx={{ width: 300 }}
@@ -105,7 +122,21 @@ const HomePage = () => {
           }
           sx={{ width: 300 }}
           renderInput={(params: AutocompleteRenderInputParams) => (
-            <TextField {...params} label="Search server" />
+            <TextField
+              {...params}
+              label="Search server"
+              InputProps={{
+                ...params.InputProps,
+                startAdornment: (
+                  <>
+                    <InputAdornment position="start">
+                      <FontAwesomeIcon icon={faServer} style={{ width: 18, height: 18 }} />
+                    </InputAdornment>
+                    {params.InputProps.startAdornment}
+                  </>
+                ),
+              }}
+            />
           )}
           onChange={(
             event: SyntheticEvent,

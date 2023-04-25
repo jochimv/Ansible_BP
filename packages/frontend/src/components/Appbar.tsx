@@ -10,16 +10,16 @@ import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
 import ClearModal from '@frontend/components/ClearModal';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import Link from 'next/link';
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import { open } from '@frontend/reducers/clearModalReducer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBroom, faServer } from '@fortawesome/free-solid-svg-icons';
+import { faServer } from '@fortawesome/free-solid-svg-icons';
 import { faGitAlt } from '@fortawesome/free-brands-svg-icons';
 import EditIcon from '@mui/icons-material/Edit';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import { switchMode } from '@frontend/reducers/codeChangesReducer';
-import { Search } from '@mui/icons-material';
+import { Commit, Search } from '@mui/icons-material';
 import React from 'react';
+import { faTerminal } from '@fortawesome/free-solid-svg-icons';
 
 export const Appbar = () => {
   const { isInEditMode, selectedProjectName, updatedProjects } = useCodeChangesContext();
@@ -49,22 +49,22 @@ export const Appbar = () => {
             Clear context
           </Button>
           <Button
-            id="button-clear"
-            color="inherit"
-            onClick={() => {
-              clearModalDispatch(open());
-            }}
-            startIcon={<FontAwesomeIcon style={{ width: 18, height: 18 }} icon={faBroom} />}
-          >
-            Clear
-          </Button>
-          <Button
             id="button-mode"
             startIcon={isInEditMode ? <EditIcon /> : <LibraryBooksIcon />}
             color="inherit"
             onClick={() => codeChangesDispatch(switchMode())}
           >
             {isInEditMode ? 'Edit mode' : 'Read mode'}
+          </Button>
+          <Button
+            id="button-clear"
+            color="inherit"
+            onClick={() => {
+              clearModalDispatch(open());
+            }}
+            startIcon={<Commit />}
+          >
+            Changes
           </Button>
           <Button
             id="button-git"
@@ -91,11 +91,11 @@ export const Appbar = () => {
           <Button
             id="button-runner"
             color="inherit"
-            startIcon={<PlayCircleOutlineIcon />}
+            startIcon={<FontAwesomeIcon icon={faTerminal} style={{ width: 18, height: 18 }} />}
             component={Link}
-            href={`/${selectedProjectName}/runner`}
+            href={`/${selectedProjectName}/commands`}
           >
-            Runner
+            Commands
           </Button>
           <Button
             id="button-overview"

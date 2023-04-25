@@ -8,9 +8,9 @@ describe('Appbar', () => {
     cy.url().should('include', '/dashboard');
   });
 
-  it('should navigate to Runner', () => {
+  it('should navigate to Commands', () => {
     cy.get('#button-runner').click();
-    cy.url().should('include', '/runner');
+    cy.url().should('include', '/commands');
   });
 
   it('should navigate to Git', () => {

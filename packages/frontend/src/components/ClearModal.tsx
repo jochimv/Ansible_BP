@@ -89,7 +89,7 @@ const ClearModal = () => {
 
   return (
     <Dialog open={isModalOpen} fullWidth maxWidth="sm">
-      <DialogTitle>Clear changes</DialogTitle>
+      <DialogTitle>Changes overview</DialogTitle>
       {hasUpdatedVariable ? (
         <>
           <DialogContent>

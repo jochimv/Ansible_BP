@@ -4,6 +4,7 @@ import {
   CircularProgress,
   IconButton,
   Stack,
+  Box,
   Table,
   TableBody,
   TableCell,
@@ -13,6 +14,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import { Delete as DeleteIcon, PlayCircle as PlayCircleIcon } from '@mui/icons-material';
 import { useCommandContext } from '@frontend/context/CommandContext';
 import AddCommandDialog from '@frontend/components/AddCommandDialog';
@@ -58,7 +60,7 @@ const AnsibleCommandsPage: React.FC = () => {
   };
 
   return (
-    <>
+    <Box mt={1}>
       <OutputDialog />
       <AddCommandDialog
         open={openDialog}
@@ -73,7 +75,12 @@ const AnsibleCommandsPage: React.FC = () => {
         initialCommand={currentCommand}
       />
       <Stack direction="row" spacing={3} mb={2}>
-        <Button variant="contained" color="primary" onClick={handleOpenDialog}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleOpenDialog}
+          startIcon={<AddIcon />}
+        >
           Add Command
         </Button>
         <TextField
@@ -150,7 +157,7 @@ const AnsibleCommandsPage: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
-    </>
+    </Box>
   );
 };
 
