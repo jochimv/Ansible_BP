@@ -118,15 +118,11 @@ export const getVariablesByType = (obj: any, type: string) => {
   }
   return null;
 };
-export const renderBreadcrumbs = (path: string) => {
+export const renderBreadcrumbsSegments = (path: string) => {
   const segments = path.split('\\');
-  return (
-    <Breadcrumbs aria-label="breadcrumb">
-      {segments.map((segment: string, index: number) => (
-        <Typography key={index}>{segment}</Typography>
-      ))}
-    </Breadcrumbs>
-  );
+  return segments.map((segment: string, index: number) => (
+    <Typography key={index}>{segment}</Typography>
+  ));
 };
 export const formatErrorMessage = (message: string): JSX.Element => {
   const lines = message.split('\n');

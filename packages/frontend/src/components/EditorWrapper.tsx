@@ -1,11 +1,11 @@
-import { Stack, Box } from '@mui/material';
+import { Stack, Box, Typography, Breadcrumbs } from '@mui/material';
 import Editor from '@monaco-editor/react';
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
 } from '@frontend/context/CodeChangesContext';
 import { updateVariables } from '@frontend/reducers/codeChangesReducer';
-import { renderBreadcrumbs } from '@frontend/utils';
+import { renderBreadcrumbsSegments } from '@frontend/utils';
 import { useRouter } from 'next/router';
 
 const EditorWrapper = () => {
@@ -19,11 +19,13 @@ const EditorWrapper = () => {
 
   return (
     <Stack direction="column" flexGrow={1} spacing={2}>
-      <Box ml={4}>
-        {selectedVariables?.type === 'applied'
-          ? selectedVariables?.pathInProject
-          : renderBreadcrumbs(selectedVariables?.pathInProject)}
-      </Box>
+      <Breadcrumbs aria-label="breadcrumb" sx={{ ml: 4 }}>
+        {selectedVariables?.type === 'applied' ? (
+          <Typography>{selectedVariables?.pathInProject}</Typography>
+        ) : (
+          renderBreadcrumbsSegments(selectedVariables?.pathInProject)
+        )}
+      </Breadcrumbs>
       <Editor
         options={{ readOnly: selectedVariables?.type === 'applied' || !isInEditMode }}
         language="yaml"
