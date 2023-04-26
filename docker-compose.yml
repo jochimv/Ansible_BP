@@ -9,9 +9,9 @@ services:
     environment:
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
-      - DATABASE_USER=your_user
-      - DATABASE_PASSWORD=your_password
-      - DATABASE_NAME=your_database
+      - DATABASE_USER=logs_user
+      - DATABASE_PASSWORD=complex_password123
+      - DATABASE_NAME=logs_database
     depends_on:
       - db
   frontend:
@@ -25,11 +25,11 @@ services:
   db:
     image: postgres:latest
     ports:
-      - '6000:5432'
+      - '5432:5432'
     environment:
-      - POSTGRES_USER=your_user
-      - POSTGRES_PASSWORD=your_password
-      - POSTGRES_DB=your_database
+      - POSTGRES_USER=logs_user
+      - POSTGRES_PASSWORD=complex_password123
+      - POSTGRES_DB=logs_database
     restart: always
     volumes:
       - postgres-data:/var/lib/postgresql/data

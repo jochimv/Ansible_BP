@@ -3,11 +3,11 @@ services:
   db:
     image: postgres:latest
     ports:
-      - '6000:5432'
+      - '5432:5432'
     environment:
-      - POSTGRES_USER=your_user
-      - POSTGRES_PASSWORD=your_password
-      - POSTGRES_DB=your_database
+      - POSTGRES_USER=logs_user
+      - POSTGRES_PASSWORD=complex_password123
+      - POSTGRES_DB=logs_database
     restart: always
     volumes:
       - postgres-data:/var/lib/postgresql/data
