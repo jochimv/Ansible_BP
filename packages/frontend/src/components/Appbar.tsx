@@ -33,7 +33,7 @@ export const Appbar = () => {
       showMessage('No project selected', 'error');
     }
   };
-  const isNavigationDisabled = selectedProjectName === null;
+  const isNavigationDisabled = selectedProjectName === null || undefined;
   return (
     <>
       <AppBar>
