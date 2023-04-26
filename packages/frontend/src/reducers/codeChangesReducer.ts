@@ -295,7 +295,6 @@ export const codeChangesReducer = (
           updatedUpdatedProjects = state.updatedProjects;
           // if the project is present, but host is not inside the project, add the host there. common vars or group vars could be updated via another host, that's why we need to map hostDetailsByInventoryType to search for already updated variables
         } else if (originalProject && !hostPresentInOriginalProject) {
-          console.log('originalProject && !hostPresentInOriginalProject');
           updatedOriginalProjects = state.originalProjects.map((originalProject: Project) => {
             if (originalProject.projectName === projectName) {
               return {
