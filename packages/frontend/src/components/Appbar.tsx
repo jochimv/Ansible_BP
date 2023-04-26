@@ -2,7 +2,6 @@ import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
 } from '@frontend/context/CodeChangesContext';
-import { useRouter } from 'next/router';
 import { useClearModalDispatchContext } from '@frontend/context/ClearModalContext';
 import { getUpdatedFilesPaths } from '@frontend/utils';
 import { AppBar, Badge, Button, Toolbar, Typography } from '@mui/material';
@@ -18,20 +17,27 @@ import EditIcon from '@mui/icons-material/Edit';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import { switchMode } from '@frontend/reducers/codeChangesReducer';
 import { Commit, Search } from '@mui/icons-material';
-import React from 'react';
+import React, { SyntheticEvent } from 'react';
 import { faTerminal } from '@fortawesome/free-solid-svg-icons';
+import { useSnackbar } from '@frontend/context/SnackbarContext';
 
 export const Appbar = () => {
   const { isInEditMode, selectedProjectName, updatedProjects } = useCodeChangesContext();
   const codeChangesDispatch = useCodeChangesDispatchContext();
-  const router = useRouter();
   const clearModalDispatch = useClearModalDispatchContext();
-
   const updatedFilesPaths = getUpdatedFilesPaths(updatedProjects, selectedProjectName);
+  const { showMessage } = useSnackbar();
+  const onNavigationClick = (event: SyntheticEvent) => {
+    if (isNavigationDisabled) {
+      event.preventDefault();
+      showMessage('No project selected', 'error');
+    }
+  };
+  const isNavigationDisabled = selectedProjectName === null;
   return (
     <>
       <AppBar>
-        <Toolbar sx={{ justifyContent: 'flex-end' }}>
+        <Toolbar sx={{ justifyContent: 'flex-end', columnGap: 1 }}>
           <FolderOutlinedIcon sx={{ width: 20, height: 20 }} />
           <Typography
             sx={{
@@ -75,7 +81,8 @@ export const Appbar = () => {
               </Badge>
             }
             component={Link}
-            href={`/${selectedProjectName}/git`}
+            href={isNavigationDisabled ? '#' : `/${selectedProjectName}/git`}
+            onClick={onNavigationClick}
           >
             Git
           </Button>
@@ -84,7 +91,8 @@ export const Appbar = () => {
             color="inherit"
             startIcon={<DashboardIcon />}
             component={Link}
-            href={`/${selectedProjectName}/dashboard`}
+            href={isNavigationDisabled ? '#' : `/${selectedProjectName}/dashboard`}
+            onClick={onNavigationClick}
           >
             Dashboard
           </Button>
@@ -93,14 +101,17 @@ export const Appbar = () => {
             color="inherit"
             startIcon={<FontAwesomeIcon icon={faTerminal} style={{ width: 18, height: 18 }} />}
             component={Link}
-            href={`/${selectedProjectName}/commands`}
+            href={isNavigationDisabled ? '#' : `/${selectedProjectName}/commands`}
+            onClick={onNavigationClick}
           >
             Commands
           </Button>
           <Button
             id="button-overview"
             color="inherit"
-            onClick={() => router.push(`/${selectedProjectName}/overview`)}
+            component={Link}
+            href={isNavigationDisabled ? '#' : `/${selectedProjectName}/overview`}
+            onClick={onNavigationClick}
             startIcon={<FontAwesomeIcon icon={faServer} style={{ width: 18, height: 18 }} />}
           >
             Overview

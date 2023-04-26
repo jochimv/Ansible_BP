@@ -39,7 +39,7 @@ import ProjectNotFound from '@frontend/components/ProjectNotFound';
 import { useRunCommand } from '@frontend/hooks/useRunCommand';
 import { ChartData, CommandExecution } from '@frontend/types';
 import { useProjectExists } from '@frontend/hooks/useProjectExists';
-import { BE_IP_ADDRESS } from '@frontend/constants';
+import { BE_IP_ADDRESS, notFoundIconSx } from '@frontend/constants';
 
 const fetchCommandExecutions = async (
   projectName: string | string[] | undefined,
@@ -108,7 +108,7 @@ const Dashboard = () => {
   if (formattedChartData.length === 0) {
     return (
       <Stack height="100%" justifyContent="center" alignItems="center">
-        <CodeOffIcon sx={{ width: 50, height: 50 }} />
+        <CodeOffIcon sx={notFoundIconSx} />
         <Typography variant="h3">No commands executed yet</Typography>
       </Stack>
     );

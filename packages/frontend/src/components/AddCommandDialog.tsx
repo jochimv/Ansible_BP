@@ -213,7 +213,7 @@ const AddCommandDialog = ({
   return (
     <Dialog fullWidth maxWidth="md" open={open} onClose={onClose} TransitionProps={TransitionProps}>
       <DialogTitle>
-        {initialCommand ? `Modify command ${initialCommand.alias}` : 'Add a new command'}
+        {initialCommand ? `Modify ${initialCommand.alias}` : 'Add a new command'}
       </DialogTitle>
       <DialogContent>
         <Stack spacing={2}>

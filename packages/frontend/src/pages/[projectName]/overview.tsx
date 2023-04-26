@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { Box, Stack } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import ProjectDetailsTree from '@frontend/components/ProjectDetailsTree';
 import Editor from '@monaco-editor/react';
 import { useEffect, useState } from 'react';
@@ -8,6 +8,9 @@ import { useQuery } from 'react-query';
 import LoadingPage from '@frontend/components/Loading';
 import { convertProjectDetailsToTreeOfIds, getProjectDetails } from '@frontend/utils';
 import { useUpdatedProjectDetails } from '@frontend/hooks/useUpdatedProjectDetails';
+import SearchOffIcon from '@mui/icons-material/SearchOff';
+import { notFoundIconSx } from '@frontend/constants';
+import NoServersFound from '@frontend/components/NoServersFound';
 
 const ProjectPage = () => {
   const { projectName } = useRouter().query;
@@ -34,7 +37,7 @@ const ProjectPage = () => {
       const { projectExists } = data;
       if (projectExists) {
         const treeData = convertProjectDetailsToTreeOfIds(updatedProjectDetails);
-        setSelectedHost(treeData[0].children[0].children[0]);
+        setSelectedHost(treeData[0]?.children[0]?.children[0]);
       }
     }
   }, [isLoading, projectName, data]);
@@ -43,10 +46,12 @@ const ProjectPage = () => {
 
   if (isLoading || !projectName || !data) {
     return <LoadingPage />;
-  }
-  if (!data.projectExists) {
+  } else if (!data.projectExists) {
     return <ProjectNotFound />;
+  } else if (!selectedHost) {
+    return <NoServersFound />;
   }
+
   return (
     <Stack sx={{ height: '100%' }}>
       <Stack direction="row" sx={{ height: '100%', display: 'flex' }}>

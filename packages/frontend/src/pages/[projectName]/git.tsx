@@ -21,6 +21,7 @@ import ProjectNotFound from '@frontend/components/ProjectNotFound';
 import axios, { AxiosResponse } from 'axios';
 import { useQuery } from 'react-query';
 import LoadingPage from '@frontend/components/Loading';
+import { notFoundIconSx } from '@frontend/constants';
 const stackPropsIfNoChanges = {
   alignItems: 'center',
   justifyContent: 'center',
@@ -111,7 +112,7 @@ const GitPage = () => {
         </>
       ) : (
         <Stack direction="column" alignItems="center">
-          <CodeOffIcon sx={{ width: 50, height: 50 }} />
+          <CodeOffIcon sx={notFoundIconSx} />
           <Typography variant="h3">No changes</Typography>
         </Stack>
       )}
