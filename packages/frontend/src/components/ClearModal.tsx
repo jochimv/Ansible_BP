@@ -88,7 +88,7 @@ const ClearModal = () => {
   const hasUpdatedVariable = findIfAnyVariableWasUpdated(updatedProjects);
 
   return (
-    <Dialog open={isModalOpen} fullWidth maxWidth="sm">
+    <Dialog open={isModalOpen} onClose={closeModal} fullWidth maxWidth="sm">
       <DialogTitle>Changes overview</DialogTitle>
       {hasUpdatedVariable ? (
         <>

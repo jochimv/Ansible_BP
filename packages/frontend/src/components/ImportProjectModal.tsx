@@ -46,8 +46,7 @@ const ImportProjectModal = ({ isOpen, onClose, onSuccess }: ImportProjectModalPr
         if (isOpen) {
           onClose();
         }
-      }
-      if (typeof error === 'string') {
+      } else if (typeof error === 'string') {
         showMessage(error, 'error');
       } else {
         showMessage('An unknown error occurred', 'error');
@@ -60,8 +59,8 @@ const ImportProjectModal = ({ isOpen, onClose, onSuccess }: ImportProjectModalPr
 
   const [gitRepositoryUrl, setGitRepositoryUrl] = useState('');
   return (
-    <Dialog open={isOpen}>
-      <DialogTitle>Import repository</DialogTitle>
+    <Dialog open={isOpen} onClose={onClose}>
+      <DialogTitle>Importing repository</DialogTitle>
       {isLoading ? (
         <>
           <DialogContent sx={{ display: 'flex', justifyContent: 'center' }}>
