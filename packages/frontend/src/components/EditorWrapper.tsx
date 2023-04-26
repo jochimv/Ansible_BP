@@ -1,4 +1,4 @@
-import { Stack, Box, Typography, Breadcrumbs } from '@mui/material';
+import { Stack, Typography, Breadcrumbs } from '@mui/material';
 import Editor from '@monaco-editor/react';
 import {
   useCodeChangesContext,
@@ -9,13 +9,15 @@ import { renderBreadcrumbsSegments } from '@frontend/utils';
 import { useRouter } from 'next/router';
 
 const EditorWrapper = () => {
-  const { isInEditMode, selectedVariables } = useCodeChangesContext();
+  const { isInEditMode, selectedVariables, updatedProjects } = useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();
   const { projectName, hostname } = useRouter().query;
 
   const handleEditorChange = (newEditorValue: string | undefined) => {
     dispatch(updateVariables({ newEditorValue, projectName, hostname }));
   };
+
+  console.log('updatedProjects: ', JSON.stringify(updatedProjects));
 
   return (
     <Stack direction="column" flexGrow={1} spacing={2}>

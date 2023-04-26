@@ -1,5 +1,5 @@
 import { DiffEditor } from '@monaco-editor/react';
-import { Stack, Typography, Button } from '@mui/material';
+import { Stack, Typography, Button, Box } from '@mui/material';
 import {
   Replay as ReplayIcon,
   CodeOff as CodeOffIcon,
@@ -78,8 +78,8 @@ const GitPage = () => {
       <CommitModal mainBranchName={mainBranchName} />
       {originalDiff ? (
         <>
-          <Stack direction="column">
-            <Stack direction="row">
+          <Stack direction="column" sx={{ width: '30%' }}>
+            <Stack direction="row" mb={1} columnGap={1}>
               <Button
                 startIcon={<SendIcon />}
                 color="success"
@@ -99,13 +99,15 @@ const GitPage = () => {
             </Stack>
             <GitChangesFileTree />
           </Stack>
-          <DiffEditor
-            language="yml"
-            original={originalDiff?.values}
-            modified={updatedDiff?.values}
-            height="500px"
-            options={{ readOnly: true }}
-          />
+          <Box sx={{ width: '70%' }}>
+            <DiffEditor
+              language="yml"
+              original={originalDiff?.values}
+              modified={updatedDiff?.values}
+              height="100%"
+              options={{ readOnly: true }}
+            />
+          </Box>
         </>
       ) : (
         <Stack direction="column" alignItems="center">
