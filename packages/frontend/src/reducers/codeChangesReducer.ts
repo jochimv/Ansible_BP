@@ -409,7 +409,6 @@ export const codeChangesReducer = (
           updatedOriginalProjects = state.originalProjects;
           updatedUpdatedProjects = state.updatedProjects;
         }
-        console.log('updatedUpdatedProjects: ', JSON.stringify(updatedUpdatedProjects));
         return {
           ...state,
           selectedHostDetailsByInventoryType,

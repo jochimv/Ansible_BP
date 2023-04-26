@@ -76,6 +76,7 @@ const AnsibleCommandsPage: React.FC = () => {
       />
       <Stack direction="row" spacing={3} mb={2}>
         <Button
+          id="button-add-command"
           variant="contained"
           color="primary"
           onClick={handleOpenDialog}

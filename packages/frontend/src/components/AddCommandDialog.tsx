@@ -4,7 +4,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  CircularProgress,
   Typography,
   Autocomplete,
   Stack,
@@ -13,9 +12,8 @@ import {
   ButtonGroup,
   AutocompleteRenderInputParams,
 } from '@mui/material';
-
 import Editor from '@monaco-editor/react';
-import React, { SyntheticEvent, useEffect, useState } from 'react';
+import React, { SyntheticEvent, useEffect, useReducer } from 'react';
 import { useCommandContext } from '@frontend/context/CommandContext';
 import { CloseButton } from '@frontend/components/CloseButton';
 import ConfirmButton from '@frontend/components/ConfirmButton';
@@ -23,7 +21,6 @@ import { useQuery } from 'react-query';
 import { useRouter } from 'next/router';
 import axios, { AxiosResponse } from 'axios';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-
 import {
   Command,
   ProjectCommand,
@@ -34,6 +31,25 @@ import {
   ProjectPlaybook,
 } from '@frontend/types';
 import { BE_IP_ADDRESS } from '@frontend/constants';
+import {
+  clear,
+  commandDialogReducer,
+  initializeFields,
+  initialState,
+  setAdditionalVariables,
+  setAlias,
+  setMode,
+  setCommand,
+  setSelectedGroup,
+  setSelectedHost,
+  setSelectedInventoryPath,
+  setSelectedInventoryType,
+  setSelectedPlaybook,
+  togglePlaybookPreviewState,
+  commandMode,
+} from '@frontend/reducers/addCommandDialogReducer';
+import { omit } from 'ramda';
+import LoadingDialog from '@frontend/components/LoadingDialog';
 
 interface AddCommandDialogProps {
   open: boolean;
@@ -57,7 +73,19 @@ const AddCommandDialog = ({
   initialCommand,
   TransitionProps,
 }: AddCommandDialogProps) => {
-  const [commandAlias, setCommandAlias] = useState('');
+  const [state, dispatch] = useReducer(commandDialogReducer, initialState);
+  const {
+    alias,
+    selectedPlaybook,
+    selectedInventoryType,
+    selectedInventoryPath,
+    selectedGroup,
+    selectedHost,
+    additionalVariables,
+    command,
+    showPlaybookPreview,
+    mode,
+  } = state;
   const { addCommand, updateCommand } = useCommandContext();
   const { projectName } = useRouter().query;
   const { projectsCommands } = useCommandContext();
@@ -68,48 +96,24 @@ const AddCommandDialog = ({
 
   const sameAliasError =
     initialCommand === undefined
-      ? !!commands.find((command: Command) => command.alias === commandAlias)
+      ? !!commands.find((command: Command) => command.alias === alias)
       : !!commands.find(
-          (command: Command) => command.alias === commandAlias && command.id !== initialCommand.id,
+          (command: Command) => command.alias === alias && command.id !== initialCommand.id,
         );
 
-  const [selectedPlaybook, setSelectedPlaybook] = useState<ProjectPlaybook | null>(null);
-  const [selectedInventoryType, setSelectedInventoryType] = useState<string | null>(null);
-  const [selectedInventoryPath, setSelectedInventoryPath] = useState<string | null>(null);
-  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-  const [selectedHost, setSelectedHost] = useState<string | null>(null);
-  const [additionalVariables, setAdditionalVariables] = useState('');
-  const [resultCommand, setResultCommand] = useState('');
-  const [showPlaybookPreview, setShowPlaybookPreview] = useState(false);
-  const [mode, setMode] = useState<'builder' | 'ad-hoc'>('builder');
-
   const togglePlaybookPreview = () => {
-    setShowPlaybookPreview((prev: boolean) => !prev);
+    dispatch(togglePlaybookPreviewState());
   };
 
   useEffect(() => {
     if (initialCommand) {
-      setCommandAlias(initialCommand.alias);
-      setResultCommand(initialCommand.command);
-      setMode(initialCommand.mode);
-      if (initialCommand.mode === 'builder' && initialCommand.builderData) {
-        setSelectedPlaybook(initialCommand.builderData.selectedPlaybook);
-        setSelectedInventoryType(initialCommand.builderData.selectedInventoryType);
-        setSelectedInventoryPath(initialCommand.builderData.selectedInventoryPath);
-        setSelectedGroup(initialCommand.builderData.selectedGroup);
-        setSelectedHost(initialCommand.builderData.selectedHost);
-        setAdditionalVariables(initialCommand.builderData.additionalVariables);
+      const baseFields = omit(['builderData'], initialCommand);
+      dispatch(initializeFields(baseFields));
+      if (initialCommand.mode === commandMode.BUILDER && initialCommand.builderData) {
+        dispatch(initializeFields(initialCommand.builderData));
       }
     } else {
-      setCommandAlias('');
-      setResultCommand('');
-      setMode('builder');
-      setSelectedPlaybook(null);
-      setSelectedInventoryPath(null);
-      setSelectedInventoryType(null);
-      setSelectedGroup(null);
-      setSelectedHost(null);
-      setAdditionalVariables('');
+      dispatch(clear());
     }
   }, [initialCommand, open]);
 
@@ -134,17 +138,16 @@ const AddCommandDialog = ({
       command += ` -e "${additionalVariables}"`;
     }
 
-    setResultCommand(command);
+    dispatch(setCommand(command));
   };
 
   const areBuilderRequiredFieldsFilled = () =>
-    commandAlias.trim() !== '' &&
+    alias.trim() !== '' &&
     selectedPlaybook !== null &&
     selectedInventoryType !== null &&
     (selectedGroup !== null || selectedHost !== null);
 
-  const areAdHocRequiredFieldsFilled = () =>
-    commandAlias.trim() !== '' && resultCommand.trim() !== '';
+  const areAdHocRequiredFieldsFilled = () => alias.trim() !== '' && command.trim() !== '';
 
   useEffect(() => {
     assembleCommand();
@@ -163,27 +166,18 @@ const AddCommandDialog = ({
   );
 
   if (isLoading || !isSuccess) {
-    return (
-      <Dialog open={open} onClose={onClose} TransitionProps={TransitionProps}>
-        <DialogTitle>Loading details</DialogTitle>
-        <DialogContent>
-          <Stack alignItems="center" justifyContent="center">
-            <CircularProgress size={70} />
-          </Stack>
-        </DialogContent>
-      </Dialog>
-    );
+    return <LoadingDialog open={open} onClose={onClose} TransitionProps={TransitionProps} />;
   }
 
   const { projectDetails, projectPlaybooks } = data!;
   const handleAddCommand = () => {
-    if (commandAlias.trim() && typeof projectName === 'string') {
+    if (alias.trim() && typeof projectName === 'string') {
       addCommand(
         projectName,
-        resultCommand,
-        commandAlias,
+        command,
+        alias,
         mode,
-        mode === 'builder'
+        mode === commandMode.BUILDER
           ? {
               selectedPlaybook,
               selectedInventoryType,
@@ -194,7 +188,7 @@ const AddCommandDialog = ({
             }
           : undefined,
       );
-      setCommandAlias('');
+      dispatch(setAlias(''));
     }
   };
 
@@ -216,41 +210,44 @@ const AddCommandDialog = ({
         {initialCommand ? `Modify ${initialCommand.alias}` : 'Add a new command'}
       </DialogTitle>
       <DialogContent>
-        <Stack spacing={2}>
+        <Stack spacing={2} overflow="hidden">
           <ButtonGroup variant="outlined">
             <Button
-              disabled={mode === 'builder'}
+              disabled={mode === commandMode.BUILDER}
               onClick={() => {
-                setMode('builder');
+                dispatch(setMode(commandMode.BUILDER));
               }}
             >
               Builder
             </Button>
             <Button
-              disabled={mode === 'ad-hoc'}
+              disabled={mode === commandMode.AD_HOC}
               onClick={() => {
-                setMode('ad-hoc');
+                dispatch(setMode(commandMode.AD_HOC));
               }}
             >
               Ad-hoc
             </Button>
           </ButtonGroup>
-          {mode === 'builder' && (
+          <TextField
+            label="Alias"
+            value={alias}
+            onChange={(e) => dispatch(setAlias(e.target.value))}
+            fullWidth
+            required
+            error={sameAliasError}
+            helperText={sameAliasError ? 'Command with this alias already exists' : undefined}
+          />
+          {mode === commandMode.BUILDER ? (
             <>
-              <TextField
-                label="Alias"
-                value={commandAlias}
-                onChange={(e) => setCommandAlias(e.target.value)}
-                fullWidth
-                required
-                error={sameAliasError}
-                helperText={sameAliasError ? 'Command with this alias already exists' : undefined}
-              />
               <Stack direction="row" alignItems="center" spacing={2}>
                 <Autocomplete
                   options={projectPlaybooks}
                   getOptionLabel={(option: ProjectPlaybook) => option.playbookName}
-                  onChange={(event, newValue) => setSelectedPlaybook(newValue)}
+                  isOptionEqualToValue={(option: ProjectPlaybook, value) =>
+                    option.playbookName === value.playbookName
+                  }
+                  onChange={(event, newValue) => dispatch(setSelectedPlaybook(newValue))}
                   renderInput={(params) => (
                     <TextField {...params} label="Select Playbook" required={!selectedPlaybook} />
                   )}
@@ -277,11 +274,11 @@ const AddCommandDialog = ({
               <Autocomplete
                 options={inventoryTypes}
                 onChange={(event: SyntheticEvent, newValue) => {
-                  setSelectedInventoryType(newValue);
+                  dispatch(setSelectedInventoryType(newValue));
                   const selectedInventory = projectDetails.find(
                     (inventory: any) => inventory.inventoryType === newValue,
                   )!;
-                  setSelectedInventoryPath(selectedInventory.inventoryPath);
+                  dispatch(setSelectedInventoryPath(selectedInventory.inventoryPath));
                 }}
                 value={selectedInventoryType}
                 renderInput={(params: AutocompleteRenderInputParams) => (
@@ -299,9 +296,9 @@ const AddCommandDialog = ({
                     fullWidth
                     options={groupNames}
                     onChange={(event, newValue) => {
-                      setSelectedGroup(newValue);
+                      dispatch(setSelectedGroup(newValue));
                       if (newValue) {
-                        setSelectedHost(null);
+                        dispatch(setSelectedHost(null));
                       }
                     }}
                     value={selectedGroup}
@@ -314,9 +311,9 @@ const AddCommandDialog = ({
                     fullWidth
                     options={[...new Set(hostnames)]}
                     onChange={(event, newValue) => {
-                      setSelectedHost(newValue as string | null);
+                      dispatch(setSelectedHost(newValue as string | null));
                       if (newValue) {
-                        setSelectedGroup(null);
+                        dispatch(setSelectedGroup(null));
                       }
                     }}
                     value={selectedHost}
@@ -331,36 +328,24 @@ const AddCommandDialog = ({
                 id="variables"
                 label="Additional variables"
                 value={additionalVariables}
-                onChange={(e) => setAdditionalVariables(e.target.value)}
+                onChange={(e) => dispatch(setAdditionalVariables(e.target.value))}
               />
               <TextField
                 fullWidth
                 id="result"
                 label="Result"
-                value={resultCommand}
+                value={command}
                 InputProps={{ readOnly: true }}
               />
             </>
-          )}
-          {mode === 'ad-hoc' && (
-            <>
-              <TextField
-                label="Alias"
-                value={commandAlias}
-                onChange={(e) => setCommandAlias(e.target.value)}
-                fullWidth
-                required
-                error={sameAliasError}
-                helperText={sameAliasError ? 'Command with this alias already exists' : undefined}
-              />
-              <TextField
-                fullWidth
-                id="adhoc-command"
-                label="Ad-hoc command"
-                value={resultCommand}
-                onChange={(e) => setResultCommand(e.target.value)}
-              />
-            </>
+          ) : (
+            <TextField
+              fullWidth
+              id="adhoc-command"
+              label="Ad-hoc command"
+              value={command}
+              onChange={(e) => dispatch(setCommand(e.target.value))}
+            />
           )}
         </Stack>
       </DialogContent>
@@ -371,10 +356,10 @@ const AddCommandDialog = ({
               updateCommand(
                 projectName,
                 initialCommand.id,
-                resultCommand,
-                commandAlias,
+                command,
+                alias,
                 mode,
-                mode === 'builder'
+                mode === commandMode.BUILDER
                   ? {
                       selectedPlaybook,
                       selectedInventoryType,
@@ -391,7 +376,7 @@ const AddCommandDialog = ({
             onClose();
           }}
           disabled={
-            (mode === 'builder'
+            (mode === commandMode.BUILDER
               ? !areBuilderRequiredFieldsFilled()
               : !areAdHocRequiredFieldsFilled()) || sameAliasError
           }

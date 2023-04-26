@@ -97,7 +97,7 @@ export const Appbar = () => {
             Dashboard
           </Button>
           <Button
-            id="button-runner"
+            id="button-commands"
             color="inherit"
             startIcon={<FontAwesomeIcon icon={faTerminal} style={{ width: 18, height: 18 }} />}
             component={Link}

@@ -20,7 +20,7 @@ describe('Appbar', () => {
     cy.get('#button-dashboard').click();
     cy.url().should('not.include', '/dashboard');
 
-    cy.get('#button-runner').click();
+    cy.get('#button-commands').click();
     cy.url().should('not.include', '/commands');
 
     cy.get('#button-overview').click();
@@ -32,7 +32,7 @@ describe('Appbar', () => {
   });
 
   it('should navigate to Commands', () => {
-    cy.get('#button-runner').click();
+    cy.get('#button-commands').click();
     cy.url().should('include', '/commands');
   });
 

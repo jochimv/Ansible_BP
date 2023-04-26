@@ -17,8 +17,6 @@ const EditorWrapper = () => {
     dispatch(updateVariables({ newEditorValue, projectName, hostname }));
   };
 
-  console.log('updatedProjects: ', JSON.stringify(updatedProjects));
-
   return (
     <Stack direction="column" flexGrow={1} spacing={2}>
       <Breadcrumbs aria-label="breadcrumb" sx={{ ml: 4 }}>

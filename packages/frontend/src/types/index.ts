@@ -117,7 +117,7 @@ export interface Command {
   id: number;
   command: string;
   alias: string;
-  mode: 'builder' | 'ad-hoc';
+  mode: string;
   builderData?: {
     selectedPlaybook: any;
     selectedInventoryType: string | null;
@@ -139,7 +139,7 @@ export interface CommandsContextValue {
     projectName: string,
     command: string,
     alias: string,
-    mode: 'builder' | 'ad-hoc',
+    mode: string,
     builderData?: any,
   ) => void;
   removeCommand: (projectName: string, id: number) => void;
@@ -148,7 +148,7 @@ export interface CommandsContextValue {
     id: number,
     command: string,
     alias: string,
-    mode: 'builder' | 'ad-hoc',
+    mode: string,
     builderData?: any,
   ) => void;
 }
