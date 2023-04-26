@@ -26,7 +26,7 @@ const gitRepoUrlRegex = /((git|ssh|http(s)?)|(git@[\w.]+))(:(\/\/)?)([\w.@/:~-]+
 
 const importProjectByRepoUrl = async (data: any): Promise<RepositoryActionResult> => {
   const response: AxiosResponse<any> = await axios.post(
-    `http://${BE_IP_ADDRESS}:4000/downloadRepository`,
+    `http://${BE_IP_ADDRESS}:4000/download-repository`,
     data,
   );
   return response.data;

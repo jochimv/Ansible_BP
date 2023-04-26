@@ -8,9 +8,9 @@ import {
 import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
-} from '../../context/CodeChangesContext';
-import { createDiff, rollback } from '../../reducers/codeChangesReducer';
-import GitChangesFileTree from '../../components/GitChangesFileTree';
+} from '@frontend/context/CodeChangesContext';
+import { createDiff, rollback } from '@frontend/reducers/codeChangesReducer';
+import GitChangesFileTree from '@frontend/components/GitChangesFileTree';
 import CommitModal from '@frontend/components/CommitModal';
 import { open } from '@frontend/reducers/commitModalReducer';
 import CommitModalProvider, {
@@ -31,12 +31,11 @@ import { BE_IP_ADDRESS } from '@frontend/constants';
 
 const fetchMainBranchName = async (projectName: string): Promise<ProjectMainBranch> => {
   const response: AxiosResponse<any> = await axios.get(
-    `http://${BE_IP_ADDRESS}:4000/${projectName}/git`,
+    `http://${BE_IP_ADDRESS}:4000/${projectName}/main-branch-name`,
   );
   return response.data;
 };
 
-// todo - z nějakého důvodu se mi tam ukazuje empty diff jako diff
 const GitPage = () => {
   const codeChangesDispatch = useCodeChangesDispatchContext();
   const { projectName } = useRouter().query;

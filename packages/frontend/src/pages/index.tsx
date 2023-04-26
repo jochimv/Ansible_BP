@@ -29,12 +29,12 @@ import LoadingPage from '@frontend/components/Loading';
 import { faServer } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 const fetchProjectsHosts = async (): Promise<ProjectHosts[]> => {
-  const response = await axios.get(`http://${BE_IP_ADDRESS}:4000/projects`);
+  const response = await axios.get(`http://${BE_IP_ADDRESS}:4000/projects-hosts`);
   return response.data;
 };
 const deleteRepository = async (data: any): Promise<RepositoryActionResult> => {
   const response: AxiosResponse<any> = await axios.post(
-    `http://${BE_IP_ADDRESS}:4000/deleteRepository`,
+    `http://${BE_IP_ADDRESS}:4000/delete-repository`,
     data,
   );
   return response.data;

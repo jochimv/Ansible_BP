@@ -9,7 +9,7 @@ describe('commands page', () => {
     cy.get('#button-add').click();
   };
   beforeEach(() => {
-    cy.intercept(`http://127.0.0.1:4000/projects`, {
+    cy.intercept(`http://127.0.0.1:4000/projects-hosts`, {
       fixture: 'projectHosts.json',
     }).as('fetchProjectsHosts');
     cy.intercept(`http://127.0.0.1:4000/jochimz/details-playbooks`, {

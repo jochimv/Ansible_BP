@@ -18,9 +18,9 @@ describe('Host Details Page', () => {
   };
 
   beforeEach(() => {
-    cy.intercept('GET', 'http://127.0.0.1:4000/projects', { fixture: 'projectHosts.json' }).as(
-      'fetchProjectsHosts',
-    );
+    cy.intercept('GET', 'http://127.0.0.1:4000/projects-hosts', {
+      fixture: 'projectHosts.json',
+    }).as('fetchProjectsHosts');
 
     cy.visit('http://localhost:3000');
     goToHostDetailsPage();

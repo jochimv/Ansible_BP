@@ -104,8 +104,7 @@ export class FileProcessorService {
         return { success: false, error: `${projectName} already present` };
       }
 
-      const result = await git.clone(gitRepositoryUrl, projectDestinationPath);
-      console.log('downloading completed', JSON.stringify(result));
+      await git.clone(gitRepositoryUrl, projectDestinationPath);
       return { success: true };
     } catch (error) {
       console.error('Error downloading repository:', JSON.stringify(error));

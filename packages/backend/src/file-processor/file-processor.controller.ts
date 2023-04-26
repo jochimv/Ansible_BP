@@ -35,7 +35,7 @@ export class FileProcessorController {
     return { projectDetails, projectPlaybooks, projectExists };
   }
 
-  @Get('/:projectName/git')
+  @Get('/:projectName/main-branch-name')
   async getMainBranchName(@Param('projectName') projectName: string) {
     return await this.fileProcessorService.getMainBranchName(projectName);
   }
@@ -54,7 +54,7 @@ export class FileProcessorController {
   ): Promise<HostDetailsResponse> {
     return await this.fileProcessorService.getHostDetails(projectName, hostname);
   }
-  @Get('projects')
+  @Get('projects-hosts')
   async getProjectsHosts(): Promise<ProjectHosts[]> {
     return await this.fileProcessorService.getProjectsHosts();
   }
@@ -62,14 +62,14 @@ export class FileProcessorController {
   async commit(@Body() commitDto): Promise<CommitResponse> {
     return await this.fileProcessorService.commit(commitDto);
   }
-  @Post('downloadRepository')
+  @Post('download-repository')
   async downloadRepository(
     @Body('gitRepositoryUrl') gitRepositoryUrl,
   ): Promise<RepositoryActionResult> {
     return await this.fileProcessorService.downloadRepository(gitRepositoryUrl);
   }
 
-  @Post('deleteRepository')
+  @Post('delete-repository')
   async deleteRepository(@Body('projectName') projectName): Promise<RepositoryActionResult> {
     return await this.fileProcessorService.deleteRepository(projectName);
   }

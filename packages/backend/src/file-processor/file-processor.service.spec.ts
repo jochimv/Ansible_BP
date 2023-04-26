@@ -20,8 +20,8 @@ jest.mock('simple-git', () => {
   };
 });
 
-jest.mock('./utils', () => ({
-  ...jest.requireActual('./utils'),
+jest.mock('../utils', () => ({
+  ...jest.requireActual('../utils'),
   getHostDetails: jest.fn(),
   getProjectDetails: jest.fn(),
   getProjectsHosts: jest.fn(),
