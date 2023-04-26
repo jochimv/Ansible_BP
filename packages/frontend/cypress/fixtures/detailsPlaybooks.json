@@ -1,0 +1,41 @@
+{
+  "projectDetails": [
+    {
+      "inventoryType": "prod",
+      "inventoryPath": "jochimz\\inventories\\prod\\hosts",
+      "groupHosts": [
+        {
+          "groupName": "vm_machines",
+          "hosts": [
+            {
+              "hostname": "146.102.194.127",
+              "appliedVariables": "ansible_user: osboxes\nansible_password: osboxes.org\nansible_become_method: sudo\nansible_become_pass: osboxes.org\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "inventoryType": "test",
+      "inventoryPath": "jochimz\\inventories\\test\\hosts",
+      "groupHosts": [
+        {
+          "groupName": "vm_machines",
+          "hosts": [
+            {
+              "hostname": "146.102.194.127",
+              "appliedVariables": "common: variables\ngroup: variables\nansible_user: osboxes\nansible_password: osboxes.org\nansible_become_method: sudo\nansible_become_pass: osboxes.org\n"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "projectPlaybooks": [
+    {
+      "playbookName": "test-playbook.yml",
+      "content": "---\r\n- name: Test playbook\r\n  hosts: vm_machines\r\n  become: yes\r\n  tasks:\r\n    - name: Run a command on the remote host\r\n      shell: echo \"Hello, world!\""
+    }
+  ],
+  "projectExists": true
+}

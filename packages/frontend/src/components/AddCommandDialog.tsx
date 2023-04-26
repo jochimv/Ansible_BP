@@ -170,6 +170,7 @@ const AddCommandDialog = ({
   }
 
   const { projectDetails, projectPlaybooks } = data!;
+  console.log('data: ', JSON.stringify(data));
   const handleAddCommand = () => {
     if (alias.trim() && typeof projectName === 'string') {
       addCommand(
@@ -231,6 +232,7 @@ const AddCommandDialog = ({
           </ButtonGroup>
           <TextField
             label="Alias"
+            id="textfield-alias"
             value={alias}
             onChange={(e) => dispatch(setAlias(e.target.value))}
             fullWidth
@@ -242,6 +244,7 @@ const AddCommandDialog = ({
             <>
               <Stack direction="row" alignItems="center" spacing={2}>
                 <Autocomplete
+                  id="autocomplete-playbooks"
                   options={projectPlaybooks}
                   getOptionLabel={(option: ProjectPlaybook) => option.playbookName}
                   isOptionEqualToValue={(option: ProjectPlaybook, value) =>
@@ -272,6 +275,7 @@ const AddCommandDialog = ({
                 />
               )}
               <Autocomplete
+                id="autocomplete-inventory-type"
                 options={inventoryTypes}
                 onChange={(event: SyntheticEvent, newValue) => {
                   dispatch(setSelectedInventoryType(newValue));
@@ -293,6 +297,7 @@ const AddCommandDialog = ({
               {selectedInventoryType && (
                 <Stack direction="row" spacing={2} alignItems="center">
                   <Autocomplete
+                    id="autocomplete-groups"
                     fullWidth
                     options={groupNames}
                     onChange={(event, newValue) => {
@@ -375,6 +380,7 @@ const AddCommandDialog = ({
             }
             onClose();
           }}
+          id="button-add"
           disabled={
             (mode === commandMode.BUILDER
               ? !areBuilderRequiredFieldsFilled()

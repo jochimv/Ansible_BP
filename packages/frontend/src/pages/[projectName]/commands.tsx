@@ -109,16 +109,17 @@ const AnsibleCommandsPage: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredCommands?.map((commandObj: Command) => {
+            {filteredCommands?.map((commandObj: Command, index: number) => {
               const { id, alias, command } = commandObj;
               return (
-                <TableRow key={id}>
-                  <TableCell>{alias}</TableCell>
+                <TableRow key={id} id={`command-${index}`}>
+                  <TableCell id={`command-${index}-alias`}>{alias}</TableCell>
                   <TableCell>{command}</TableCell>
                   <TableCell>
                     <Stack direction="row" columnGap={2} alignItems="center">
                       <IconButton
                         edge="end"
+                        id={`edit-command-${index}`}
                         aria-label="edit"
                         onClick={() => {
                           setCurrentCommand(commandObj);
@@ -131,8 +132,9 @@ const AnsibleCommandsPage: React.FC = () => {
                         <CircularProgress size={28} />
                       ) : (
                         <IconButton
+                          id={`run-command-${index}`}
                           edge="end"
-                          aria-label="delete"
+                          aria-label="run"
                           onClick={() => {
                             runCommand(id, alias, projectName, command);
                           }}
@@ -141,6 +143,7 @@ const AnsibleCommandsPage: React.FC = () => {
                         </IconButton>
                       )}
                       <IconButton
+                        id={`delete-command-${index}`}
                         aria-label="delete"
                         onClick={() => {
                           if (typeof projectName === 'string') {
