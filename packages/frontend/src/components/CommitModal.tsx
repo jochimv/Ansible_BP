@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Button,
   CircularProgress,
@@ -6,11 +6,19 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
-import { Cancel, CheckCircle, Replay as ReplayIcon, Send as SendIcon } from '@mui/icons-material';
+import {
+  Cancel,
+  CheckCircle,
+  OpenInFull,
+  OpenInNew,
+  Replay as ReplayIcon,
+  Send as SendIcon,
+} from '@mui/icons-material';
 import axios, { AxiosResponse } from 'axios';
 import { useMutation } from 'react-query';
 import {
@@ -33,6 +41,9 @@ import {
 import { CloseButton } from '@frontend/components/CloseButton';
 import { CommitResponse } from '@frontend/types';
 import { BE_IP_ADDRESS } from '@frontend/constants';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { useSnackbar } from '@frontend/context/SnackbarContext';
+import { open } from '@frontend/reducers/clearModalReducer';
 
 const postCommitData = async (data: any): Promise<CommitResponse> => {
   const response: AxiosResponse<any> = await axios.post(
@@ -48,7 +59,13 @@ interface CommitModalProps {
 
 const CommitModal = ({ mainBranchName }: CommitModalProps) => {
   const { commitMessage, commitBranchName, response, isModalOpen } = useCommitModalContext();
+  const isModalOpenRef = useRef(isModalOpen);
+  useEffect(() => {
+    isModalOpenRef.current = isModalOpen;
+  }, [isModalOpen]);
+
   const commitModalDispatch = useCommitModalDispatchContext();
+  const { showMessage } = useSnackbar();
 
   const handleCommitMessageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     commitModalDispatch(updateCommitMessage(event.target.value));
@@ -58,7 +75,28 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
   };
 
   const { isLoading, reset, mutateAsync } = useMutation(postCommitData, {
-    onSuccess: (data: CommitResponse) => commitModalDispatch(updateResponse(data)),
+    onSuccess: (data: CommitResponse) => {
+      const { error, pullRequestUrl } = data;
+      commitModalDispatch(updateResponse(data));
+      if (!isModalOpenRef.current && !error) {
+        showMessage(
+          'Commit successful',
+          'success',
+          <Button
+            component={'a'}
+            target="_blank"
+            href={pullRequestUrl}
+            startIcon={<FontAwesomeIcon icon={faCodePullRequest} />}
+            color="success"
+            onClick={closeModal}
+          >
+            Create PR
+          </Button>,
+        );
+      } else if (!isModalOpenRef.current && error) {
+        showMessage('Error during commit', 'error');
+      }
+    },
   });
   const { updatedVars, selectedProjectName } = useCodeChangesContext();
   const codeChangesDispatch = useCodeChangesDispatchContext();
@@ -88,6 +126,11 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
           <DialogContent sx={{ display: 'flex', justifyContent: 'center' }}>
             <CircularProgress size={70} />
           </DialogContent>
+          <DialogActions>
+            <Button onClick={closeModal} startIcon={<VisibilityOffIcon />}>
+              Hide
+            </Button>
+          </DialogActions>
         </>
       );
     } else if (response) {
