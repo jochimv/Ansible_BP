@@ -97,7 +97,9 @@ const GitPage = () => {
                 Rollback
               </Button>
             </Stack>
-            <GitChangesFileTree />
+            <Box sx={{ overflow: 'auto', height: '100%' }}>
+              <GitChangesFileTree />
+            </Box>
           </Stack>
           <Box sx={{ width: '80%' }}>
             <DiffEditor
