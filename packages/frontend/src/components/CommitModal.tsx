@@ -193,6 +193,7 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
 
   return (
     <Dialog
+      onClose={closeModal}
       TransitionProps={{
         onExited: () => {
           clearResponse();
