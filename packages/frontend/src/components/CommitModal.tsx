@@ -78,6 +78,8 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
     }
   };
 
+  console.log('commitBranchName: ', commitBranchName);
+  console.log('mainBranchName: ', mainBranchName);
   const isCommitingToMainBranch = commitBranchName === mainBranchName;
 
   const getModalContent = (isLoading: boolean, response: any) => {
@@ -147,17 +149,6 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
           <DialogTitle>Commit Message</DialogTitle>
           <DialogContent>
             <TextField
-              autoFocus
-              margin="dense"
-              id="commit-message"
-              label="Enter your commit message:"
-              type="text"
-              fullWidth
-              variant="standard"
-              value={commitMessage}
-              onChange={handleCommitMessageChange}
-            />
-            <TextField
               margin="dense"
               id="branch-name"
               label="Enter a branch name"
@@ -172,6 +163,18 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
               }
               value={commitBranchName}
               onChange={handleBranchNameChange}
+            />
+            <TextField
+              autoFocus
+              margin="dense"
+              id="commit-message"
+              label="Enter your commit message"
+              type="text"
+              fullWidth
+              multiline
+              variant="standard"
+              value={commitMessage}
+              onChange={handleCommitMessageChange}
             />
           </DialogContent>
           <DialogActions>
@@ -199,6 +202,8 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
         },
       }}
       open={isModalOpen}
+      maxWidth="sm"
+      fullWidth
     >
       {getModalContent(isLoading, response)}
     </Dialog>

@@ -15,7 +15,7 @@ import {
   TableBody,
   Tooltip,
 } from '@mui/material';
-import { HelpOutline } from '@mui/icons-material';
+import { HelpOutline, Replay } from '@mui/icons-material';
 import {
   useClearModalContext,
   useClearModalDispatchContext,
@@ -125,12 +125,11 @@ const ClearModal = () => {
                         </TableCell>
                         <TableCell>
                           <Button
-                            startIcon={
-                              <FontAwesomeIcon style={{ width: 18, height: 18 }} icon={faBroom} />
-                            }
+                            startIcon={<Replay />}
+                            color="warning"
                             onClick={() => handleRollbackProject(updatedProject.projectName)}
                           >
-                            Clear
+                            Rollback
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -143,14 +142,14 @@ const ClearModal = () => {
           <DialogActions>
             <Button
               color="success"
-              startIcon={<FontAwesomeIcon icon={faBomb} />}
+              startIcon={<Replay />}
               onClick={() => {
                 handleRollbackAllProjects();
                 localStorage.removeItem('codeChangesContextData');
                 dispatch(close());
               }}
             >
-              Clear all
+              Rollback all
             </Button>
             <CloseButton onClick={closeModal}>Close</CloseButton>
           </DialogActions>

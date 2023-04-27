@@ -37,7 +37,9 @@ export class FileProcessorController {
 
   @Get('/:projectName/main-branch-name')
   async getMainBranchName(@Param('projectName') projectName: string) {
-    return await this.fileProcessorService.getMainBranchName(projectName);
+    const result = await this.fileProcessorService.getMainBranchName(projectName);
+    console.log('result: ', result);
+    return result;
   }
 
   @Get('/:projectName/details')

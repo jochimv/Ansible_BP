@@ -37,7 +37,6 @@ const renderTree = (nodes: TreeNode | undefined, path: string, dispatch: Dispatc
     const isLeaf = Object.keys(children ?? {}).length === 0;
     return (
       <TreeItem
-        /*sx={isLeaf ? { width: 'min-content', whiteSpace: 'nowrap' } : undefined}*/
         key={newPath}
         nodeId={newPath}
         label={nodeName}
@@ -91,7 +90,7 @@ const GitChangesFileTree = () => {
 
   return (
     <TreeView
-      sx={{ width: '80%' }}
+      sx={{ width: '100%' }}
       expanded={expanded}
       selected={selectedNodeId}
       defaultCollapseIcon={<Folder />}

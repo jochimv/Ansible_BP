@@ -78,7 +78,7 @@ const GitPage = () => {
       <CommitModal mainBranchName={mainBranchName} />
       {originalDiff ? (
         <>
-          <Stack direction="column" sx={{ width: '30%' }}>
+          <Stack direction="column" sx={{ width: '20%' }}>
             <Stack direction="row" mb={1} columnGap={1}>
               <Button
                 startIcon={<SendIcon />}
@@ -99,7 +99,7 @@ const GitPage = () => {
             </Stack>
             <GitChangesFileTree />
           </Stack>
-          <Box sx={{ width: '70%' }}>
+          <Box sx={{ width: '80%' }}>
             <DiffEditor
               language="yml"
               original={originalDiff?.values}

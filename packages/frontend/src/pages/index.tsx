@@ -151,10 +151,15 @@ const HomePage = () => {
           }}
         />
         <Divider style={{ width: '100%' }}>OR</Divider>
-        <Button startIcon={<DownloadIcon />} onClick={() => setIsImportProjectModalOpen(true)}>
+        <Button
+          color="success"
+          startIcon={<DownloadIcon />}
+          onClick={() => setIsImportProjectModalOpen(true)}
+        >
           Import repository
         </Button>
         <Button
+          color="error"
           startIcon={<FolderOff />}
           onClick={() => {
             if (selectedProjectName) {
