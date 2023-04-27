@@ -119,10 +119,11 @@ export const getVariablesByType = (obj: any, type: string) => {
   return null;
 };
 export const renderBreadcrumbsSegments = (path: string) => {
-  const segments = path.split('\\');
-  return segments.map((segment: string, index: number) => (
-    <Typography key={index}>{segment}</Typography>
-  ));
+  const regex = new RegExp('[\\\\/]', 'g');
+  const segments = path.split(regex);
+  return segments
+    .filter((segment: string) => segment !== '')
+    .map((segment: string, index: number) => <Typography key={index}>{segment}</Typography>);
 };
 export const formatErrorMessage = (message: string): JSX.Element => {
   const lines = message.split('\n');

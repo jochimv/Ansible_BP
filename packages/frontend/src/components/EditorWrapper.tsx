@@ -21,7 +21,7 @@ const EditorWrapper = () => {
     <Stack direction="column" flexGrow={1} spacing={2}>
       <Breadcrumbs aria-label="breadcrumb" sx={{ ml: 4 }}>
         {selectedVariables?.type === 'applied' ? (
-          <Typography>{selectedVariables?.pathInProject}</Typography>
+          <Typography>Applied variables</Typography>
         ) : (
           renderBreadcrumbsSegments(selectedVariables?.pathInProject)
         )}
