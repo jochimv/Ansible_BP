@@ -12,7 +12,7 @@ import {
   ProjectPlaybook,
   RepositoryActionResult,
 } from '../types';
-import { ansibleReposPath, getHostDetails, getProjectDetails, getProjectsHosts } from '../utils';
+import { getHostDetails, getProjectDetails, getProjectsHosts } from '../utils';
 
 const extractSecondToLastPathSegment = (url: string): string => {
   const urlSegments = url.split('/');
@@ -49,12 +49,12 @@ export class FileProcessorService {
   };
 
   projectExists = (projectName: string): boolean => {
-    const projectPath = join(ansibleReposPath, projectName);
+    const projectPath = join(process.env.ANSIBLE_REPOS_PATH, projectName);
     return existsSync(projectPath);
   };
 
   getProjectPlaybooks = async (projectName: string): Promise<ProjectPlaybook[]> => {
-    const projectPath = join(ansibleReposPath, projectName);
+    const projectPath = join(process.env.ANSIBLE_REPOS_PATH, projectName);
     const playbookNames = readdirSync(projectPath).filter((name) => name.includes('playbook'));
     return playbookNames.map((playbookName: string) => {
       const fullPath = join(projectPath, playbookName);
@@ -63,7 +63,7 @@ export class FileProcessorService {
     });
   };
   getMainBranchName = async (projectName: string): Promise<ProjectMainBranch> => {
-    const projectPath = join(ansibleReposPath, projectName);
+    const projectPath = join(process.env.ANSIBLE_REPOS_PATH, projectName);
     if (!existsSync(projectPath)) {
       return {
         mainBranchName: null,
@@ -81,7 +81,7 @@ export class FileProcessorService {
     return await getProjectsHosts();
   };
   deleteRepository = async (projectName: string): Promise<RepositoryActionResult> => {
-    const projectPath = join(ansibleReposPath, projectName);
+    const projectPath = join(process.env.ANSIBLE_REPOS_PATH, projectName);
     if (!existsSync(projectPath)) {
       return { success: false, error: `${projectName} not found` };
     }
@@ -98,7 +98,7 @@ export class FileProcessorService {
     console.log('starting to download repository');
     try {
       const projectName = extractSecondToLastPathSegment(gitRepositoryUrl);
-      const projectDestinationPath = join(ansibleReposPath, projectName);
+      const projectDestinationPath = join(process.env.ANSIBLE_REPOS_PATH, projectName);
 
       if (existsSync(projectDestinationPath)) {
         return { success: false, error: `${projectName} already present` };
@@ -117,7 +117,7 @@ export class FileProcessorService {
 
   async commit(commitDto): Promise<CommitResponse> {
     const { commitMessage, commitBranchName, projectName, updatedVars } = commitDto;
-    const repositoryPath = join(ansibleReposPath, projectName);
+    const repositoryPath = join(process.env.ANSIBLE_REPOS_PATH, projectName);
     const git = await simpleGit(repositoryPath);
     let remoteRepoUrl;
     await git.getRemotes(true, (err, remotes) => {
@@ -133,7 +133,7 @@ export class FileProcessorService {
     await git.checkoutBranch(commitBranchName, originalBranchName);
     for (const updatedVar of updatedVars) {
       const { pathInProject, values } = updatedVar;
-      const fullPath = join(ansibleReposPath, pathInProject);
+      const fullPath = join(process.env.ANSIBLE_REPOS_PATH, pathInProject);
       writeFileSync(fullPath, values);
       await git.add(fullPath);
     }

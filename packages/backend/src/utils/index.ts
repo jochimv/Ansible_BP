@@ -5,10 +5,6 @@ import { parse as parseYaml, stringify } from 'yaml';
 import { Response, simpleGit, SimpleGit } from 'simple-git';
 import { parse as parseIni } from 'ini';
 const { join, extname } = path;
-export const ansibleReposPath =
-  process.env.STAGE === 'development'
-    ? 'C:\\Users\\VJochim\\Desktop\\ansible_BP\\packages\\backend\\ansible_repos'
-    : '/app/ansible_repos';
 const possibleInventoryFiles = ['hosts.ini', 'hosts', 'hosts.yaml'];
 const directoriesToIgnore = [
   'roles',
@@ -40,7 +36,7 @@ const checkAndUpdateAllProjects = async (projectPaths: string[]) => {
   await Promise.all(tasks);
 };
 export const getProjectDetails = async (projectName: string): Promise<ProjectDetailsResponse> => {
-  const projectPath = join(ansibleReposPath, projectName);
+  const projectPath = join(process.env.ANSIBLE_REPOS_PATH, projectName);
   if (!existsSync(projectPath)) {
     return { projectExists: false, projectDetails: null };
   }
@@ -156,11 +152,12 @@ const removeDuplicateHosts = (arr: any) => {
 };
 export const getProjectsHosts = async (): Promise<ProjectHosts[]> => {
   const projectsHosts = [];
-  const projects = readdirSync(ansibleReposPath);
-  const projectsPaths = projects.map((project) => join(ansibleReposPath, project));
+  console.log('about to read from ', process.env.ANSIBLE_REPOS_PATH);
+  const projects = readdirSync(process.env.ANSIBLE_REPOS_PATH);
+  const projectsPaths = projects.map((project) => join(process.env.ANSIBLE_REPOS_PATH, project));
   await checkAndUpdateAllProjects(projectsPaths);
   for (const project of projects) {
-    const projectPath = join(ansibleReposPath, project);
+    const projectPath = join(process.env.ANSIBLE_REPOS_PATH, project);
     const inventoryPaths = getInventoryFilesPaths(projectPath);
     const hosts = [];
     for (const inventoryPath of inventoryPaths) {
@@ -221,7 +218,7 @@ const getGroupNameFromIniInventory = (filePath: string, serverName: string): str
   return undefined;
 };
 const removeAnsibleReposPathFromPath = (filePath: string): string => {
-  return path.relative(ansibleReposPath, filePath);
+  return path.relative(process.env.ANSIBLE_REPOS_PATH, filePath);
 };
 const extractBeforeColon = (str: string) => {
   const colonIndex = str.indexOf(':');
@@ -245,7 +242,7 @@ export const getHostDetails = async (
   projectName: string,
   hostName: string,
 ): Promise<HostDetailsResponse> => {
-  const projectPath: string = join(ansibleReposPath, projectName);
+  const projectPath: string = join(process.env.ANSIBLE_REPOS_PATH, projectName);
 
   if (!existsSync(projectPath)) {
     return { projectExists: false, hostDetailsByInventoryType: null, hostExists: false };

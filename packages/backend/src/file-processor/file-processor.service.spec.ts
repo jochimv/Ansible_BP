@@ -4,7 +4,7 @@ import { existsSync, readdirSync, readFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { simpleGit } from 'simple-git';
 import { RepositoryActionResult } from '../types';
-import { ansibleReposPath, getHostDetails, getProjectDetails, getProjectsHosts } from '../utils';
+import { getHostDetails, getProjectDetails, getProjectsHosts } from '../utils';
 jest.mock('fs', () => ({
   ...jest.requireActual('fs'),
   existsSync: jest.fn(),
@@ -54,14 +54,14 @@ describe('FileProcessorService', () => {
 
   it('should check if a project exists', () => {
     const projectName = 'sample-project';
-    const projectPath = join(ansibleReposPath, projectName);
+    const projectPath = join(process.env.ANSIBLE_REPOS_PATH, projectName);
     service.projectExists(projectName);
     expect(existsSync).toHaveBeenCalledWith(projectPath);
   });
 
   it('should get project playbooks', async () => {
     const projectName = 'sample-project';
-    const projectPath = join(ansibleReposPath, projectName);
+    const projectPath = join(process.env.ANSIBLE_REPOS_PATH, projectName);
     const playbookNames = ['playbook1.yml', 'playbook2.yml'];
     (readdirSync as jest.Mock).mockReturnValue(playbookNames);
     await service.getProjectPlaybooks(projectName);
@@ -86,7 +86,7 @@ describe('FileProcessorService', () => {
 
   it('should deleteRepository', async () => {
     const projectName = 'sample-project';
-    const projectPath = join(ansibleReposPath, projectName);
+    const projectPath = join(process.env.ANSIBLE_REPOS_PATH, projectName);
     (existsSync as jest.Mock).mockReturnValue(true);
     const expectedResult: RepositoryActionResult = { success: true };
     const result = await service.deleteRepository(projectName);
@@ -98,7 +98,7 @@ describe('FileProcessorService', () => {
   it('should downloadRepository', async () => {
     const gitRepositoryUrl = 'https://bitbucket.org/scm/sample-project/ansible-weblogic.git.git';
     const projectName = 'sample-project';
-    const projectDestinationPath = join(ansibleReposPath, projectName);
+    const projectDestinationPath = join(process.env.ANSIBLE_REPOS_PATH, projectName);
     (existsSync as jest.Mock).mockReturnValue(false);
     const gitMock = { clone: jest.fn().mockResolvedValue(undefined) };
     (simpleGit as jest.Mock).mockReturnValue(gitMock);
@@ -111,7 +111,7 @@ describe('FileProcessorService', () => {
 
   it('should get the main branch name of a project', async () => {
     const projectName = 'sample-project';
-    const projectPath = join(ansibleReposPath, projectName);
+    const projectPath = join(process.env.ANSIBLE_REPOS_PATH, projectName);
     (existsSync as jest.Mock).mockReturnValue(true);
     const gitMock = { revparse: jest.fn().mockResolvedValue('main') };
     (simpleGit as jest.Mock).mockReturnValue(gitMock);
@@ -136,7 +136,7 @@ describe('FileProcessorService', () => {
       ],
     };
 
-    const repositoryPath = join(ansibleReposPath, commitDto.projectName);
+    const repositoryPath = join(process.env.ANSIBLE_REPOS_PATH, commitDto.projectName);
     const gitMock = {
       getRemotes: jest.fn((_, callback) =>
         callback(null, [

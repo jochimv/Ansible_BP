@@ -56,6 +56,7 @@ export class FileProcessorController {
   }
   @Get('projects-hosts')
   async getProjectsHosts(): Promise<ProjectHosts[]> {
+    console.log('ansible repos path: ', process.env.ANSIBLE_REPOS_PATH);
     return await this.fileProcessorService.getProjectsHosts();
   }
   @Post('commit')
