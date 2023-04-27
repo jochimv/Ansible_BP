@@ -59,7 +59,7 @@ const ImportProjectModal = ({ isOpen, onClose, onSuccess }: ImportProjectModalPr
 
   const [gitRepositoryUrl, setGitRepositoryUrl] = useState('');
   return (
-    <Dialog open={isOpen} onClose={onClose}>
+    <Dialog open={isOpen} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Import{isLoading ? 'ing' : ''} repository</DialogTitle>
       {isLoading ? (
         <>
@@ -77,6 +77,9 @@ const ImportProjectModal = ({ isOpen, onClose, onSuccess }: ImportProjectModalPr
           <DialogContent>
             <TextField
               sx={{ mt: 1 }}
+              required
+              value={gitRepositoryUrl}
+              fullWidth
               label="Enter git repository URL"
               onChange={(event: ChangeEvent<HTMLInputElement>) => {
                 setGitRepositoryUrl(event.target.value);

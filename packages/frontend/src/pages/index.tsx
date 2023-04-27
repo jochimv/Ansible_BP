@@ -41,7 +41,11 @@ const deleteRepository = async (data: any): Promise<RepositoryActionResult> => {
 };
 const HomePage = () => {
   const [projectNames, setProjectNames] = useState<string[]>([]);
-  const { data: projectHosts, isLoading } = useQuery('projectsHosts', fetchProjectsHosts, {
+  const {
+    data: projectHosts,
+    isLoading,
+    refetch,
+  } = useQuery('projectsHosts', fetchProjectsHosts, {
     onSuccess: (projectHosts) => {
       setProjectNames(projectHosts.map((projectHost: ProjectHosts) => projectHost.project));
     },
@@ -59,11 +63,12 @@ const HomePage = () => {
     }
     setIsConfirmDialogOpen(false);
   };
-  const handleChangeProjectsAutocompleteValues = () =>
+  const handleChangeProjectsAutocompleteValues = () => {
+    refetch();
     setProjectNames((projectNames: string[]) =>
       projectNames.filter((projectName: string) => projectName !== selectedProjectName),
     );
-
+  };
   const { mutate } = useMutation(deleteRepository, {
     onSuccess: (response: RepositoryActionResult) => {
       const { success, error } = response;
