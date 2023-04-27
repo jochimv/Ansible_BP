@@ -60,7 +60,7 @@ const ImportProjectModal = ({ isOpen, onClose, onSuccess }: ImportProjectModalPr
   const [gitRepositoryUrl, setGitRepositoryUrl] = useState('');
   return (
     <Dialog open={isOpen} onClose={onClose}>
-      <DialogTitle>Importing repository</DialogTitle>
+      <DialogTitle>Import{isLoading ? 'ing' : ''} repository</DialogTitle>
       {isLoading ? (
         <>
           <DialogContent sx={{ display: 'flex', justifyContent: 'center' }}>

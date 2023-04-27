@@ -170,7 +170,6 @@ const AddCommandDialog = ({
   }
 
   const { projectDetails, projectPlaybooks } = data!;
-  console.log('data: ', JSON.stringify(data));
   const handleAddCommand = () => {
     if (alias.trim() && typeof projectName === 'string') {
       addCommand(

@@ -1,6 +1,5 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { Command, CommandsContextValue, ProjectCommand } from '@frontend/types';
-import { commandMode } from '@frontend/reducers/addCommandDialogReducer';
 
 const CommandContext = createContext<CommandsContextValue | undefined>(undefined);
 

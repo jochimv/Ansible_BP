@@ -25,6 +25,7 @@ import ProjectNotFound from '@frontend/components/ProjectNotFound';
 import { useRunCommand } from '@frontend/hooks/useRunCommand';
 import { useProjectExists } from '@frontend/hooks/useProjectExists';
 import { Command, ProjectCommand } from '@frontend/types';
+import TerminalDialog from '@frontend/components/TerminalDialog';
 
 const AnsibleCommandsPage: React.FC = () => {
   const { projectName } = useRouter().query;
@@ -36,7 +37,13 @@ const AnsibleCommandsPage: React.FC = () => {
   const [currentCommand, setCurrentCommand] = useState<Command | undefined>();
   const [filterText, setFilterText] = useState('');
 
-  const { runCommand, runningCommandIds, OutputDialog } = useRunCommand();
+  const {
+    runCommand,
+    runningCommandIds,
+    openOutputDialog,
+    handleCloseOutputDialog,
+    commandOutput,
+  } = useRunCommand();
   if (isLoading) {
     return <LoadingPage />;
   } else if (!data?.data) {
@@ -60,108 +67,114 @@ const AnsibleCommandsPage: React.FC = () => {
   };
 
   return (
-    <Box mt={1}>
-      <OutputDialog />
-      <AddCommandDialog
-        open={openDialog}
-        onClose={() => {
-          handleCloseDialog();
-        }}
-        TransitionProps={{
-          onExited: () => {
-            setCurrentCommand(undefined);
-          },
-        }}
-        initialCommand={currentCommand}
-      />
-      <Stack direction="row" spacing={3} mb={2}>
-        <Button
-          id="button-add-command"
-          variant="contained"
-          color="primary"
-          onClick={handleOpenDialog}
-          startIcon={<AddIcon />}
-        >
-          Add Command
-        </Button>
-        <TextField
-          size="small"
-          label="Filter by alias"
-          value={filterText}
-          onChange={(e) => setFilterText(e.target.value)}
-          variant="outlined"
+    <>
+      <Box mt={1}>
+        <TerminalDialog
+          output={commandOutput}
+          open={openOutputDialog}
+          onClose={handleCloseOutputDialog}
         />
-      </Stack>
+        <AddCommandDialog
+          open={openDialog}
+          onClose={() => {
+            handleCloseDialog();
+          }}
+          TransitionProps={{
+            onExited: () => {
+              setCurrentCommand(undefined);
+            },
+          }}
+          initialCommand={currentCommand}
+        />
+        <Stack direction="row" spacing={3} mb={2}>
+          <Button
+            id="button-add-command"
+            variant="contained"
+            color="primary"
+            onClick={handleOpenDialog}
+            startIcon={<AddIcon />}
+          >
+            Add Command
+          </Button>
+          <TextField
+            size="small"
+            label="Filter by alias"
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            variant="outlined"
+          />
+        </Stack>
 
-      <TableContainer>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell width="30%">
-                <Typography fontWeight="bold">Alias</Typography>
-              </TableCell>
-              <TableCell width="60%">
-                <Typography fontWeight="bold">Command</Typography>
-              </TableCell>
-              <TableCell width="10%">
-                <Typography fontWeight="bold">Actions</Typography>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredCommands?.map((commandObj: Command, index: number) => {
-              const { id, alias, command } = commandObj;
-              return (
-                <TableRow key={id} id={`command-${index}`}>
-                  <TableCell id={`command-${index}-alias`}>{alias}</TableCell>
-                  <TableCell>{command}</TableCell>
-                  <TableCell>
-                    <Stack direction="row" columnGap={2} alignItems="center">
-                      <IconButton
-                        edge="end"
-                        id={`edit-command-${index}`}
-                        aria-label="edit"
-                        onClick={() => {
-                          setCurrentCommand(commandObj);
-                          handleOpenDialog();
-                        }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      {runningCommandIds.has(id) ? (
-                        <CircularProgress size={28} />
-                      ) : (
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell width="30%">
+                  <Typography fontWeight="bold">Alias</Typography>
+                </TableCell>
+                <TableCell width="60%">
+                  <Typography fontWeight="bold">Command</Typography>
+                </TableCell>
+                <TableCell width="10%">
+                  <Typography fontWeight="bold">Actions</Typography>
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredCommands?.map((commandObj: Command, index: number) => {
+                const { id, alias, command } = commandObj;
+                return (
+                  <TableRow key={id} id={`command-${index}`}>
+                    <TableCell id={`command-${index}-alias`}>{alias}</TableCell>
+                    <TableCell>{command}</TableCell>
+                    <TableCell>
+                      <Stack direction="row" columnGap={2} alignItems="center">
                         <IconButton
-                          id={`run-command-${index}`}
                           edge="end"
-                          aria-label="run"
+                          id={`edit-command-${index}`}
+                          aria-label="edit"
                           onClick={() => {
-                            runCommand(id, alias, projectName, command);
+                            setCurrentCommand(commandObj);
+                            handleOpenDialog();
                           }}
                         >
-                          <PlayCircleIcon />
+                          <EditIcon />
                         </IconButton>
-                      )}
-                      <IconButton
-                        id={`delete-command-${index}`}
-                        aria-label="delete"
-                        onClick={() => {
-                          if (typeof projectName === 'string') {
-                            removeCommand(projectName, id);
-                          }
-                        }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
+                        {runningCommandIds.has(id) ? (
+                          <CircularProgress size={28} />
+                        ) : (
+                          <IconButton
+                            id={`run-command-${index}`}
+                            edge="end"
+                            aria-label="run"
+                            onClick={() => {
+                              runCommand(id, alias, projectName, command);
+                            }}
+                          >
+                            <PlayCircleIcon />
+                          </IconButton>
+                        )}
+                        <IconButton
+                          id={`delete-command-${index}`}
+                          aria-label="delete"
+                          onClick={() => {
+                            if (typeof projectName === 'string') {
+                              removeCommand(projectName, id);
+                            }
+                          }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </>
   );
 };
 

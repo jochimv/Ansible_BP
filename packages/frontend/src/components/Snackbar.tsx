@@ -15,7 +15,10 @@ const Snackbar = ({ message, severity, onClose, action }: SnackbarProps) => {
       sx={{ alignItems: 'center', justifyContent: 'center' }}
       open={!!message}
       autoHideDuration={5000}
-      onClose={onClose}
+      onClose={(event, reason) => {
+        if (reason === 'clickaway') return;
+        onClose();
+      }}
     >
       <Alert
         severity={severity}

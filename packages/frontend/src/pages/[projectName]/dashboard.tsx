@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import axios, { AxiosResponse } from 'axios';
 import { useQuery } from 'react-query';
 import {
   CircularProgress,
-  Dialog,
   IconButton,
   Paper,
   Stack,
@@ -32,7 +31,6 @@ import {
   Replay as ReplayIcon,
   Terminal as TerminalIcon,
 } from '@mui/icons-material';
-import Terminal from '@frontend/components/Terminal';
 import LoadingPage from '@frontend/components/Loading';
 import { useRouter } from 'next/router';
 import ProjectNotFound from '@frontend/components/ProjectNotFound';
@@ -40,6 +38,7 @@ import { useRunCommand } from '@frontend/hooks/useRunCommand';
 import { ChartData, CommandExecution } from '@frontend/types';
 import { useProjectExists } from '@frontend/hooks/useProjectExists';
 import { BE_IP_ADDRESS, notFoundIconSx } from '@frontend/constants';
+import TerminalDialog from '@frontend/components/TerminalDialog';
 
 const fetchCommandExecutions = async (
   projectName: string | string[] | undefined,
@@ -57,8 +56,6 @@ const Dashboard = () => {
     useProjectExists(projectName);
 
   const projectExists = projectExistsData?.data;
-  const [openOutputDialog, setOpenOutputDialog] = useState(false);
-  const [commandOutput, setCommandOutput] = useState('');
 
   const commandExecutionQuery = useQuery(
     ['commandExecutions', projectName],
@@ -72,20 +69,21 @@ const Dashboard = () => {
 
   const { data = [], isLoading, isSuccess } = commandExecutionQuery;
 
-  const { runCommand, runningCommandIds, OutputDialog } = useRunCommand(() =>
-    commandExecutionQuery.refetch(),
-  );
+  const {
+    runCommand,
+    runningCommandIds,
+    commandOutput,
+    setCommandOutput,
+    handleCloseOutputDialog,
+    handleOpenOutputDialog,
+    openOutputDialog,
+  } = useRunCommand(() => commandExecutionQuery.refetch());
 
   if (isLoading || isProjectExistsLoading || !isSuccess) {
     return <LoadingPage />;
   } else if (projectExists === false) {
     return <ProjectNotFound />;
   }
-  const handleCloseOutputDialog = () => setOpenOutputDialog(false);
-  const handleShowOutputDialog = (output: string) => {
-    setCommandOutput(output);
-    setOpenOutputDialog(true);
-  };
 
   const chartData = data?.reduce((acc: ChartData, item: CommandExecution) => {
     const date = new Date(item.executionDate);
@@ -178,7 +176,10 @@ const Dashboard = () => {
                   <TableCell>
                     <IconButton
                       id="button-show-output"
-                      onClick={() => handleShowOutputDialog(output)}
+                      onClick={() => {
+                        setCommandOutput(output);
+                        handleOpenOutputDialog();
+                      }}
                     >
                       <TerminalIcon />
                     </IconButton>
@@ -204,10 +205,11 @@ const Dashboard = () => {
           </TableBody>
         </Table>
       </TableContainer>
-      <Dialog open={openOutputDialog} onClose={handleCloseOutputDialog} maxWidth="md" fullWidth>
-        <Terminal output={commandOutput} />
-      </Dialog>
-      <OutputDialog />
+      <TerminalDialog
+        output={commandOutput}
+        open={openOutputDialog}
+        onClose={handleCloseOutputDialog}
+      />
     </>
   );
 };

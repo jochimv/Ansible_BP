@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useMutation } from 'react-query';
 import axios, { AxiosResponse } from 'axios';
-import { Dialog, IconButton } from '@mui/material';
+import { IconButton } from '@mui/material';
 import { useSnackbar } from '@frontend/context/SnackbarContext';
-import Terminal from '@frontend/components/Terminal';
 import { Terminal as TerminalIcon } from '@mui/icons-material';
 import { RunCommandOutput } from '@frontend/types';
 import { RunCommandDto } from '@frontend/dto';
@@ -14,12 +13,17 @@ const performCommandExecutionOnBackend = (data: any) =>
 export const useRunCommand = (requestFinishedCallback?: () => void) => {
   const [openOutputDialog, setOpenOutputDialog] = useState(false);
 
-  const { showMessage } = useSnackbar();
+  const { showMessage, hideMessage } = useSnackbar();
   const showMessageWithOutput = (message: string, variant: 'success' | 'error') => {
     showMessage(
       message,
       variant,
-      <IconButton onClick={handleOpenOutputDialog}>
+      <IconButton
+        onClick={() => {
+          handleOpenOutputDialog();
+          hideMessage();
+        }}
+      >
         <TerminalIcon sx={{ color: `${variant}.main` }} />
       </IconButton>,
     );
@@ -64,12 +68,6 @@ export const useRunCommand = (requestFinishedCallback?: () => void) => {
     },
   });
 
-  const OutputDialog = () => (
-    <Dialog open={openOutputDialog} onClose={handleCloseOutputDialog} maxWidth="md" fullWidth>
-      <Terminal output={commandOutput} />
-    </Dialog>
-  );
-
   const runCommand = (
     commandId: number,
     alias: string,
@@ -83,6 +81,10 @@ export const useRunCommand = (requestFinishedCallback?: () => void) => {
   return {
     runCommand,
     runningCommandIds,
-    OutputDialog,
+    openOutputDialog,
+    handleCloseOutputDialog,
+    commandOutput,
+    setCommandOutput,
+    handleOpenOutputDialog,
   };
 };
