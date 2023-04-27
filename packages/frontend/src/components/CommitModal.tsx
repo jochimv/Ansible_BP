@@ -78,8 +78,6 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
     }
   };
 
-  console.log('commitBranchName: ', commitBranchName);
-  console.log('mainBranchName: ', mainBranchName);
   const isCommitingToMainBranch = commitBranchName === mainBranchName;
 
   const getModalContent = (isLoading: boolean, response: any) => {

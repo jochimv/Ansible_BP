@@ -244,6 +244,36 @@ export const codeChangesReducer = (
     case actionTypes.INITIALIZE_EDITOR: {
       const { hostDetailsByInventoryType, projectName, hostname } = action.payload;
 
+      let updatedOriginalProjects: Project[];
+      const originalProject = state.originalProjects?.find(
+        (originalProject: Project) => originalProject.projectName === projectName,
+      );
+      const hostPresentInOriginalProject = !!originalProject?.hosts.find(
+        (host: Host) => host.hostname === hostname,
+      );
+
+      if (!originalProject) {
+        updatedOriginalProjects = [
+          ...(state.originalProjects || []),
+          { projectName, hosts: [{ hostname, hostDetailsByInventoryType }] },
+        ];
+        // updatedUpdatedProjects = state.updatedProjects;
+        // if the project is present, but host is not inside the project, add the host there. common vars or group vars could be updated via another host, that's why we need to map hostDetailsByInventoryType to search for already updated variables
+      } else if (originalProject && !hostPresentInOriginalProject) {
+        updatedOriginalProjects = state.originalProjects.map((originalProject: Project) => {
+          if (originalProject.projectName === projectName) {
+            return {
+              ...originalProject,
+              hosts: [...originalProject.hosts, { hostname, hostDetailsByInventoryType }],
+            };
+          } else {
+            return originalProject;
+          }
+        });
+      } else {
+        updatedOriginalProjects = state.originalProjects;
+      }
+
       let selectedHostDetails, selectedVariables, selectedHostDetailsByInventoryType;
 
       // try to find existing selectedHostDetails in updated code
@@ -252,171 +282,136 @@ export const codeChangesReducer = (
         hostname,
         state?.updatedProjects,
       );
-      // if not present, try to find it in original code
-      if (!selectedHostDetailsByInventoryType) {
-        selectedHostDetailsByInventoryType = findHostDetailsByInventoryType(
-          projectName,
-          hostname,
-          state.originalProjects,
-        );
-      }
 
-      // if it is present either in original or updated code, make it selected and exit this function
+      // if its in updated code, make it selected and exit. Is it in original code, tho?
       if (selectedHostDetailsByInventoryType) {
         selectedHostDetails = selectedHostDetailsByInventoryType[0];
         selectedVariables = selectedHostDetails.variables[0];
         return {
           ...state,
+          originalProjects: updatedOriginalProjects,
           selectedHostDetailsByInventoryType,
           selectedHostDetails,
           selectedVariables,
         };
       } else {
-        // if hostDetailsByInventoryType not present at all, make it selected for the page
+        // check, jestli to není updatované přes něco jiného
+        const updatedVars = getAllUpdatedVars(state.updatedProjects);
+        let incomingHostDetailsByInventoryTypeVariablesWereUpdated;
 
-        selectedHostDetailsByInventoryType = hostDetailsByInventoryType;
-        selectedHostDetails = hostDetailsByInventoryType[0];
-        selectedVariables = selectedHostDetails.variables[0];
-        const originalProject = state.originalProjects?.find(
-          (originalProject: Project) => originalProject.projectName === projectName,
+        const updatedHostDetailsByInventoryType = hostDetailsByInventoryType.map(
+          (hostDetailByInventoryType: HostDetails) => {
+            return {
+              ...hostDetailByInventoryType,
+              variables: hostDetailByInventoryType.variables.map((variable: HostVariable) => {
+                const updatedVar = updatedVars.find((updatedVar) => {
+                  return updatedVar.pathInProject === variable.pathInProject;
+                });
+                if (updatedVar) {
+                  incomingHostDetailsByInventoryTypeVariablesWereUpdated = true;
+                  return updatedVar;
+                } else {
+                  return variable;
+                }
+              }),
+            };
+          },
         );
-        const hostPresentInOriginalProject = !!originalProject?.hosts.find(
-          (host: Host) => host.hostname === hostname,
-        );
 
-        let updatedOriginalProjects: Project[] = [];
-        let updatedUpdatedProjects: Project[] = [];
-        // if the project is not there at all, add it
-        if (!originalProject) {
-          updatedOriginalProjects = [
-            ...(state.originalProjects || []),
-            { projectName, hosts: [{ hostname, hostDetailsByInventoryType }] },
-          ];
-          updatedUpdatedProjects = state.updatedProjects;
-          // if the project is present, but host is not inside the project, add the host there. common vars or group vars could be updated via another host, that's why we need to map hostDetailsByInventoryType to search for already updated variables
-        } else if (originalProject && !hostPresentInOriginalProject) {
-          updatedOriginalProjects = state.originalProjects.map((originalProject: Project) => {
-            if (originalProject.projectName === projectName) {
+        if (incomingHostDetailsByInventoryTypeVariablesWereUpdated) {
+          // je to updatované přes něco jiného, a zároveň to není v updatedProjects
+          const updatedHostDetailsByInventoryTypeAll = updatedHostDetailsByInventoryType.map(
+            (updatedHostDetailByInventoryType: HostDetails) => {
               return {
-                ...originalProject,
-                hosts: [...originalProject.hosts, { hostname, hostDetailsByInventoryType }],
-              };
-            } else {
-              return originalProject;
-            }
-          });
-
-          const updatedVars = getAllUpdatedVars(state.updatedProjects);
-          let incomingHostDetailsByInventoryTypeVariablesWereUpdated;
-
-          const updatedHostDetailsByInventoryType = hostDetailsByInventoryType.map(
-            (hostDetailByInventoryType: HostDetails) => {
-              return {
-                ...hostDetailByInventoryType,
-                variables: hostDetailByInventoryType.variables.map((variable: HostVariable) => {
-                  const updatedVar = updatedVars.find((updatedVar) => {
-                    return updatedVar.pathInProject === variable.pathInProject;
-                  });
-                  if (updatedVar) {
-                    incomingHostDetailsByInventoryTypeVariablesWereUpdated = true;
-                    return updatedVar;
-                  } else {
-                    return variable;
-                  }
-                }),
+                ...updatedHostDetailByInventoryType,
+                variables: updatedHostDetailByInventoryType.variables.map(
+                  (variable: HostVariable) => {
+                    if (variable.type === 'applied') {
+                      const commonVariables = updatedHostDetailByInventoryType.variables.find(
+                        (variable: HostVariable) => variable.type === 'common',
+                      );
+                      const groupVariables = updatedHostDetailByInventoryType.variables.find(
+                        (variable: HostVariable) => variable.type === 'group',
+                      );
+                      const hostVariables = updatedHostDetailByInventoryType.variables.find(
+                        (variable: HostVariable) => variable.type === 'host',
+                      );
+                      return processVariables(
+                        variable,
+                        commonVariables,
+                        groupVariables,
+                        hostVariables,
+                      );
+                    } else {
+                      return variable;
+                    }
+                  },
+                ),
               };
             },
           );
 
-          let updatedHostDetailsByInventoryTypeAll = updatedHostDetailsByInventoryType;
-          if (incomingHostDetailsByInventoryTypeVariablesWereUpdated) {
-            updatedHostDetailsByInventoryTypeAll = updatedHostDetailsByInventoryType.map(
-              (updatedHostDetailByInventoryType: HostDetails) => {
-                return {
-                  ...updatedHostDetailByInventoryType,
-                  variables: updatedHostDetailByInventoryType.variables.map(
-                    (variable: HostVariable) => {
-                      if (variable.type === 'applied') {
-                        const commonVariables = updatedHostDetailByInventoryType.variables.find(
-                          (variable: HostVariable) => variable.type === 'common',
-                        );
-                        const groupVariables = updatedHostDetailByInventoryType.variables.find(
-                          (variable: HostVariable) => variable.type === 'group',
-                        );
-                        const hostVariables = updatedHostDetailByInventoryType.variables.find(
-                          (variable: HostVariable) => variable.type === 'host',
-                        );
-                        return processVariables(
-                          variable,
-                          commonVariables,
-                          groupVariables,
-                          hostVariables,
-                        );
-                      } else {
-                        return variable;
-                      }
-                    },
-                  ),
-                };
+          const updatedProject = state.updatedProjects.find(
+            (updatedProject: Project) => updatedProject.projectName === projectName,
+          );
+          const hostPresentInUpdatedProject = !!updatedProject?.hosts.find(
+            (host: Host) => host.hostname === hostname,
+          );
+
+          selectedHostDetailsByInventoryType = updatedHostDetailsByInventoryTypeAll;
+          selectedHostDetails = updatedHostDetailsByInventoryTypeAll[0];
+          selectedVariables = updatedHostDetailsByInventoryTypeAll[0].variables[0];
+
+          let updatedUpdatedProjects: Project[] = [];
+          if (!updatedProject) {
+            updatedUpdatedProjects = [
+              ...state.updatedProjects,
+              {
+                projectName,
+                hosts: [
+                  { hostname, hostDetailsByInventoryType: updatedHostDetailsByInventoryTypeAll },
+                ],
               },
-            );
-
-            const updatedProject = state.updatedProjects.find(
-              (updatedProject: Project) => updatedProject.projectName === projectName,
-            );
-            const hostPresentInUpdatedProject = !!updatedProject?.hosts.find(
-              (host: Host) => host.hostname === hostname,
-            );
-
-            selectedHostDetailsByInventoryType = updatedHostDetailsByInventoryTypeAll;
-            selectedHostDetails = updatedHostDetailsByInventoryTypeAll[0];
-            selectedVariables = updatedHostDetailsByInventoryTypeAll[0].variables[0];
-
-            if (!updatedProject) {
-              updatedUpdatedProjects = [
-                ...state.updatedProjects,
-                {
-                  projectName,
+            ];
+          } else if (updatedProject && !hostPresentInUpdatedProject) {
+            updatedUpdatedProjects = state.updatedProjects.map((updatedProject: Project) => {
+              if (updatedProject.projectName === projectName) {
+                return {
+                  ...updatedProject,
                   hosts: [
-                    { hostname, hostDetailsByInventoryType: updatedHostDetailsByInventoryTypeAll },
+                    ...updatedProject.hosts,
+                    {
+                      hostname,
+                      hostDetailsByInventoryType: updatedHostDetailsByInventoryTypeAll,
+                    },
                   ],
-                },
-              ];
-            } else if (updatedProject && !hostPresentInUpdatedProject) {
-              updatedUpdatedProjects = state.updatedProjects.map((updatedProject: Project) => {
-                if (updatedProject.projectName === projectName) {
-                  return {
-                    ...updatedProject,
-                    hosts: [
-                      ...updatedProject.hosts,
-                      {
-                        hostname,
-                        hostDetailsByInventoryType: updatedHostDetailsByInventoryTypeAll,
-                      },
-                    ],
-                  };
-                } else {
-                  return updatedProject;
-                }
-              });
-            } else {
-              updatedUpdatedProjects = state.updatedProjects;
-            }
+                };
+              } else {
+                return updatedProject;
+              }
+            });
           } else {
             updatedUpdatedProjects = state.updatedProjects;
           }
+
+          return {
+            ...state,
+            selectedHostDetailsByInventoryType,
+            originalProjects: updatedOriginalProjects,
+            updatedProjects: updatedUpdatedProjects,
+            selectedHostDetails,
+            selectedVariables,
+          };
         } else {
-          updatedOriginalProjects = state.originalProjects;
-          updatedUpdatedProjects = state.updatedProjects;
+          // není to updatované přes nic jiného
+          return {
+            ...state,
+            originalProjects: updatedOriginalProjects,
+            selectedHostDetailsByInventoryType: hostDetailsByInventoryType,
+            selectedHostDetails: hostDetailsByInventoryType[0],
+            selectedVariables: hostDetailsByInventoryType[0].variables[0],
+          };
         }
-        return {
-          ...state,
-          selectedHostDetailsByInventoryType,
-          originalProjects: updatedOriginalProjects,
-          updatedProjects: updatedUpdatedProjects,
-          selectedHostDetails,
-          selectedVariables,
-        };
       }
     }
     case actionTypes.SHOW_DIFF: {
@@ -545,7 +540,7 @@ export const codeChangesReducer = (
         (host: Host) => host.hostname === hostname,
       );
 
-      let updatedProjects: Project[];
+      let updatedProjects: Project[] = state.updatedProjects;
       if (updatedProjectExistsInState && hostExistInUpdatedProject) {
         // @ts-ignore
         updatedProjects = state.updatedProjects.map((project: Project) => {

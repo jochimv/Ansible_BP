@@ -107,7 +107,7 @@ export class FileProcessorService {
       await git.clone(gitRepositoryUrl, projectDestinationPath);
       return { success: true };
     } catch (error) {
-      console.error('Error downloading repository:', JSON.stringify(error));
+      console.error('Error downloading repository:', error.message);
       return {
         success: false,
         error: 'Failed to download repository. Check internet connection and URL.',
@@ -155,11 +155,11 @@ export class FileProcessorService {
         await git.checkout(originalBranchName).deleteLocalBranch(commitBranchName, true);
         console.log('branch deleted successfully');
       } catch (e) {
-        console.log('unable to delete local branch. Error: ', JSON.stringify(e));
-        return { error: `Failed to push: ${JSON.stringify(error)}` };
+        console.log('unable to delete local branch. Error: ', e.message);
+        return { error: error.message };
       }
       error.task.commands[1] = removeCredentialsFromUrl(remoteRepoUrl);
-      return { error: `Failed to push: ${JSON.stringify(error)}` };
+      return { error: error.message };
     }
   }
 }
