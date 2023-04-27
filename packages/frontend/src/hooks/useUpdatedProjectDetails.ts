@@ -23,7 +23,7 @@ export const useUpdatedProjectDetails = (
   return useMemo(() => {
     const updatedDetails = JSON.parse(JSON.stringify(projectDetails));
 
-    const updatedProject = updatedProjects.find(
+    const updatedProject = updatedProjects?.find(
       (project: Project) => project.projectName === projectName,
     );
 
