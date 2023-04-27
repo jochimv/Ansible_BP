@@ -239,6 +239,36 @@ export const findHostDetailsByInventoryType = (
   }
   return null;
 };
+
+export const findNewStateVarsFromVariablesPath = (
+  projectName: string,
+  variablesPathInProject: string,
+  updatedProjects: Project[],
+) => {
+  for (let i = 0; i < updatedProjects?.length; i++) {
+    const project = updatedProjects[i];
+    if (project.projectName === projectName) {
+      for (let j = 0; j < project.hosts.length; j++) {
+        const { hostDetailsByInventoryType, hostname } = project.hosts[j];
+        for (const hostDetailByInventoryType of hostDetailsByInventoryType) {
+          const { variables } = hostDetailByInventoryType;
+          for (const variable of variables) {
+            if (variable.pathInProject === variablesPathInProject) {
+              return {
+                selectedHostDetailsByInventoryType: hostDetailsByInventoryType,
+                hostname,
+                selectedHostDetails: hostDetailByInventoryType,
+                selectedVariables: variable,
+              };
+            }
+          }
+        }
+      }
+    }
+  }
+  return null;
+};
+
 export const replaceVariableInProjectsArray = (
   newVariable: HostVariable,
   projects: Project[],

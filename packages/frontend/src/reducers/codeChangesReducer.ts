@@ -4,6 +4,7 @@ import { omit } from 'ramda';
 import { ReducerAction, Host, HostDetails, HostVariable, Project } from '@frontend/types';
 import {
   findHostDetailsByInventoryType,
+  findNewStateVarsFromVariablesPath,
   findVariableObject,
   processVariables,
   replaceVariableInProjectsArray,
@@ -34,8 +35,10 @@ export interface CodeChangesState {
   originalProjects: Project[];
   originalDiff: HostVariable | null | undefined;
   updatedDiff: HostVariable | null | undefined;
+  isInitializeEditorEnabled: boolean;
 }
 export const actionTypes = keyMirror({
+  EDIT: null,
   SWITCH_MODE: null,
   SHOW_HOST_DETAILS: null,
   SHOW_VARIABLES: null,
@@ -53,6 +56,7 @@ export const actionTypes = keyMirror({
   CLEAR_ALL_PROJECTS_UPDATES: null,
   CLEAR_ALL_PROJECT_UPDATES_FROM_EDITOR: null,
   DELETE_PROJECT: null,
+  SET_IS_INITIALIZE_EDITOR_ENABLED: null,
 });
 export const initialState: CodeChangesState = {
   updatedProjects: [],
@@ -66,6 +70,7 @@ export const initialState: CodeChangesState = {
   originalVars: [],
   updatedVars: [],
   selectedProjectName: null,
+  isInitializeEditorEnabled: true,
 };
 
 const getProjectUpdatedVars = (project: any): any[] => {
@@ -131,9 +136,29 @@ export const codeChangesReducer = (
   action: ReducerAction,
 ): CodeChangesState => {
   switch (action.type) {
+    case actionTypes.SET_IS_INITIALIZE_EDITOR_ENABLED:
+      return { ...state, isInitializeEditorEnabled: action.payload };
     // todo - smazat
     case 'clear':
       return initialState;
+    case actionTypes.EDIT: {
+      const { path, navigate } = action.payload;
+      const { selectedProjectName } = state;
+      const {
+        selectedHostDetailsByInventoryType,
+        hostname,
+        selectedHostDetails,
+        selectedVariables,
+      } = findNewStateVarsFromVariablesPath(selectedProjectName!, path, state.updatedProjects)!;
+      navigate(`/${selectedProjectName}/host/${hostname}`);
+      return {
+        ...state,
+        isInitializeEditorEnabled: false,
+        selectedHostDetailsByInventoryType,
+        selectedHostDetails,
+        selectedVariables,
+      };
+    }
     case actionTypes.INITIALIZE_CONTEXT:
       return action.payload;
     case actionTypes.SELECT_PROJECT:
@@ -257,7 +282,6 @@ export const codeChangesReducer = (
           ...(state.originalProjects || []),
           { projectName, hosts: [{ hostname, hostDetailsByInventoryType }] },
         ];
-        // updatedUpdatedProjects = state.updatedProjects;
         // if the project is present, but host is not inside the project, add the host there. common vars or group vars could be updated via another host, that's why we need to map hostDetailsByInventoryType to search for already updated variables
       } else if (originalProject && !hostPresentInOriginalProject) {
         updatedOriginalProjects = state.originalProjects.map((originalProject: Project) => {
@@ -753,5 +777,15 @@ export const clearAllProjectUpdatesFromEditor = (payload: any): ReducerAction =>
 
 export const deleteProject = (payload: any): ReducerAction => ({
   type: actionTypes.DELETE_PROJECT,
+  payload,
+});
+
+export const edit = (payload: any): ReducerAction => ({
+  type: actionTypes.EDIT,
+  payload,
+});
+
+export const setIsInitializeEditorEnabled = (payload: any): ReducerAction => ({
+  type: actionTypes.SET_IS_INITIALIZE_EDITOR_ENABLED,
   payload,
 });

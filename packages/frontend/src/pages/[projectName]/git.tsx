@@ -1,5 +1,5 @@
 import { DiffEditor } from '@monaco-editor/react';
-import { Stack, Typography, Button, Box } from '@mui/material';
+import { Stack, Typography, Button, Box, IconButton } from '@mui/material';
 import {
   Replay as ReplayIcon,
   CodeOff as CodeOffIcon,
@@ -9,7 +9,7 @@ import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
 } from '@frontend/context/CodeChangesContext';
-import { createDiff, rollback } from '@frontend/reducers/codeChangesReducer';
+import { createDiff, edit, rollback } from '@frontend/reducers/codeChangesReducer';
 import GitChangesFileTree from '@frontend/components/GitChangesFileTree';
 import CommitModal from '@frontend/components/CommitModal';
 import { open } from '@frontend/reducers/commitModalReducer';
@@ -26,8 +26,10 @@ const stackPropsIfNoChanges = {
   alignItems: 'center',
   justifyContent: 'center',
 };
-import { ProjectMainBranch } from '@frontend/types';
+import { HostVariable, ProjectMainBranch } from '@frontend/types';
 import { BE_IP_ADDRESS } from '@frontend/constants';
+import EditIcon from '@mui/icons-material/Edit';
+import React from 'react';
 
 const fetchMainBranchName = async (projectName: string): Promise<ProjectMainBranch> => {
   const response: AxiosResponse<any> = await axios.get(
@@ -37,9 +39,21 @@ const fetchMainBranchName = async (projectName: string): Promise<ProjectMainBran
 };
 
 const GitPage = () => {
+  const { originalVars, selectedProjectName, originalDiff, updatedDiff } = useCodeChangesContext();
+  const router = useRouter();
+
+  const navigate = (path: string) => router.push(path);
+
+  const paths =
+    originalVars
+      ?.map((originalVar: HostVariable) => originalVar.pathInProject)
+      // only show diff for the current project
+      .filter((path: string) => path.split('\\')[0] === selectedProjectName) || [];
+
+  const selectedNodeId = originalDiff?.pathInProject || paths[0];
+
   const codeChangesDispatch = useCodeChangesDispatchContext();
   const { projectName } = useRouter().query;
-  const { originalDiff, updatedDiff } = useCodeChangesContext();
   const commitModalDispatch = useCommitModalDispatchContext();
   const { data, isLoading, isSuccess } = useQuery(
     ['mainBranchName', projectName],
@@ -86,10 +100,22 @@ const GitPage = () => {
                 onClick={() => {
                   commitModalDispatch(open());
                 }}
+                size="small"
               >
                 Commit
               </Button>
               <Button
+                size="small"
+                color="info"
+                onClick={() => {
+                  codeChangesDispatch(edit({ path: selectedNodeId, navigate }));
+                }}
+                startIcon={<EditIcon />}
+              >
+                Edit
+              </Button>
+              <Button
+                size="small"
                 startIcon={<ReplayIcon />}
                 color="error"
                 onClick={() => codeChangesDispatch(rollback(updatedDiff))}
@@ -98,7 +124,7 @@ const GitPage = () => {
               </Button>
             </Stack>
             <Box sx={{ overflow: 'auto', height: '100%' }}>
-              <GitChangesFileTree />
+              <GitChangesFileTree selectedNodeId={selectedNodeId} paths={paths} />
             </Box>
           </Stack>
           <Box sx={{ width: '80%' }}>

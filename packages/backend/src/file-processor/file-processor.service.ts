@@ -153,7 +153,6 @@ export class FileProcessorService {
     } catch (error) {
       try {
         await git.checkout(originalBranchName).deleteLocalBranch(commitBranchName, true);
-        console.log('branch deleted successfully');
       } catch (e) {
         console.log('unable to delete local branch. Error: ', e.message);
         return { error: error.message };

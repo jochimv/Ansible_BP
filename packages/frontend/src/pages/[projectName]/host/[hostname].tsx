@@ -2,8 +2,14 @@ import { useQuery } from 'react-query';
 import { useRouter } from 'next/router';
 import axios, { AxiosResponse } from 'axios';
 import { Stack } from '@mui/material';
-import { useCodeChangesDispatchContext } from '@frontend/context/CodeChangesContext';
-import { initializeEditor } from '@frontend/reducers/codeChangesReducer';
+import {
+  useCodeChangesContext,
+  useCodeChangesDispatchContext,
+} from '@frontend/context/CodeChangesContext';
+import {
+  initializeEditor,
+  setIsInitializeEditorEnabled,
+} from '@frontend/reducers/codeChangesReducer';
 import HostNotFound from '@frontend/components/HostNotFound';
 import ProjectNotFound from '@frontend/components/ProjectNotFound';
 import LoadingPage from '@frontend/components/Loading';
@@ -27,6 +33,7 @@ const HostDetailsPage = () => {
   const router = useRouter();
   const { projectName, hostname } = router.query;
   const dispatch = useCodeChangesDispatchContext();
+  const { isInitializeEditorEnabled } = useCodeChangesContext();
 
   const {
     isLoading: hostDataLoading,
@@ -44,7 +51,7 @@ const HostDetailsPage = () => {
       refetchOnWindowFocus: false,
       onSuccess: (response: HostDetailsResponse) => {
         const { hostDetailsByInventoryType, projectExists, hostExists } = response;
-        if (projectExists && hostExists) {
+        if (projectExists && hostExists && isInitializeEditorEnabled) {
           dispatch(
             initializeEditor({
               hostDetailsByInventoryType,
@@ -52,6 +59,8 @@ const HostDetailsPage = () => {
               hostname,
             }),
           );
+        } else {
+          dispatch(setIsInitializeEditorEnabled(true));
         }
       },
     },

@@ -152,7 +152,6 @@ const removeDuplicateHosts = (arr: any) => {
 };
 export const getProjectsHosts = async (): Promise<ProjectHosts[]> => {
   const projectsHosts = [];
-  console.log('about to read from ', process.env.ANSIBLE_REPOS_PATH);
   const projects = readdirSync(process.env.ANSIBLE_REPOS_PATH);
   const projectsPaths = projects.map((project) => join(process.env.ANSIBLE_REPOS_PATH, project));
   await checkAndUpdateAllProjects(projectsPaths);
