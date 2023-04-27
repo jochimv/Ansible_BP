@@ -17,20 +17,28 @@ export const SnackbarProvider = ({ children }: { children: React.ReactNode }) =>
   const [message, setMessage] = useState<string>('');
   const [severity, setSeverity] = useState<AlertColor>('success');
   const [action, setAction] = useState<ReactNode | undefined>();
+  const [isOpen, setIsOpen] = useState(false);
   const showMessage = (newMessage: string, newSeverity: AlertColor, action?: ReactNode) => {
     setMessage(newMessage);
     setSeverity(newSeverity);
     setAction(action);
+    setIsOpen(true);
   };
 
   const hideMessage = () => {
-    setMessage('');
+    setIsOpen(false);
   };
 
   return (
     <SnackbarContext.Provider value={{ showMessage, hideMessage }}>
       {children}
-      <Snackbar action={action} message={message} severity={severity} onClose={hideMessage} />
+      <Snackbar
+        action={action}
+        open={isOpen}
+        message={message}
+        severity={severity}
+        onClose={hideMessage}
+      />
     </SnackbarContext.Provider>
   );
 };
