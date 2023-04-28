@@ -12,17 +12,19 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  InputAdornment,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
 import {
   Cancel,
+  ChatBubbleOutline,
   CheckCircle,
-  OpenInFull,
-  OpenInNew,
+  Edit,
   Replay as ReplayIcon,
   Send as SendIcon,
+  Terminal as TerminalIcon,
 } from '@mui/icons-material';
 import axios, { AxiosResponse } from 'axios';
 import { useMutation } from 'react-query';
@@ -35,6 +37,7 @@ import { faCodePullRequest } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   close,
+  open,
   updateCommitBranchName,
   updateCommitMessage,
   updateResponse,
@@ -48,8 +51,8 @@ import { CommitResponse } from '@frontend/types';
 import { BE_IP_ADDRESS } from '@frontend/constants';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { useSnackbar } from '@frontend/context/SnackbarContext';
-import { open } from '@frontend/reducers/clearModalReducer';
-
+import { Terminal } from '@frontend/components/Terminal';
+import CommitIcon from '@mui/icons-material/Commit';
 const postCommitData = async (data: any): Promise<CommitResponse> => {
   const response: AxiosResponse<any> = await axios.post(
     `http://${BE_IP_ADDRESS}:4000/commit`,
@@ -99,7 +102,19 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
           </Button>,
         );
       } else if (!isModalOpenRef.current && error) {
-        showMessage('Error during commit', 'error');
+        showMessage(
+          'Error during commit',
+          'error',
+          <IconButton
+            id="button-show-output"
+            color="error"
+            onClick={() => {
+              commitModalDispatch(open());
+            }}
+          >
+            <TerminalIcon />
+          </IconButton>,
+        );
       }
     },
   });
@@ -141,14 +156,12 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
     } else if (response) {
       return response?.error ? (
         <>
-          <DialogTitle>Error caught</DialogTitle>
+          <DialogTitle sx={{ display: 'flex', alignItems: 'center', columnGap: '5px' }}>
+            <Cancel sx={{ width: 25, height: 25, color: 'error.main' }} />
+            Error caught
+          </DialogTitle>
           <DialogContent>
-            <Stack direction="row" alignItems="center" justifyContent="center" spacing={3}>
-              <Cancel sx={{ width: 40, height: 40, color: 'error.main' }} />
-              <Typography variant="h6" sx={{ wordWrap: 'break-word', overflow: 'auto' }}>
-                {response.error}
-              </Typography>
-            </Stack>
+            <Terminal output={response.error} />
           </DialogContent>
           <DialogActions>
             <Button
@@ -161,6 +174,15 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
               color="success"
             >
               Try again
+            </Button>
+            <Button
+              onClick={() => {
+                clearResponse();
+              }}
+              startIcon={<Edit />}
+              color="info"
+            >
+              Edit
             </Button>
             <CloseButton onClick={closeModal}>Close</CloseButton>
           </DialogActions>
@@ -192,15 +214,16 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
     } else {
       return (
         <>
-          <DialogTitle>Commit Message</DialogTitle>
+          <DialogTitle>Commit changes</DialogTitle>
           <DialogContent>
             <TextField
+              autoFocus
               margin="dense"
               id="branch-name"
-              label="Enter a branch name"
+              label="Branch name"
               type="text"
               fullWidth
-              variant="standard"
+              variant="outlined"
               error={isCommitingToMainBranch}
               helperText={
                 isCommitingToMainBranch
@@ -209,18 +232,31 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
               }
               value={commitBranchName}
               onChange={handleBranchNameChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <CommitIcon />
+                  </InputAdornment>
+                ),
+              }}
             />
             <TextField
-              autoFocus
               margin="dense"
               id="commit-message"
-              label="Enter your commit message"
+              label="Commit message"
               type="text"
               fullWidth
               multiline
-              variant="standard"
+              variant="outlined"
               value={commitMessage}
               onChange={handleCommitMessageChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <ChatBubbleOutline />
+                  </InputAdornment>
+                ),
+              }}
             />
           </DialogContent>
           <DialogActions>
@@ -228,7 +264,7 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
               startIcon={<SendIcon />}
               onClick={handleCommit}
               color="success"
-              disabled={isCommitingToMainBranch}
+              disabled={isCommitingToMainBranch || commitMessage === '' || commitBranchName === ''}
             >
               Commit
             </Button>
@@ -240,20 +276,22 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
   };
 
   return (
-    <Dialog
-      onClose={closeModal}
-      TransitionProps={{
-        onExited: () => {
-          clearResponse();
-          reset();
-        },
-      }}
-      open={isModalOpen}
-      maxWidth="sm"
-      fullWidth
-    >
-      {getModalContent(isLoading, response)}
-    </Dialog>
+    <>
+      <Dialog
+        onClose={closeModal}
+        TransitionProps={{
+          onExited: () => {
+            clearResponse();
+            reset();
+          },
+        }}
+        open={isModalOpen}
+        maxWidth="sm"
+        fullWidth
+      >
+        {getModalContent(isLoading, response)}
+      </Dialog>
+    </>
   );
 };
 
