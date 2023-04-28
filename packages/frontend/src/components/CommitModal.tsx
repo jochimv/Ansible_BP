@@ -53,6 +53,13 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { useSnackbar } from '@frontend/context/SnackbarContext';
 import { Terminal } from '@frontend/components/Terminal';
 import CommitIcon from '@mui/icons-material/Commit';
+
+const branchNameHasErrors = (branchName: string) => {
+  // check for space in a branch name
+  const regex = /\s/;
+  return regex.test(branchName);
+};
+
 const postCommitData = async (data: any): Promise<CommitResponse> => {
   const response: AxiosResponse<any> = await axios.post(
     `http://${BE_IP_ADDRESS}:4000/commit`,
@@ -137,6 +144,7 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
   };
 
   const isCommitingToMainBranch = commitBranchName === mainBranchName;
+  const branchNameError = branchNameHasErrors(commitBranchName);
 
   const getModalContent = (isLoading: boolean, response: any) => {
     if (isLoading) {
@@ -193,7 +201,7 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
           <DialogContent>
             <Stack direction="row" alignItems="center" justifyContent="center" spacing={3}>
               <CheckCircle sx={{ width: 40, height: 40, color: 'success.main' }} />
-              <Typography variant="h4">Commit successful</Typography>
+              <Typography variant="h4">Success!</Typography>
             </Stack>
           </DialogContent>
           <DialogActions>
@@ -224,10 +232,12 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
               type="text"
               fullWidth
               variant="outlined"
-              error={isCommitingToMainBranch}
+              error={isCommitingToMainBranch || branchNameError}
               helperText={
                 isCommitingToMainBranch
                   ? 'You cannot commit directly to the main branch'
+                  : branchNameError
+                  ? 'Branch name has a space'
                   : undefined
               }
               value={commitBranchName}
@@ -264,7 +274,12 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
               startIcon={<SendIcon />}
               onClick={handleCommit}
               color="success"
-              disabled={isCommitingToMainBranch || commitMessage === '' || commitBranchName === ''}
+              disabled={
+                isCommitingToMainBranch ||
+                commitMessage === '' ||
+                commitBranchName === '' ||
+                branchNameError
+              }
             >
               Commit
             </Button>

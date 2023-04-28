@@ -134,16 +134,18 @@ export class FileProcessorService {
     });
 
     const originalBranchName = await getMainBranchName(git);
-
-    await git.checkoutBranch(commitBranchName, originalBranchName);
+    try {
+      await git.checkoutBranch(commitBranchName, originalBranchName);
+    } catch (e) {
+      return { error: e.message };
+    }
     for (const updatedVar of updatedVars) {
       const { pathInProject, values } = updatedVar;
       const fullPath = join(process.env.ANSIBLE_REPOS_PATH, pathInProject);
       writeFileSync(fullPath, values);
-      await git.add(fullPath);
     }
 
-    await git.commit(commitMessage);
+    await git.add('./*').commit(commitMessage);
 
     const repositoryUrlWithCredentials = addCredentialsToUrl(
       process.env.GIT_USERNAME,
@@ -159,7 +161,6 @@ export class FileProcessorService {
       try {
         await git.checkout(originalBranchName).deleteLocalBranch(commitBranchName, true);
       } catch (e) {
-        console.log('unable to delete local branch. Error: ', e.message);
         return { error: error.message };
       }
       error.task.commands[1] = removeCredentialsFromUrl(remoteRepoUrl);
