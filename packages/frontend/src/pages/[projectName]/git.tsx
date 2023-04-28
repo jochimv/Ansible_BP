@@ -98,7 +98,7 @@ const GitPage = () => {
       <CommitModal mainBranchName={mainBranchName} />
       {originalDiff ? (
         <>
-          <Stack direction="column" sx={{ width: '20%' }}>
+          <Stack direction="column" width="20%">
             <Stack direction="row" mb={1} columnGap={1}>
               <Button
                 startIcon={<SendIcon />}
@@ -129,11 +129,11 @@ const GitPage = () => {
                 Rollback
               </Button>
             </Stack>
-            <Box sx={{ overflow: 'auto', height: '100%' }}>
+            <Box overflow="auto" height="100%">
               <GitChangesFileTree selectedNodeId={selectedNodeId} paths={paths} />
             </Box>
           </Stack>
-          <Box sx={{ width: '80%' }}>
+          <Box width="80%">
             <DiffEditor
               language="yml"
               original={originalDiff?.values}

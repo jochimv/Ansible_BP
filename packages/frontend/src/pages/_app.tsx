@@ -43,7 +43,7 @@ const App = ({ Component, pageProps, emotionCache = clientSideEmotionCache }: My
                 <ClearModalProvider>
                   <Appbar />
                 </ClearModalProvider>
-                <Box sx={{ mx: 5, mt: 4, mb: 4 }}>
+                <Box mx={5} my={4}>
                   <Component {...pageProps} />
                 </Box>
               </SnackbarProvider>

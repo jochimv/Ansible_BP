@@ -21,7 +21,7 @@ const HostInfoBox = () => {
   const dispatch = useCodeChangesDispatchContext();
 
   return (
-    <Stack spacing={3} sx={{ mr: 2 }}>
+    <Stack spacing={3} mr={2}>
       <Box>
         <Typography fontWeight="bold">Project name</Typography>
         <Typography id="project-name-label">{projectName}</Typography>

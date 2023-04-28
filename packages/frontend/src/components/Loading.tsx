@@ -12,7 +12,7 @@ const LoadingPage = () => (
     justifyContent="center"
     alignItems="center"
     spacing={4}
-    sx={{ height: '100%' }}
+    height="100%"
   >
     <CircularProgress size={150} />
     <Typography variant="h3">Loading...</Typography>

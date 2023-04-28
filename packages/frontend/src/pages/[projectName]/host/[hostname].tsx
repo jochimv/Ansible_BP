@@ -83,7 +83,7 @@ const HostDetailsPage = () => {
   }
 
   return (
-    <Stack direction="row" sx={{ height: '100%' }}>
+    <Stack direction="row" height="100%">
       <HostInfoBox />
       <EditorWrapper />
       <EditorInfoSnackbar />

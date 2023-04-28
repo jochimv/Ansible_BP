@@ -3,7 +3,7 @@
  * Date: 2023-04-28
  */
 
-import { Stack, Typography, Breadcrumbs } from '@mui/material';
+import { Stack, Typography, Breadcrumbs, Box } from '@mui/material';
 import Editor from '@monaco-editor/react';
 import {
   useCodeChangesContext,
@@ -12,9 +12,10 @@ import {
 import { updateVariables } from '@frontend/reducers/codeChangesReducer';
 import { renderBreadcrumbsSegments } from '@frontend/utils';
 import { useRouter } from 'next/router';
+import React from 'react';
 
 const EditorWrapper = () => {
-  const { isInEditMode, selectedVariables, updatedProjects } = useCodeChangesContext();
+  const { isInEditMode, selectedVariables } = useCodeChangesContext();
   const dispatch = useCodeChangesDispatchContext();
   const { projectName, hostname } = useRouter().query;
 
@@ -31,12 +32,18 @@ const EditorWrapper = () => {
           renderBreadcrumbsSegments(selectedVariables?.pathInProject)
         )}
       </Breadcrumbs>
-      <Editor
-        options={{ readOnly: selectedVariables?.type === 'applied' || !isInEditMode }}
-        language="yaml"
-        value={selectedVariables.values}
-        onChange={handleEditorChange}
-      />
+      {selectedVariables.type === 'applied' && selectedVariables.values === '{}\n' ? (
+        <Box height="100%" width="100%" alignItems="center" justifyContent="center" display="flex">
+          <Typography variant="h4">No variables to show</Typography>
+        </Box>
+      ) : (
+        <Editor
+          options={{ readOnly: selectedVariables?.type === 'applied' || !isInEditMode }}
+          language="yaml"
+          value={selectedVariables.values}
+          onChange={handleEditorChange}
+        />
+      )}
     </Stack>
   );
 };

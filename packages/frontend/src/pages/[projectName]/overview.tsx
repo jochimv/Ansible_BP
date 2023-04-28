@@ -5,7 +5,7 @@
  */
 
 import { useRouter } from 'next/router';
-import { Box, Stack } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import ProjectDetailsTree from '@frontend/components/ProjectDetailsTree';
 import Editor from '@monaco-editor/react';
 import { useEffect, useState } from 'react';
@@ -15,6 +15,7 @@ import LoadingPage from '@frontend/components/Loading';
 import { convertProjectDetailsToTreeOfIds, getProjectDetails } from '@frontend/utils';
 import { useUpdatedProjectDetails } from '@frontend/hooks/useUpdatedProjectDetails';
 import NoServersFound from '@frontend/components/NoServersFound';
+import { Host } from '@frontend/types';
 
 const ProjectPage = () => {
   const { projectName } = useRouter().query;
@@ -57,17 +58,21 @@ const ProjectPage = () => {
   }
 
   return (
-    <Stack sx={{ height: '100%' }}>
-      <Stack direction="row" sx={{ height: '100%', display: 'flex' }}>
-        <Box sx={{ width: '30%', height: '100%' }}>
+    <Stack height="100%">
+      <Stack direction="row" height="100%" display="flex">
+        <Box width="30%" height="100%">
           <ProjectDetailsTree data={treeData} onNodeSelected={setSelectedHost} />
         </Box>
-        <Box sx={{ width: '70%', height: '100%' }}>
-          <Editor
-            defaultLanguage="yaml"
-            value={selectedHost ? selectedHost.appliedVariables : ''}
-            options={{ readOnly: true }}
-          />
+        <Box height="100%" width="70%" alignItems="center" justifyContent="center" display="flex">
+          {selectedHost && selectedHost.appliedVariables === '{}\n' ? (
+            <Typography variant="h4">No variables to show</Typography>
+          ) : (
+            <Editor
+              defaultLanguage="yaml"
+              value={selectedHost ? selectedHost.appliedVariables : ''}
+              options={{ readOnly: true }}
+            />
+          )}
         </Box>
       </Stack>
     </Stack>

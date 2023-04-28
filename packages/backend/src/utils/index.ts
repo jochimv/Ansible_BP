@@ -41,6 +41,25 @@ const checkAndUpdateAllProjects = async (projectPaths: string[]) => {
   const tasks = projectPaths.map((path: string) => checkAndUpdateProject(path));
   await Promise.all(tasks);
 };
+
+const getGroupHosts = (inventoryFilePath: string, groupName: string): string[] => {
+  const parsedIni = parseIniFile(inventoryFilePath);
+  const iniGroupObj = parsedIni[groupName];
+
+  const hosts: string[] = [];
+
+  for (const hostnameKey in iniGroupObj) {
+    const hostnameValue = iniGroupObj[hostnameKey];
+    if (hostnameValue === true) {
+      hosts.push(hostnameKey);
+    } else {
+      const hostname = hostnameValue.split('ansible_ssh_host=')[1];
+      hosts.push(hostname);
+    }
+  }
+  return [...new Set(hosts)];
+};
+
 export const getProjectDetails = async (projectName: string): Promise<ProjectDetailsResponse> => {
   const projectPath = join(process.env.ANSIBLE_REPOS_PATH, projectName);
   if (!existsSync(projectPath)) {
@@ -55,14 +74,13 @@ export const getProjectDetails = async (projectName: string): Promise<ProjectDet
     const inventoryPathFromRoot = removeAnsibleReposPathFromPath(inventoryFilePath);
     const inventoryType = getLastPathSegment(extractDirectoryPath(inventoryFilePath));
     const inventoryDirectoryPath = extractDirectoryPath(inventoryFilePath);
-    const fileContent = readFileSync(inventoryFilePath, 'utf-8');
-    const parsedIni = parseIni(fileContent);
+    const parsedIni = parseIniFile(inventoryFilePath);
     const iniGroups = Object.keys(parsedIni);
 
     const groupHosts = iniGroups.map((iniGroup: string) => {
       return {
         groupName: iniGroup,
-        hosts: Object.keys(parsedIni[iniGroup]).map((hostname: string) => {
+        hosts: getGroupHosts(inventoryFilePath, iniGroup).map((hostname: string) => {
           const hostVarsFilePath = join(inventoryDirectoryPath, 'host_vars', `${hostname}.yml`);
 
           let hostValues;
@@ -115,13 +133,19 @@ export const getProjectDetails = async (projectName: string): Promise<ProjectDet
 };
 const extractHostsFromIniFile = (inventoryPath: string): string[] => {
   const hosts = [];
-  const fileContent = readFileSync(inventoryPath, 'utf-8');
-  const parsedIni = parseIni(fileContent);
-
+  const parsedIni = parseIniFile(inventoryPath);
   const iniGroups = Object.keys(parsedIni);
-
   for (const iniGroup of iniGroups) {
-    const groupHosts = Object.keys(parsedIni[iniGroup]);
+    const groupHosts: string[] = [];
+    for (const hostnameKey in parsedIni[iniGroup]) {
+      const hostnameValue = parsedIni[iniGroup][hostnameKey];
+      if (hostnameValue === true) {
+        groupHosts.push(hostnameKey);
+      } else {
+        const hostname = hostnameValue.split('ansible_ssh_host=')[1];
+        groupHosts.push(hostname);
+      }
+    }
     hosts.push(...groupHosts);
   }
   return [...new Set(hosts)];
@@ -214,10 +238,14 @@ const getLastPathSegment = (path: string): string => {
   return segments[segments.length - 1];
 };
 const getGroupNameFromIniInventory = (filePath: string, serverName: string): string | undefined => {
-  const iniData = parseIniFile(filePath);
-  for (const groupName in iniData) {
-    if (iniData[groupName][serverName]) {
-      return groupName;
+  const parsedIni = parseIniFile(filePath);
+  const iniGroups = Object.keys(parsedIni);
+  for (const iniGroup of iniGroups) {
+    for (const hostnameKey in parsedIni[iniGroup]) {
+      const hostnameValue = parsedIni[iniGroup][hostnameKey];
+      if (hostnameValue === true || hostnameValue.split('ansible_ssh_host=')?.[1] === serverName) {
+        return iniGroup;
+      }
     }
   }
   return undefined;

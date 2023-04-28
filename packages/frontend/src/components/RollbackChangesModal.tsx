@@ -80,7 +80,6 @@ const RollbackChangesModal = () => {
 
   const handleRollbackProject = (projectNameToRollback: string): void => {
     const currentProject = router.query.projectName;
-    const isInHostDetailsPage = useUserIsInHostDetailsPage();
     if (currentProject === projectNameToRollback && isInHostDetailsPage) {
       codeChangesDispatch(clearProjectUpdatesFromEditor(router.query));
     } else {
@@ -161,7 +160,7 @@ const RollbackChangesModal = () => {
         <>
           <DialogContent>
             <Stack alignItems="center">
-              <CodeOffIcon sx={{ width: 30, height: 30 }} />
+              <CodeOffIcon width={30} height={30} />
               <Typography variant="h5">No changes</Typography>
             </Stack>
           </DialogContent>

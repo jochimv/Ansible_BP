@@ -52,7 +52,7 @@ const ProjectDetailsTree = ({ data, onNodeSelected }: ProjectDetailsTreeProps) =
       <Stack direction="row" alignItems="center">
         <Typography variant="h4">{projectName}</Typography>
         {searchTerm && (
-          <Typography variant="subtitle2" sx={{ ml: 2 }}>
+          <Typography variant="subtitle2" ml={2}>
             {`${serverCount} server${serverCount !== 1 ? 's' : ''} found`}
           </Typography>
         )}
@@ -73,7 +73,7 @@ const ProjectDetailsTree = ({ data, onNodeSelected }: ProjectDetailsTreeProps) =
           ),
         }}
       />
-      <Box sx={{ height: '82%', width: '100%', overflowY: 'auto' }}>
+      <Box height="82%" width="100%" overflow="auto">
         <TreeView
           expanded={expanded}
           selected={selected}
