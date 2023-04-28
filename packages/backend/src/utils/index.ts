@@ -1,6 +1,7 @@
 /**
  * Author: Václav Jochim
  * Date: 2023-04-28
+ * Description: Contains util functions used by FileProcessorService. Functions are used for processing files and working with git.
  */
 
 import { HostDetailsResponse, HostVariable, ProjectDetailsResponse, ProjectHosts } from '../types';
