@@ -1,4 +1,4 @@
-import { Dispatch, SyntheticEvent, useEffect, useState } from 'react';
+import { Dispatch, SyntheticEvent, useState } from 'react';
 import { TreeView, TreeItem } from '@mui/lab';
 import { Folder, Description } from '@mui/icons-material';
 import { useCodeChangesDispatchContext } from '../context/CodeChangesContext';
@@ -51,9 +51,9 @@ const renderTree = (nodes: TreeNode | undefined, path: string, dispatch: Dispatc
   });
 };
 
-const getPathHierarchy = (path: string) => {
+const getPathHierarchy = (path: string): string[] => {
   const parts = path.split('\\');
-  const result = [];
+  const result: string[] = [];
 
   let currentPath = '';
 
@@ -75,7 +75,7 @@ const GitChangesFileTree = ({ selectedNodeId, paths }: GitChangesFileTreeProps) 
   const dispatch = useCodeChangesDispatchContext();
 
   const treeData = buildTree(paths);
-  const allPaths = paths?.flatMap((path: string) => getPathHierarchy(path));
+  const allPaths = Array.from(new Set(paths?.flatMap((path: string) => getPathHierarchy(path))));
   const [expanded, setExpanded] = useState<string[]>(allPaths);
   const handleToggle = (event: SyntheticEvent, nodeIds: string[]) => {
     setExpanded(nodeIds);
@@ -85,6 +85,7 @@ const GitChangesFileTree = ({ selectedNodeId, paths }: GitChangesFileTreeProps) 
     <TreeView
       sx={{ width: '100%' }}
       expanded={expanded}
+      defaultExpanded={allPaths}
       selected={selectedNodeId}
       defaultCollapseIcon={<Folder />}
       onNodeToggle={handleToggle}
