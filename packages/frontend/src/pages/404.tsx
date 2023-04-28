@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import { Button, Stack, Typography } from '@mui/material';
 import { useRouter } from 'next/router';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';

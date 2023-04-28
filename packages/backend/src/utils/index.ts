@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import { HostDetailsResponse, HostVariable, ProjectDetailsResponse, ProjectHosts } from '../types';
 import * as path from 'path';
 import { existsSync, readdirSync, readFileSync, statSync } from 'fs';

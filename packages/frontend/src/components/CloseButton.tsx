@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import { Button, ButtonProps } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import React from 'react';

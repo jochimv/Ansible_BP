@@ -1,3 +1,9 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ * Details: Overview page showing structure of inventories, groups, and servers, with a search option and applied variables.
+ */
+
 import { useRouter } from 'next/router';
 import { Box, Stack } from '@mui/material';
 import ProjectDetailsTree from '@frontend/components/ProjectDetailsTree';

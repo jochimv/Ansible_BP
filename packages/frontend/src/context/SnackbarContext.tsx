@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import { createContext, ReactNode, useContext, useState } from 'react';
 import Snackbar from '@frontend/components/Snackbar';
 import { AlertColor } from '@mui/lab/Alert/Alert';

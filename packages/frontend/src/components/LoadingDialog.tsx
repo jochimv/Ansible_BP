@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import { CircularProgress, Dialog, DialogContent, DialogTitle, Stack } from '@mui/material';
 import React from 'react';
 

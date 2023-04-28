@@ -1,3 +1,9 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ * Details: A page for building and executing commands on backend for given project.
+ */
+
 import React, { useState } from 'react';
 import {
   Button,

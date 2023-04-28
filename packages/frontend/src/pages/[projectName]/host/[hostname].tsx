@@ -1,3 +1,10 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ * Details: A page showing info for given host, (project name, group name, inventories, etc.), with an editor
+ *          showing different variables (applied, common, group, host). All variable files except applied are editable,
+ */
+
 import { useQuery } from 'react-query';
 import { useRouter } from 'next/router';
 import axios, { AxiosResponse } from 'axios';

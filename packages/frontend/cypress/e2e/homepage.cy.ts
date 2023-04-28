@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 describe('Home page', () => {
   beforeEach(() => {
     cy.intercept(`http://127.0.0.1:4000/projects-hosts`, {

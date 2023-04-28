@@ -1,5 +1,11 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ * Details: Page showing edited files and their diff. User can commit, edit, and rollback changes.
+ */
+
 import { DiffEditor } from '@monaco-editor/react';
-import { Stack, Typography, Button, Box, IconButton } from '@mui/material';
+import { Stack, Typography, Button, Box } from '@mui/material';
 import {
   Replay as ReplayIcon,
   CodeOff as CodeOffIcon,
@@ -21,7 +27,7 @@ import ProjectNotFound from '@frontend/components/ProjectNotFound';
 import axios, { AxiosResponse } from 'axios';
 import { useQuery } from 'react-query';
 import LoadingPage from '@frontend/components/Loading';
-import { notFoundIconSx } from '@frontend/constants';
+import { NOT_FOUND_ICON_SX } from '@frontend/constants';
 const stackPropsIfNoChanges = {
   alignItems: 'center',
   justifyContent: 'center',
@@ -139,7 +145,7 @@ const GitPage = () => {
         </>
       ) : (
         <Stack direction="column" alignItems="center">
-          <CodeOffIcon sx={notFoundIconSx} />
+          <CodeOffIcon sx={NOT_FOUND_ICON_SX} />
           <Typography variant="h3">No changes</Typography>
         </Stack>
       )}

@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { Command, CommandsContextValue, ProjectCommand } from '@frontend/types';
 

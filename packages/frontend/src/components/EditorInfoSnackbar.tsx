@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import { Snackbar } from '@mui/material';
 import { Alert } from '@mui/material';
 import { useCodeChangesContext } from '@frontend/context/CodeChangesContext';

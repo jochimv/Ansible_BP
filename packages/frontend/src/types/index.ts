@@ -1,3 +1,7 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
 export interface HostVariable {
   type: string;
   pathInProject: string;

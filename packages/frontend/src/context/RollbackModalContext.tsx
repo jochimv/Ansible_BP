@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import { createContext, Dispatch, ReactNode, useContext } from 'react';
 import { initialState, useClearModalReducer } from '../reducers/clearModalReducer';
 import { ReducerAction } from '@frontend/types';

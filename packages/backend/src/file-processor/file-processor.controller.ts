@@ -1,3 +1,13 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ * Description: This file defines the FileProcessorController, which is responsible for handling
+ *              incoming HTTP requests related to projects, playbooks, hosts, and repositories.
+ *              The controller contains several routes for checking project existence, retrieving
+ *              project details, playbooks, and host information, as well as committing changes,
+ *              downloading, and deleting repositories. The FileProcessorController leverages
+ *              the FileProcessorService to perform the necessary actions for each route.
+ */
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { FileProcessorService } from './file-processor.service';
 import {

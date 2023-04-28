@@ -1,3 +1,9 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ * Details: Dashboard page for showing executed commands details, with an option to re-execute them
+ */
+
 import React from 'react';
 import axios, { AxiosResponse } from 'axios';
 import { useQuery } from 'react-query';
@@ -37,7 +43,7 @@ import ProjectNotFound from '@frontend/components/ProjectNotFound';
 import { useRunCommand } from '@frontend/hooks/useRunCommand';
 import { ChartData, CommandExecution } from '@frontend/types';
 import { useProjectExists } from '@frontend/hooks/useProjectExists';
-import { BE_IP_ADDRESS, notFoundIconSx } from '@frontend/constants';
+import { BE_IP_ADDRESS, NOT_FOUND_ICON_SX } from '@frontend/constants';
 import TerminalDialog from '@frontend/components/TerminalDialog';
 
 const fetchCommandExecutions = async (
@@ -106,7 +112,7 @@ const Dashboard = () => {
   if (formattedChartData.length === 0) {
     return (
       <Stack height="100%" justifyContent="center" alignItems="center">
-        <CodeOffIcon sx={notFoundIconSx} />
+        <CodeOffIcon sx={NOT_FOUND_ICON_SX} />
         <Typography variant="h3">No commands executed yet</Typography>
       </Stack>
     );

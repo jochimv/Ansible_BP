@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import { Snackbar as MuiSnackbar, IconButton, Alert, AlertColor, Slide } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { ReactNode } from 'react';

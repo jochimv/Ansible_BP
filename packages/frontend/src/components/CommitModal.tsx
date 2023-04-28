@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import React, { useEffect, useRef } from 'react';
 import {
   Button,

@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import { HostVariable } from '@frontend/types';
 import { Interception } from 'cypress/types/net-stubbing';
 import { HostDetails } from '@frontend/types';

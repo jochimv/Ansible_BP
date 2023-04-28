@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import type { NextComponentType, NextPageContext } from 'next';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { createEmotionCache, theme } from '@frontend/styles';

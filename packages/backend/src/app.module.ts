@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import { Module } from '@nestjs/common';
 import { FileProcessorModule } from './file-processor/file-processor.module';
 import { ConfigModule } from '@nestjs/config';

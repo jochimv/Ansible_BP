@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import React, { SyntheticEvent, useState } from 'react';
 import {
   Autocomplete,

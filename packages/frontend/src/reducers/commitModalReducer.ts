@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import { useReducer } from 'react';
 import keyMirror from 'keymirror';
 import { ReducerAction } from '@frontend/types';

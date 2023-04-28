@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommandRunnerController } from './command-runner.controller';
 import { CommandRunnerService } from './command-runner.service';

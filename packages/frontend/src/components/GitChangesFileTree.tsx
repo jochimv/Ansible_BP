@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import { SyntheticEvent, useState } from 'react';
 import { TreeView } from '@mui/lab';
 import { Description, Folder } from '@mui/icons-material';

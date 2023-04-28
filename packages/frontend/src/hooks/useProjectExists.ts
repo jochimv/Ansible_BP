@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import { useQuery } from 'react-query';
 import axios from 'axios';
 import { BE_IP_ADDRESS } from '@frontend/constants';

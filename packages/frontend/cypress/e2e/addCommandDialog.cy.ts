@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 describe('commands page', () => {
   const addCommand = () => {
     cy.get('#button-add-command').click();

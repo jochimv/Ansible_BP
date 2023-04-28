@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import { createContext, ReactNode, useContext } from 'react';
 import { initialState, useCommitModalReducer } from '../reducers/commitModalReducer';
 

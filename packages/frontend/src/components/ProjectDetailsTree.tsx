@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import React, { useState } from 'react';
 import { Box, InputAdornment, Stack, TextField, Typography } from '@mui/material';
 import { TreeView } from '@mui/lab';

@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 import { CommandExecution as ICommandExecution } from '../../types';
 

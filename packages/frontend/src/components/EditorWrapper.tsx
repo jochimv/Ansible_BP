@@ -1,3 +1,8 @@
+/**
+ * Author: Václav Jochim
+ * Date: 2023-04-28
+ */
+
 import { Stack, Typography, Breadcrumbs } from '@mui/material';
 import Editor from '@monaco-editor/react';
 import {
