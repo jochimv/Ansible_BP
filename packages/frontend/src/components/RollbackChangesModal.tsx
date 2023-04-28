@@ -17,9 +17,9 @@ import {
 } from '@mui/material';
 import { HelpOutline, Replay } from '@mui/icons-material';
 import {
-  useClearModalContext,
-  useClearModalDispatchContext,
-} from '@frontend/context/ClearModalContext';
+  useRollbackModalContext,
+  useRollbackModalDispatchContext,
+} from '@frontend/context/RollbackModalContext';
 import { CloseButton } from '@frontend/components/CloseButton';
 import { close } from '@frontend/reducers/clearModalReducer';
 import {
@@ -32,12 +32,11 @@ import {
   clearProjectUpdates,
   clearProjectUpdatesFromEditor,
 } from '@frontend/reducers/codeChangesReducer';
-import { faBomb, faBroom } from '@fortawesome/free-solid-svg-icons';
 import { CodeOff as CodeOffIcon } from '@mui/icons-material';
 import { useRouter } from 'next/router';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { getUpdatedFilesPaths } from '@frontend/utils';
 import { Project } from '@frontend/types';
+import useUserIsInHostDetailsPage from '@frontend/hooks/useUserIsInHostDetailsPage';
 
 const findIfAnyVariableWasUpdated = (projects: Project[]): boolean => {
   if (!projects) {
@@ -57,16 +56,17 @@ const findIfAnyVariableWasUpdated = (projects: Project[]): boolean => {
   return false;
 };
 
-const ClearModal = () => {
-  const { isModalOpen } = useClearModalContext();
-  const dispatch = useClearModalDispatchContext();
+const RollbackChangesModal = () => {
+  const { isModalOpen } = useRollbackModalContext();
+  const dispatch = useRollbackModalDispatchContext();
   const codeChangesDispatch = useCodeChangesDispatchContext();
   const { updatedProjects } = useCodeChangesContext();
   const closeModal = () => dispatch(close());
   const router = useRouter();
+  const isInHostDetailsPage = useUserIsInHostDetailsPage();
 
   const handleRollbackAllProjects = (): void => {
-    if (router.pathname === '/[projectName]/host/[hostname]') {
+    if (isInHostDetailsPage) {
       codeChangesDispatch(clearAllProjectUpdatesFromEditor(router.query));
     } else {
       codeChangesDispatch(clearAllProjectsUpdates());
@@ -75,10 +75,8 @@ const ClearModal = () => {
 
   const handleRollbackProject = (projectNameToRollback: string): void => {
     const currentProject = router.query.projectName;
-    if (
-      currentProject === projectNameToRollback &&
-      router.pathname === '/[projectName]/host/[hostname]'
-    ) {
+    const isInHostDetailsPage = useUserIsInHostDetailsPage();
+    if (currentProject === projectNameToRollback && isInHostDetailsPage) {
       codeChangesDispatch(clearProjectUpdatesFromEditor(router.query));
     } else {
       codeChangesDispatch(clearProjectUpdates(projectNameToRollback));
@@ -171,4 +169,4 @@ const ClearModal = () => {
   );
 };
 
-export default ClearModal;
+export default RollbackChangesModal;

@@ -61,7 +61,7 @@ export const actionTypes = keyMirror({
 export const initialState: CodeChangesState = {
   updatedProjects: [],
   originalProjects: [],
-  isInEditMode: false,
+  isInEditMode: true,
   selectedHostDetails: null,
   selectedVariables: null,
   selectedHostDetailsByInventoryType: [],

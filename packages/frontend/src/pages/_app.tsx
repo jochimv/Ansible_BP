@@ -12,7 +12,7 @@ import { CommandsProvider } from '@frontend/context/CommandContext';
 import { Appbar } from '@frontend/components/Appbar';
 import { AutoSaveContextProvider } from '@frontend/context/AutosaveContext';
 import CodeChangesProvider from '@frontend/context/CodeChangesContext';
-import ClearModalProvider from '@frontend/context/ClearModalContext';
+import ClearModalProvider from '@frontend/context/RollbackModalContext';
 
 const queryClient = new QueryClient();
 const clientSideEmotionCache = createEmotionCache();

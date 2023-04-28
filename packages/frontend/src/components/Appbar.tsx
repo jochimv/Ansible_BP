@@ -2,11 +2,11 @@ import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
 } from '@frontend/context/CodeChangesContext';
-import { useClearModalDispatchContext } from '@frontend/context/ClearModalContext';
+import { useRollbackModalDispatchContext } from '@frontend/context/RollbackModalContext';
 import { getUpdatedFilesPaths } from '@frontend/utils';
 import { AppBar, Badge, Button, Toolbar, Typography } from '@mui/material';
 import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
-import ClearModal from '@frontend/components/ClearModal';
+import RollbackChangesModal from '@frontend/components/RollbackChangesModal';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import Link from 'next/link';
 import { open } from '@frontend/reducers/clearModalReducer';
@@ -20,13 +20,19 @@ import { Commit, Search } from '@mui/icons-material';
 import React, { SyntheticEvent } from 'react';
 import { faTerminal } from '@fortawesome/free-solid-svg-icons';
 import { useSnackbar } from '@frontend/context/SnackbarContext';
+import useUserIsInHostDetailsPage from '@frontend/hooks/useUserIsInHostDetailsPage';
 
 export const Appbar = () => {
-  const { isInEditMode, selectedProjectName, updatedProjects } = useCodeChangesContext();
+  const { isInEditMode, selectedProjectName, updatedProjects, selectedVariables } =
+    useCodeChangesContext();
   const codeChangesDispatch = useCodeChangesDispatchContext();
-  const clearModalDispatch = useClearModalDispatchContext();
+  const clearModalDispatch = useRollbackModalDispatchContext();
   const updatedFilesPaths = getUpdatedFilesPaths(updatedProjects, selectedProjectName);
   const { showMessage } = useSnackbar();
+
+  //const router = useRouter();
+  const isInHostDetailsPage = useUserIsInHostDetailsPage();
+
   const onNavigationClick = (event: SyntheticEvent) => {
     if (isNavigationDisabled) {
       event.preventDefault();
@@ -50,18 +56,20 @@ export const Appbar = () => {
           >
             {selectedProjectName ?? 'No project selected'}
           </Typography>
-          <ClearModal />
+          <RollbackChangesModal />
           {/*<Button color="inherit" onClick={() => codeChangesDispatch({ type: 'clear' })}>
             Clear context
           </Button>*/}
-          <Button
-            id="button-mode"
-            startIcon={isInEditMode ? <EditIcon /> : <LibraryBooksIcon />}
-            color="inherit"
-            onClick={() => codeChangesDispatch(switchMode())}
-          >
-            {isInEditMode ? 'Edit mode' : 'Read mode'}
-          </Button>
+          {isInHostDetailsPage && selectedVariables.type !== 'applied' && (
+            <Button
+              id="button-mode"
+              startIcon={isInEditMode ? <EditIcon /> : <LibraryBooksIcon />}
+              color="inherit"
+              onClick={() => codeChangesDispatch(switchMode())}
+            >
+              {isInEditMode ? 'Edit mode' : 'Read mode'}
+            </Button>
+          )}
           <Button
             id="button-clear"
             color="inherit"
