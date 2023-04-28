@@ -4,7 +4,7 @@ import { TreeView } from '@mui/lab';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { TreeViewInventoryItem } from '@frontend/types';
-import { countServers, filterTreeItems, findNode, renderTree } from '@frontend/utils';
+import { countServers, filterTreeItems, findNode, renderProjectDetailsTree } from '@frontend/utils';
 import { useRouter } from 'next/router';
 import { Search } from '@mui/icons-material';
 
@@ -78,7 +78,7 @@ const ProjectDetailsTree = ({ data, onNodeSelected }: ProjectDetailsTreeProps) =
           defaultCollapseIcon={<ExpandMoreIcon />}
           defaultExpandIcon={<ChevronRightIcon />}
         >
-          {filteredData.map(renderTree)}
+          {filteredData.map(renderProjectDetailsTree)}
         </TreeView>
       </Box>
     </>

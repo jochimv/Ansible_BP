@@ -7,17 +7,19 @@ import {
   ProjectDetailsHost,
   ProjectDetailsInventory,
   ProjectDetailsResponse,
+  TreeNode,
   TreeViewInventoryItem,
 } from '@frontend/types';
 import axios from 'axios';
 import { parse as parseYaml, stringify } from 'yaml';
-import { Breadcrumbs, Typography } from '@mui/material';
-import { CodeChangesState } from '@frontend/reducers/codeChangesReducer';
+import { Typography } from '@mui/material';
+import { CodeChangesState, showDiff } from '@frontend/reducers/codeChangesReducer';
 import { BE_IP_ADDRESS } from '@frontend/constants';
 import { TreeItem } from '@mui/lab';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faServer } from '@fortawesome/free-solid-svg-icons';
-import React from 'react';
+import React, { Dispatch } from 'react';
+import { Description, Folder } from '@mui/icons-material';
 
 export const convertProjectDetailsToTreeOfIds = (projectDetails: ProjectDetailsInventory[]) => {
   return projectDetails.flatMap(
@@ -154,18 +156,6 @@ export const getUpdatedFilesPaths = (projects: Project[], projectName: string | 
           self.indexOf(pathInProject) === index,
       ) || []
   );
-};
-export const projectHasUpdatedVariables = (project: Project) => {
-  for (const host of project.hosts) {
-    for (const inventoryType of host.hostDetailsByInventoryType) {
-      for (const variable of inventoryType.variables) {
-        if (variable.updated && variable.type !== 'applied') {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
 };
 export const processVariables = (
   variable: Omit<any, 'updated'> | HostVariable,
@@ -320,59 +310,6 @@ export const replaceVariableInProjectsArray = (
     })),
   }));
 };
-export const getProjectUpdatedVars = (project: any): any[] => {
-  return (
-    project?.hosts?.flatMap((host: Host) =>
-      host.hostDetailsByInventoryType.flatMap((hostDetailByInventoryType: HostDetails) =>
-        hostDetailByInventoryType.variables.filter(
-          (variable: HostVariable) => variable.updated && variable.type !== 'applied',
-        ),
-      ),
-    ) || []
-  );
-};
-export const getAllUpdatedVars = (updatedProjects: Project[]): any[] => {
-  return (
-    updatedProjects
-      ?.map((updatedProject: Project) => getProjectUpdatedVars(updatedProject))
-      .flat() || []
-  );
-};
-export const extractOriginalStateValues = (
-  state: CodeChangesState,
-  projectName: string,
-  hostname: string,
-) => {
-  const selectedHostDetailsByInventoryType = state.originalProjects
-    .find((project: Project) => project.projectName === projectName)
-    ?.hosts.find((host: Host) => host.hostname === hostname)?.hostDetailsByInventoryType;
-  const selectedHostDetails = selectedHostDetailsByInventoryType?.find(
-    (selectedHostDetail: HostDetails) =>
-      selectedHostDetail.inventoryType === state.selectedHostDetails?.inventoryType,
-  );
-  const selectedVariables = selectedHostDetails?.variables.find(
-    (variable: HostVariable) => variable.type === state.selectedVariables.type,
-  );
-  return {
-    selectedHostDetailsByInventoryType,
-    selectedHostDetails,
-    selectedVariables,
-  };
-};
-export const tryToParseYml = (newEditorValue: string): string | undefined => {
-  try {
-    const parsedYml = parseYaml(newEditorValue);
-    if ('0' in parsedYml) {
-      return 'Unfinished key';
-    }
-  } catch (e: unknown) {
-    if (e instanceof Error) {
-      return e.message;
-    } else {
-      return String(e);
-    }
-  }
-};
 export const filterTreeItems = (
   nodes: TreeViewInventoryItem[],
   searchTerm: string,
@@ -392,7 +329,7 @@ export const filterTreeItems = (
     })
     .filter((node) => node !== null) as TreeViewInventoryItem[];
 };
-export const renderTree = (nodes: TreeViewInventoryItem) => {
+export const renderProjectDetailsTree = (nodes: TreeViewInventoryItem) => {
   return (
     <TreeItem
       icon={
@@ -404,7 +341,9 @@ export const renderTree = (nodes: TreeViewInventoryItem) => {
       nodeId={nodes.id}
       label={nodes.name}
     >
-      {Array.isArray(nodes.children) ? nodes.children.map((node) => renderTree(node)) : null}
+      {Array.isArray(nodes.children)
+        ? nodes.children.map((node) => renderProjectDetailsTree(node))
+        : null}
     </TreeItem>
   );
 };
@@ -428,6 +367,133 @@ export const findNode = (
           return host;
         }
       }
+    }
+  }
+};
+export const buildTree = (paths: string[]): TreeNode => {
+  const tree: TreeNode = {};
+
+  for (const path of paths) {
+    const parts = path.split('\\');
+    let currentNode: TreeNode = tree;
+
+    for (const part of parts) {
+      if (!currentNode[part]) {
+        currentNode[part] = {};
+      }
+      currentNode = currentNode[part]!;
+    }
+  }
+  return tree;
+};
+export const renderChagedFilesTree = (
+  nodes: TreeNode | undefined,
+  path: string,
+  dispatch: Dispatch<any>,
+) => {
+  if (Object.keys(nodes ?? {}).length === 0) {
+    return <div />;
+  }
+  return Object.entries(nodes ?? {}).map(([nodeName, children]) => {
+    const newPath = path === '' ? nodeName : `${path}\\${nodeName}`;
+    const isLeaf = Object.keys(children ?? {}).length === 0;
+    return (
+      <TreeItem
+        key={newPath}
+        nodeId={newPath}
+        label={nodeName}
+        onClick={isLeaf ? () => dispatch(showDiff(newPath)) : undefined}
+        icon={
+          isLeaf ? (
+            <Description sx={{ color: 'primary.main' }} />
+          ) : (
+            <Folder sx={{ color: 'gray' }} />
+          )
+        }
+      >
+        {renderChagedFilesTree(children, newPath, dispatch)}
+      </TreeItem>
+    );
+  });
+};
+export const getPathHierarchy = (path: string): string[] => {
+  const parts = path.split('\\');
+  const result: string[] = [];
+
+  let currentPath = '';
+
+  for (let i = 0; i < parts.length; i++) {
+    currentPath += parts[i];
+    result.push(currentPath);
+    currentPath += '\\';
+  }
+
+  return result;
+};
+export const projectHasUpdatedVariables = (project: Project) => {
+  for (const host of project.hosts) {
+    for (const inventoryType of host.hostDetailsByInventoryType) {
+      for (const variable of inventoryType.variables) {
+        if (variable.updated && variable.type !== 'applied') {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+};
+export const getProjectUpdatedVars = (project: any): any[] => {
+  const updatedVars: any[] = [];
+  project?.hosts?.forEach((host: Host) => {
+    host.hostDetailsByInventoryType.forEach((hostDetailByInventoryType: HostDetails) => {
+      hostDetailByInventoryType.variables.forEach((variable: HostVariable) => {
+        if (variable.updated && variable.type !== 'applied') {
+          updatedVars.push(variable);
+        }
+      });
+    });
+  });
+  return updatedVars;
+};
+export const getAllUpdatedVars = (updatedProjects: Project[]) => {
+  const updatedVars: any[] = [];
+  updatedProjects?.forEach((updatedProject: Project) => {
+    updatedVars.push(...getProjectUpdatedVars(updatedProject));
+  });
+  return updatedVars;
+};
+export const extractOriginalStateValues = (
+  state: CodeChangesState,
+  projectName: string,
+  hostname: string,
+) => {
+  const selectedHostDetailsByInventoryType = state.originalProjects
+    .find((project: Project) => project.projectName === projectName)
+    ?.hosts.find((host: Host) => host.hostname === hostname)?.hostDetailsByInventoryType;
+  const selectedHostDetails = selectedHostDetailsByInventoryType?.find(
+    (selectedHostDetail: HostDetails) =>
+      selectedHostDetail.inventoryType === state.selectedHostDetails?.inventoryType,
+  );
+  const selectedVariables = selectedHostDetails?.variables.find(
+    (variable: HostVariable) => variable.type === state.selectedVariables.type,
+  );
+  return {
+    selectedHostDetailsByInventoryType,
+    selectedHostDetails,
+    selectedVariables,
+  };
+};
+export const tryToParseYml = (newEditorValue: string) => {
+  try {
+    const parsedYml = parseYaml(newEditorValue);
+    if ('0' in parsedYml) {
+      return 'Unfinished key';
+    }
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      return e.message;
+    } else {
+      return String(e);
     }
   }
 };

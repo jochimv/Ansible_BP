@@ -6,10 +6,7 @@ import {
   useCodeChangesContext,
   useCodeChangesDispatchContext,
 } from '@frontend/context/CodeChangesContext';
-import {
-  initializeEditor,
-  setIsInitializeEditorEnabled,
-} from '@frontend/reducers/codeChangesReducer';
+import { initializeEditor, enableEditorInitialize } from '@frontend/reducers/codeChangesReducer';
 import HostNotFound from '@frontend/components/HostNotFound';
 import ProjectNotFound from '@frontend/components/ProjectNotFound';
 import LoadingPage from '@frontend/components/Loading';
@@ -60,7 +57,7 @@ const HostDetailsPage = () => {
             }),
           );
         } else {
-          dispatch(setIsInitializeEditorEnabled(true));
+          dispatch(enableEditorInitialize());
         }
       },
     },

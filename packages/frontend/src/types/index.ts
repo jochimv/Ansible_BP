@@ -152,3 +152,7 @@ export interface CommandsContextValue {
     builderData?: any,
   ) => void;
 }
+
+export interface TreeNode {
+  [key: string]: TreeNode | undefined;
+}

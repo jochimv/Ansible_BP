@@ -1,27 +1,19 @@
 import keyMirror from 'keymirror';
 import { parse as parseYaml, stringify } from 'yaml';
 import { omit } from 'ramda';
-import { ReducerAction, Host, HostDetails, HostVariable, Project } from '@frontend/types';
+import { Host, HostDetails, HostVariable, Project, ReducerAction } from '@frontend/types';
 import {
+  extractOriginalStateValues,
   findHostDetailsByInventoryType,
   findNewStateVarsFromVariablesPath,
   findVariableObject,
+  getAllUpdatedVars,
+  getProjectUpdatedVars,
   processVariables,
+  projectHasUpdatedVariables,
   replaceVariableInProjectsArray,
+  tryToParseYml,
 } from '@frontend/utils';
-
-const projectHasUpdatedVariables = (project: Project) => {
-  for (const host of project.hosts) {
-    for (const inventoryType of host.hostDetailsByInventoryType) {
-      for (const variable of inventoryType.variables) {
-        if (variable.updated && variable.type !== 'applied') {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-};
 
 export interface CodeChangesState {
   selectedProjectName: string | null;
@@ -56,7 +48,7 @@ export const actionTypes = keyMirror({
   CLEAR_ALL_PROJECTS_UPDATES: null,
   CLEAR_ALL_PROJECT_UPDATES_FROM_EDITOR: null,
   DELETE_PROJECT: null,
-  SET_IS_INITIALIZE_EDITOR_ENABLED: null,
+  ENABLE_EDITOR_INITIALIZE: null,
 });
 export const initialState: CodeChangesState = {
   updatedProjects: [],
@@ -73,71 +65,13 @@ export const initialState: CodeChangesState = {
   isInitializeEditorEnabled: true,
 };
 
-const getProjectUpdatedVars = (project: any): any[] => {
-  const updatedVars: any[] = [];
-  project?.hosts?.forEach((host: Host) => {
-    host.hostDetailsByInventoryType.forEach((hostDetailByInventoryType: HostDetails) => {
-      hostDetailByInventoryType.variables.forEach((variable: HostVariable) => {
-        if (variable.updated && variable.type !== 'applied') {
-          updatedVars.push(variable);
-        }
-      });
-    });
-  });
-  return updatedVars;
-};
-const getAllUpdatedVars = (updatedProjects: Project[]) => {
-  const updatedVars: any[] = [];
-  updatedProjects?.forEach((updatedProject: Project) => {
-    updatedVars.push(...getProjectUpdatedVars(updatedProject));
-  });
-  return updatedVars;
-};
-
-const extractOriginalStateValues = (
-  state: CodeChangesState,
-  projectName: string,
-  hostname: string,
-) => {
-  const selectedHostDetailsByInventoryType = state.originalProjects
-    .find((project: Project) => project.projectName === projectName)
-    ?.hosts.find((host: Host) => host.hostname === hostname)?.hostDetailsByInventoryType;
-  const selectedHostDetails = selectedHostDetailsByInventoryType?.find(
-    (selectedHostDetail: HostDetails) =>
-      selectedHostDetail.inventoryType === state.selectedHostDetails?.inventoryType,
-  );
-  const selectedVariables = selectedHostDetails?.variables.find(
-    (variable: HostVariable) => variable.type === state.selectedVariables.type,
-  );
-  return {
-    selectedHostDetailsByInventoryType,
-    selectedHostDetails,
-    selectedVariables,
-  };
-};
-
-const tryToParseYml = (newEditorValue: string) => {
-  try {
-    const parsedYml = parseYaml(newEditorValue);
-    if ('0' in parsedYml) {
-      return 'Unfinished key';
-    }
-  } catch (e: unknown) {
-    if (e instanceof Error) {
-      return e.message;
-    } else {
-      return String(e);
-    }
-  }
-};
-
 export const codeChangesReducer = (
   state: CodeChangesState = initialState,
   action: ReducerAction,
 ): CodeChangesState => {
   switch (action.type) {
-    case actionTypes.SET_IS_INITIALIZE_EDITOR_ENABLED:
-      return { ...state, isInitializeEditorEnabled: action.payload };
+    case actionTypes.ENABLE_EDITOR_INITIALIZE:
+      return { ...state, isInitializeEditorEnabled: true };
     // todo - smazat
     case 'clear':
       return initialState;
@@ -785,7 +719,6 @@ export const edit = (payload: any): ReducerAction => ({
   payload,
 });
 
-export const setIsInitializeEditorEnabled = (payload: any): ReducerAction => ({
-  type: actionTypes.SET_IS_INITIALIZE_EDITOR_ENABLED,
-  payload,
+export const enableEditorInitialize = (): ReducerAction => ({
+  type: actionTypes.ENABLE_EDITOR_INITIALIZE,
 });
