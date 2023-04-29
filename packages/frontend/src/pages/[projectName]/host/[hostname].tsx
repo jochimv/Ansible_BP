@@ -67,6 +67,7 @@ const HostDetailsPage = () => {
           dispatch(enableEditorInitialize());
         }
       },
+      cacheTime: 0,
     },
   );
 
