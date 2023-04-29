@@ -42,7 +42,6 @@ export const getMainBranchName = async (git): Promise<string> => {
   try {
     return await git.revparse(['--abbrev-ref', 'HEAD']);
   } catch (error) {
-    console.log('Error during getting the main branch name', error);
     return null;
   }
 };
@@ -100,7 +99,6 @@ export class FileProcessorService {
   };
   downloadRepository = async (gitRepositoryUrl: string): Promise<RepositoryActionResult> => {
     const git: SimpleGit = simpleGit();
-    console.log('starting to download repository');
     try {
       const projectName = extractSecondToLastPathSegment(gitRepositoryUrl);
       const projectDestinationPath = join(process.env.ANSIBLE_REPOS_PATH, projectName);
@@ -112,7 +110,6 @@ export class FileProcessorService {
       await git.clone(gitRepositoryUrl, projectDestinationPath);
       return { success: true };
     } catch (error) {
-      console.error('Error downloading repository:', error.message);
       return {
         success: false,
         error: 'Failed to download repository. Check internet connection and URL.',
