@@ -77,9 +77,6 @@ export const codeChangesReducer = (
   switch (action.type) {
     case actionTypes.ENABLE_EDITOR_INITIALIZE:
       return { ...state, isInitializeEditorEnabled: true };
-    // todo - smazat
-    case 'clear':
-      return initialState;
     case actionTypes.EDIT: {
       const { path, navigate } = action.payload;
       const { selectedProjectName } = state;

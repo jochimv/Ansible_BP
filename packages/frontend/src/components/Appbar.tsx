@@ -62,9 +62,6 @@ export const Appbar = () => {
             {selectedProjectName ?? 'No project selected'}
           </Typography>
           <RollbackChangesModal />
-          <Button color="inherit" onClick={() => codeChangesDispatch({ type: 'clear' })}>
-            Clear context
-          </Button>
           {isInHostDetailsPage && selectedVariables?.type !== 'applied' && (
             <Button
               id="button-mode"
