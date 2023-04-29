@@ -20,9 +20,13 @@ export class CommandRunnerRepository {
   }
 
   async getCommandExecutionsForProject(projectName: string): Promise<ICommandExecution[]> {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
     return await this.repository
       .createQueryBuilder('command_execution')
       .where('command_execution."projectName" = :projectName', { projectName })
+      .andWhere('command_execution."executionDate" >= :oneWeekAgo', { oneWeekAgo })
       .orderBy('command_execution."executionDate"', 'DESC')
       .getMany();
   }
