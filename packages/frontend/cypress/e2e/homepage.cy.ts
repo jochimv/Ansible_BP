@@ -27,7 +27,7 @@ describe('Home page', () => {
 
       cy.get('#projects').type(projectName).type('{downarrow}').type('{enter}');
       cy.get('#servers').type(server).type('{downarrow}').type('{enter}');
-      cy.url().should('include', `/${projectName}/host/${server}`);
+      cy.url().should('include', `/${projectName}/host-details/${server}`);
     });
   });
 

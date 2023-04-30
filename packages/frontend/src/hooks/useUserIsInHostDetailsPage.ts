@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 
 const useUserIsInHostDetailsPage = () => {
   const router = useRouter();
-  return router.pathname === '/[projectName]/host/[hostname]';
+  return router.pathname === '/[projectName]/host-details/[hostname]';
 };
 
 export default useUserIsInHostDetailsPage;

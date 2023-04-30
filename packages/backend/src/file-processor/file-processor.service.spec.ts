@@ -89,7 +89,7 @@ describe('FileProcessorService', () => {
     expect(getProjectsHosts).toHaveBeenCalled();
   });
 
-  it('should deleteRepository', async () => {
+  it('should delete a repository', async () => {
     const projectName = 'sample-project';
     const projectPath = join(process.env.ANSIBLE_REPOS_PATH, projectName);
     (existsSync as jest.Mock).mockReturnValue(true);
@@ -100,7 +100,7 @@ describe('FileProcessorService', () => {
     expect(result).toEqual(expectedResult);
   });
 
-  it('should downloadRepository', async () => {
+  it('should download a repository', async () => {
     const gitRepositoryUrl = 'https://bitbucket.org/scm/sample-project/ansible-weblogic.git.git';
     const projectName = 'sample-project';
     const projectDestinationPath = join(process.env.ANSIBLE_REPOS_PATH, projectName);

@@ -86,7 +86,7 @@ export const codeChangesReducer = (
         selectedHostDetails,
         selectedVariables,
       } = findNewStateVarsFromVariablesPath(selectedProjectName!, path, state.updatedProjects)!;
-      navigate(`/${selectedProjectName}/host/${hostname}`);
+      navigate(`/${selectedProjectName}/host-details/${hostname}`);
       return {
         ...state,
         isInitializeEditorEnabled: false,

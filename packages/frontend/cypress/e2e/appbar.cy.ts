@@ -28,8 +28,8 @@ describe('Appbar', () => {
     cy.get('#button-commands').click();
     cy.url().should('not.include', '/commands');
 
-    cy.get('#button-overview').click();
-    cy.url().should('not.include', '/overview');
+    cy.get('#button-server-structure').click();
+    cy.url().should('not.include', '/server-structure');
   });
   it('should navigate to Dashboard', () => {
     cy.get('#button-dashboard').click();
@@ -56,17 +56,9 @@ describe('Appbar', () => {
     cy.get('[role="dialog"]').should('be.visible');
   });
 
-  it('should navigate to Overview', () => {
-    cy.get('#button-overview').click();
-    cy.url().should('include', '/overview');
-  });
-
-  it('should toggle between Edit mode and Read mode', () => {
-    cy.get('#button-mode').click();
-    cy.get('#button-mode').should('have.text', 'Edit mode');
-
-    cy.get('#button-mode').click();
-    cy.get('#button-mode').should('have.text', 'Read mode');
+  it('should navigate to Server structure', () => {
+    cy.get('#button-server-structure').click();
+    cy.url().should('include', '/server-structure');
   });
 });
 

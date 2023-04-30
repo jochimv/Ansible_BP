@@ -58,6 +58,7 @@ const ProjectDetailsTree = ({ data, onNodeSelected }: ProjectDetailsTreeProps) =
         )}
       </Stack>
       <TextField
+        id="search"
         label="Search"
         value={searchTerm}
         onChange={handleSearchChange}

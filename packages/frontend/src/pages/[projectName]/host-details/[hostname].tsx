@@ -28,7 +28,7 @@ const fetchHostDetails = async (
   hostname: string | string[],
 ): Promise<HostDetailsResponse> => {
   const response: AxiosResponse<any> = await axios.get(
-    `http://${BE_IP_ADDRESS}:4000/${projectName}/host/${hostname}`,
+    `http://${BE_IP_ADDRESS}:4000/${projectName}/host-details/${hostname}`,
   );
   return response.data;
 };

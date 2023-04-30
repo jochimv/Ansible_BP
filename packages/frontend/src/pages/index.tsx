@@ -152,7 +152,7 @@ const HomePage = () => {
             event: SyntheticEvent,
             newValue: AutocompleteValue<unknown, false, false, false>,
           ) => {
-            router.push(`/${selectedProjectName}/host/${newValue}`);
+            router.push(`/${selectedProjectName}/host-details/${newValue}`);
           }}
         />
         <Divider style={{ width: '100%' }}>OR</Divider>
@@ -193,3 +193,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+export { getProjectDetails } from '@frontend/pages/[projectName]/server-structure';

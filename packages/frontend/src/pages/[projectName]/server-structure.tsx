@@ -1,7 +1,7 @@
 /**
  * Author: Václav Jochim
  * Date: 2023-04-28
- * Details: Overview page showing structure of inventories, groups, and servers, with a search option and applied variables.
+ * Details: Server structure page showing structure of inventories, groups, and servers, with a search option and applied variables.
  */
 
 import { useRouter } from 'next/router';
@@ -12,11 +12,17 @@ import { useEffect, useState } from 'react';
 import ProjectNotFound from '@frontend/components/ProjectNotFound';
 import { useQuery } from 'react-query';
 import LoadingPage from '@frontend/components/Loading';
-import { convertProjectDetailsToTreeOfIds, getProjectDetails } from '@frontend/utils';
+import { convertProjectDetailsToTreeOfIds } from '@frontend/utils';
 import { useUpdatedProjectDetails } from '@frontend/hooks/useUpdatedProjectDetails';
 import NoServersFound from '@frontend/components/NoServersFound';
-import { Host } from '@frontend/types';
+import { ProjectDetailsResponse } from '@frontend/types';
+import axios from 'axios';
+import { BE_IP_ADDRESS } from '@frontend/constants';
 
+export const getProjectDetails = async (projectName: string): Promise<ProjectDetailsResponse> => {
+  const data = await axios.get(`http://${BE_IP_ADDRESS}:4000/${projectName}/details`);
+  return data.data;
+};
 const ProjectPage = () => {
   const { projectName } = useRouter().query;
   const [selectedHost, setSelectedHost] = useState({ id: '', name: '', appliedVariables: '' });
@@ -32,6 +38,8 @@ const ProjectPage = () => {
       enabled: !!projectName,
     },
   );
+
+  console.log('data: ', JSON.stringify(data));
 
   const projectDetails = data?.projectDetails || [];
 

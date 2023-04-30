@@ -57,7 +57,7 @@ export class FileProcessorController {
     return await this.fileProcessorService.getProjectDetails(projectName);
   }
 
-  @Get('/:projectName/host/:hostname')
+  @Get('/:projectName/host-details/:hostname')
   async getHostDetails(
     @Param('projectName') projectName: string,
     @Param('hostname') hostname: string,

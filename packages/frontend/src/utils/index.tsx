@@ -11,15 +11,12 @@ import {
   ProjectDetailsGroup,
   ProjectDetailsHost,
   ProjectDetailsInventory,
-  ProjectDetailsResponse,
   TreeNode,
   TreeViewInventoryItem,
 } from '@frontend/types';
-import axios from 'axios';
 import { parse as parseYaml, stringify } from 'yaml';
 import { Typography } from '@mui/material';
 import { CodeChangesState, showDiff } from '@frontend/reducers/codeChangesReducer';
-import { BE_IP_ADDRESS } from '@frontend/constants';
 import { TreeItem } from '@mui/lab';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faServer } from '@fortawesome/free-solid-svg-icons';
@@ -112,10 +109,6 @@ export const findServerVariables = (
   return { hostVariables, groupVariables, commonVariables };
 };
 
-export const getProjectDetails = async (projectName: string): Promise<ProjectDetailsResponse> => {
-  const data = await axios.get(`http://${BE_IP_ADDRESS}:4000/${projectName}/details`);
-  return data.data;
-};
 export const getVariablesByType = (obj: any, type: string) => {
   const variablesArray = obj.variables;
   for (let i = 0; i < variablesArray.length; i++) {

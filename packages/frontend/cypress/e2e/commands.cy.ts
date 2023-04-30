@@ -38,7 +38,9 @@ describe('commands page', () => {
     };
     cy.intercept('POST', `http://127.0.0.1:4000/run-command`, mockResponse).as('runCommand');
     addCommand();
-    cy.get(`#run-command-0`).click();
+    cy.get('.MuiTableBody-root').find('tr').should('have.length', 1);
+    cy.get('#run-command-0').should('exist');
+    cy.get('#run-command-0').click();
     cy.wait('@runCommand').then(({ response }) => {
       expect(response?.statusCode).to.equal(200);
       expect(response?.body).to.deep.equal(mockResponse);

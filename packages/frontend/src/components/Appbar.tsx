@@ -117,14 +117,14 @@ export const Appbar = () => {
             Commands
           </Button>
           <Button
-            id="button-overview"
+            id="button-server-structure"
             color="inherit"
             component={Link}
-            href={isNavigationDisabled ? '#' : `/${selectedProjectName}/overview`}
+            href={isNavigationDisabled ? '#' : `/${selectedProjectName}/server-structure`}
             onClick={onNavigationClick}
             startIcon={<FontAwesomeIcon icon={faServer} style={{ width: 18, height: 18 }} />}
           >
-            Overview
+            Server structure
           </Button>
           <Button
             id="button-search"
