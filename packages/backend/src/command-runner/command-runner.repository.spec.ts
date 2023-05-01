@@ -15,6 +15,7 @@ describe('CommandRunnerRepository', () => {
   beforeEach(async () => {
     const queryBuilderMock = {
       where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
       orderBy: jest.fn().mockReturnThis(),
       getMany: jest.fn(),
     };
@@ -71,9 +72,7 @@ describe('CommandRunnerRepository', () => {
     commandExecution2.command = 'command2';
     commandExecution2.output = 'output2';
 
-    mockRepository
-      .createQueryBuilder()
-      .getMany.mockResolvedValue([commandExecution1, commandExecution2]);
+    mockRepository.createQueryBuilder().getMany.mockResolvedValue([commandExecution1, commandExecution2]);
 
     const result = await commandRunnerRepository.getCommandExecutionsForProject(projectName);
     expect(result).toEqual([commandExecution1, commandExecution2]);
