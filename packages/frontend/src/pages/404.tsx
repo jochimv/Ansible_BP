@@ -16,7 +16,7 @@ export default function Custom404Page() {
       <Typography variant="h1">404</Typography>
       <Typography variant="h3">Page not found</Typography>
       <Button sx={{ mt: 2 }} startIcon={<ArrowBackIcon />} onClick={handleGoBack}>
-        Go back
+        Back
       </Button>
     </Stack>
   );
