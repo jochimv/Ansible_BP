@@ -12,12 +12,15 @@ services:
     build:
       context: ./packages/backend
     restart: always
+    ports:
+      - '4000:4000'
     environment:
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
       - DATABASE_USER=logs_user
       - DATABASE_PASSWORD=complex_password123
       - DATABASE_NAME=logs_database
+      - ANSIBLE_REPOS_PATH=/app/ansible_repos
     depends_on:
       - db
   db:
