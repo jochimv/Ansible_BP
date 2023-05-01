@@ -3,15 +3,7 @@
  * Date: 2023-04-28
  */
 
-import {
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-} from '@mui/material';
+import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 import { CloseButton } from '@frontend/components/CloseButton';
 import DownloadIcon from '@mui/icons-material/Download';
 import React, { useState, ChangeEvent } from 'react';
@@ -20,7 +12,7 @@ import { useMutation } from 'react-query';
 import { useSnackbar } from '@frontend/context/SnackbarContext';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { RepositoryActionResult } from '@frontend/types';
-import { BE_IP_ADDRESS } from '@frontend/constants';
+import { BE_BASE_URL } from '@frontend/constants';
 interface ImportProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -30,10 +22,7 @@ interface ImportProjectModalProps {
 const gitRepoUrlRegex = /((git|ssh|http(s)?)|(git@[\w.]+))(:(\/\/)?)([\w.@/:~-]+)(\.git)(\/)?/;
 
 const importProjectByRepoUrl = async (data: any): Promise<RepositoryActionResult> => {
-  const response: AxiosResponse<any> = await axios.post(
-    `http://${BE_IP_ADDRESS}:4000/download-repository`,
-    data,
-  );
+  const response: AxiosResponse<any> = await axios.post(`${BE_BASE_URL}/download-repository`, data);
   return response.data;
 };
 const ImportProjectModal = ({ isOpen, onClose, onSuccess }: ImportProjectModalProps) => {

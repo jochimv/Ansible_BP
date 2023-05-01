@@ -17,38 +17,18 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import {
-  Cancel,
-  ChatBubbleOutline,
-  CheckCircle,
-  Edit,
-  Replay as ReplayIcon,
-  Send as SendIcon,
-  Terminal as TerminalIcon,
-} from '@mui/icons-material';
+import { Cancel, ChatBubbleOutline, CheckCircle, Edit, Replay as ReplayIcon, Send as SendIcon, Terminal as TerminalIcon } from '@mui/icons-material';
 import axios, { AxiosResponse } from 'axios';
 import { useMutation } from 'react-query';
-import {
-  useCodeChangesContext,
-  useCodeChangesDispatchContext,
-} from '@frontend/context/CodeChangesContext';
+import { useCodeChangesContext, useCodeChangesDispatchContext } from '@frontend/context/CodeChangesContext';
 import { clearProjectUpdates } from '@frontend/reducers/codeChangesReducer';
 import { faCodePullRequest } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  close,
-  open,
-  updateCommitBranchName,
-  updateCommitMessage,
-  updateResponse,
-} from '@frontend/reducers/commitModalReducer';
-import {
-  useCommitModalContext,
-  useCommitModalDispatchContext,
-} from '@frontend/context/CommitModalContext';
+import { close, open, updateCommitBranchName, updateCommitMessage, updateResponse } from '@frontend/reducers/commitModalReducer';
+import { useCommitModalContext, useCommitModalDispatchContext } from '@frontend/context/CommitModalContext';
 import { CloseButton } from '@frontend/components/CloseButton';
 import { CommitResponse } from '@frontend/types';
-import { BE_IP_ADDRESS } from '@frontend/constants';
+import { BE_BASE_URL } from '@frontend/constants';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { useSnackbar } from '@frontend/context/SnackbarContext';
 import { Terminal } from '@frontend/components/Terminal';
@@ -61,10 +41,7 @@ const branchNameHasErrors = (branchName: string) => {
 };
 
 const postCommitData = async (data: any): Promise<CommitResponse> => {
-  const response: AxiosResponse<any> = await axios.post(
-    `http://${BE_IP_ADDRESS}:4000/commit`,
-    data,
-  );
+  const response: AxiosResponse<any> = await axios.post(`${BE_BASE_URL}/commit`, data);
   return response.data;
 };
 
@@ -234,11 +211,7 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
               variant="outlined"
               error={isCommitingToMainBranch || branchNameError}
               helperText={
-                isCommitingToMainBranch
-                  ? 'You cannot commit directly to the main branch'
-                  : branchNameError
-                  ? 'Branch name has a space'
-                  : undefined
+                isCommitingToMainBranch ? 'You cannot commit directly to the main branch' : branchNameError ? 'Branch name has a space' : undefined
               }
               value={commitBranchName}
               onChange={handleBranchNameChange}
@@ -274,12 +247,7 @@ const CommitModal = ({ mainBranchName }: CommitModalProps) => {
               startIcon={<SendIcon />}
               onClick={handleCommit}
               color="success"
-              disabled={
-                isCommitingToMainBranch ||
-                commitMessage === '' ||
-                commitBranchName === '' ||
-                branchNameError
-              }
+              disabled={isCommitingToMainBranch || commitMessage === '' || commitBranchName === '' || branchNameError}
             >
               Commit
             </Button>

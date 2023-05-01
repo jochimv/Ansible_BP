@@ -20,46 +20,26 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import {
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
-import {
-  Close as CloseIcon,
-  CodeOff as CodeOffIcon,
-  Done as DoneIcon,
-  Replay as ReplayIcon,
-  Terminal as TerminalIcon,
-} from '@mui/icons-material';
+import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Close as CloseIcon, CodeOff as CodeOffIcon, Done as DoneIcon, Replay as ReplayIcon, Terminal as TerminalIcon } from '@mui/icons-material';
 import LoadingPage from '@frontend/components/Loading';
 import { useRouter } from 'next/router';
 import ProjectNotFound from '@frontend/components/ProjectNotFound';
 import { useRunCommand } from '@frontend/hooks/useRunCommand';
 import { ChartData, CommandExecution } from '@frontend/types';
 import { useProjectExists } from '@frontend/hooks/useProjectExists';
-import { BE_IP_ADDRESS, NOT_FOUND_ICON_SX } from '@frontend/constants';
+import { BE_BASE_URL, NOT_FOUND_ICON_SX } from '@frontend/constants';
 import TerminalDialog from '@frontend/components/TerminalDialog';
 
-const fetchCommandExecutions = async (
-  projectName: string | string[] | undefined,
-): Promise<CommandExecution[]> => {
-  const response: AxiosResponse<any> = await axios.get(
-    `http://${BE_IP_ADDRESS}:4000/${projectName}/command-executions`,
-  );
+const fetchCommandExecutions = async (projectName: string | string[] | undefined): Promise<CommandExecution[]> => {
+  const response: AxiosResponse<any> = await axios.get(`${BE_BASE_URL}/${projectName}/command-executions`);
   return response.data;
 };
 
 const Dashboard = () => {
   const { projectName } = useRouter().query;
 
-  const { data: projectExistsData, isLoading: isProjectExistsLoading } =
-    useProjectExists(projectName);
+  const { data: projectExistsData, isLoading: isProjectExistsLoading } = useProjectExists(projectName);
 
   const projectExists = projectExistsData?.data;
 
@@ -75,15 +55,8 @@ const Dashboard = () => {
 
   const { data = [], isLoading, isSuccess } = commandExecutionQuery;
 
-  const {
-    runCommand,
-    runningCommandIds,
-    commandOutput,
-    setCommandOutput,
-    handleCloseOutputDialog,
-    handleOpenOutputDialog,
-    openOutputDialog,
-  } = useRunCommand(() => commandExecutionQuery.refetch());
+  const { runCommand, runningCommandIds, commandOutput, setCommandOutput, handleCloseOutputDialog, handleOpenOutputDialog, openOutputDialog } =
+    useRunCommand(() => commandExecutionQuery.refetch());
 
   if (isLoading || isProjectExistsLoading || !isSuccess) {
     return <LoadingPage />;
@@ -145,10 +118,7 @@ const Dashboard = () => {
           <Line type="monotone" dataKey="successes" stroke="#2e7d32" />
         </LineChart>
       </ResponsiveContainer>
-      <TableContainer
-        component={Paper}
-        style={{ maxHeight: 'calc(100% - 300px)', overflow: 'auto' }}
-      >
+      <TableContainer component={Paper} style={{ maxHeight: 'calc(100% - 300px)', overflow: 'auto' }}>
         <Table stickyHeader>
           <TableHead>
             <TableRow>
@@ -175,9 +145,7 @@ const Dashboard = () => {
               return (
                 <TableRow key={id}>
                   <TableCell>{alias}</TableCell>
-                  <TableCell>
-                    {success ? <DoneIcon color="success" /> : <CloseIcon color="error" />}
-                  </TableCell>
+                  <TableCell>{success ? <DoneIcon color="success" /> : <CloseIcon color="error" />}</TableCell>
                   <TableCell>{new Date(executionDate).toLocaleString()}</TableCell>
                   <TableCell>
                     <IconButton
@@ -211,11 +179,7 @@ const Dashboard = () => {
           </TableBody>
         </Table>
       </TableContainer>
-      <TerminalDialog
-        output={commandOutput}
-        open={openOutputDialog}
-        onClose={handleCloseOutputDialog}
-      />
+      <TerminalDialog output={commandOutput} open={openOutputDialog} onClose={handleCloseOutputDialog} />
     </>
   );
 };

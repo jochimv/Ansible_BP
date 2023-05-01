@@ -5,9 +5,9 @@
   "author": "Václav Jochim",
   "private": true,
   "scripts": {
-    "dev": "cross-env STAGE=development next dev",
+    "dev": "cross-env NEXT_PUBLIC_STAGE=development next dev",
     "build": "next build",
-    "start": "cross-env STAGE=production next start",
+    "start": "cross-env NEXT_PUBLIC_STAGE=production next start",
     "lint": "next lint",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",

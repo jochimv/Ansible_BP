@@ -17,10 +17,10 @@ import { useUpdatedProjectDetails } from '@frontend/hooks/useUpdatedProjectDetai
 import NoServersFound from '@frontend/components/NoServersFound';
 import { ProjectDetailsResponse } from '@frontend/types';
 import axios from 'axios';
-import { BE_IP_ADDRESS } from '@frontend/constants';
+import { BE_BASE_URL } from '@frontend/constants';
 
 export const getProjectDetails = async (projectName: string): Promise<ProjectDetailsResponse> => {
-  const data = await axios.get(`http://${BE_IP_ADDRESS}:4000/${projectName}/details`);
+  const data = await axios.get(`${BE_BASE_URL}/${projectName}/details`);
   return data.data;
 };
 const ProjectPage = () => {
@@ -38,8 +38,6 @@ const ProjectPage = () => {
       enabled: !!projectName,
     },
   );
-
-  console.log('data: ', JSON.stringify(data));
 
   const projectDetails = data?.projectDetails || [];
 
@@ -75,11 +73,7 @@ const ProjectPage = () => {
           {selectedHost && selectedHost.appliedVariables === '{}\n' ? (
             <Typography variant="h4">No variables to show</Typography>
           ) : (
-            <Editor
-              defaultLanguage="yaml"
-              value={selectedHost ? selectedHost.appliedVariables : ''}
-              options={{ readOnly: true }}
-            />
+            <Editor defaultLanguage="yaml" value={selectedHost ? selectedHost.appliedVariables : ''} options={{ readOnly: true }} />
           )}
         </Box>
       </Stack>

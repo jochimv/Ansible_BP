@@ -9,27 +9,19 @@ import { useQuery } from 'react-query';
 import { useRouter } from 'next/router';
 import axios, { AxiosResponse } from 'axios';
 import { Stack } from '@mui/material';
-import {
-  useCodeChangesContext,
-  useCodeChangesDispatchContext,
-} from '@frontend/context/CodeChangesContext';
+import { useCodeChangesContext, useCodeChangesDispatchContext } from '@frontend/context/CodeChangesContext';
 import { initializeEditor, enableEditorInitialize } from '@frontend/reducers/codeChangesReducer';
 import HostNotFound from '@frontend/components/HostNotFound';
 import ProjectNotFound from '@frontend/components/ProjectNotFound';
 import LoadingPage from '@frontend/components/Loading';
 import { HostDetailsResponse } from '@frontend/types';
-import { BE_IP_ADDRESS } from '@frontend/constants';
+import { BE_BASE_URL } from '@frontend/constants';
 import HostInfoBox from '@frontend/components/HostInfoBox';
 import EditorWrapper from '@frontend/components/EditorWrapper';
 import EditorInfoSnackbar from '@frontend/components/EditorInfoSnackbar';
 
-const fetchHostDetails = async (
-  projectName: string,
-  hostname: string | string[],
-): Promise<HostDetailsResponse> => {
-  const response: AxiosResponse<any> = await axios.get(
-    `http://${BE_IP_ADDRESS}:4000/${projectName}/host-details/${hostname}`,
-  );
+const fetchHostDetails = async (projectName: string, hostname: string | string[]): Promise<HostDetailsResponse> => {
+  const response: AxiosResponse<any> = await axios.get(`${BE_BASE_URL}/${projectName}/host-details/${hostname}`);
   return response.data;
 };
 

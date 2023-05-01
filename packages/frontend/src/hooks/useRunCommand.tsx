@@ -11,9 +11,8 @@ import { useSnackbar } from '@frontend/context/SnackbarContext';
 import { Terminal as TerminalIcon } from '@mui/icons-material';
 import { RunCommandOutput } from '@frontend/types';
 import { RunCommandDto } from '@frontend/dto';
-import { BE_IP_ADDRESS } from '@frontend/constants';
-const performCommandExecutionOnBackend = (data: any) =>
-  axios.post(`http://${BE_IP_ADDRESS}:4000/run-command`, data);
+import { BE_BASE_URL } from '@frontend/constants';
+const performCommandExecutionOnBackend = (data: any) => axios.post(`${BE_BASE_URL}/run-command`, data);
 
 export const useRunCommand = (requestFinishedCallback?: () => void) => {
   const [openOutputDialog, setOpenOutputDialog] = useState(false);
@@ -73,12 +72,7 @@ export const useRunCommand = (requestFinishedCallback?: () => void) => {
     },
   });
 
-  const runCommand = (
-    commandId: number,
-    alias: string,
-    projectName: string | string[] | undefined,
-    command: string,
-  ) => {
+  const runCommand = (commandId: number, alias: string, projectName: string | string[] | undefined, command: string) => {
     startRunningCommand(commandId);
     mutate({ command, commandId, alias, projectName });
   };

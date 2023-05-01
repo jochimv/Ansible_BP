@@ -6,41 +6,29 @@
 
 import { DiffEditor } from '@monaco-editor/react';
 import { Stack, Typography, Button, Box } from '@mui/material';
-import {
-  Replay as ReplayIcon,
-  CodeOff as CodeOffIcon,
-  Send as SendIcon,
-} from '@mui/icons-material';
-import {
-  useCodeChangesContext,
-  useCodeChangesDispatchContext,
-} from '@frontend/context/CodeChangesContext';
+import { Replay as ReplayIcon, CodeOff as CodeOffIcon, Send as SendIcon } from '@mui/icons-material';
+import { useCodeChangesContext, useCodeChangesDispatchContext } from '@frontend/context/CodeChangesContext';
 import { createDiff, edit, rollback } from '@frontend/reducers/codeChangesReducer';
 import GitChangesFileTree from '@frontend/components/GitChangesFileTree';
 import CommitModal from '@frontend/components/CommitModal';
 import { open } from '@frontend/reducers/commitModalReducer';
-import CommitModalProvider, {
-  useCommitModalDispatchContext,
-} from '@frontend/context/CommitModalContext';
+import CommitModalProvider, { useCommitModalDispatchContext } from '@frontend/context/CommitModalContext';
 import { useRouter } from 'next/router';
 import ProjectNotFound from '@frontend/components/ProjectNotFound';
 import axios, { AxiosResponse } from 'axios';
 import { useQuery } from 'react-query';
 import LoadingPage from '@frontend/components/Loading';
-import { NOT_FOUND_ICON_SX } from '@frontend/constants';
+import { BE_BASE_URL, NOT_FOUND_ICON_SX } from '@frontend/constants';
 const stackPropsIfNoChanges = {
   alignItems: 'center',
   justifyContent: 'center',
 };
 import { HostVariable, ProjectMainBranch } from '@frontend/types';
-import { BE_IP_ADDRESS } from '@frontend/constants';
 import EditIcon from '@mui/icons-material/Edit';
 import React from 'react';
 
 const fetchMainBranchName = async (projectName: string): Promise<ProjectMainBranch> => {
-  const response: AxiosResponse<any> = await axios.get(
-    `http://${BE_IP_ADDRESS}:4000/${projectName}/main-branch-name`,
-  );
+  const response: AxiosResponse<any> = await axios.get(`${BE_BASE_URL}/${projectName}/main-branch-name`);
   return response.data;
 };
 
@@ -89,12 +77,7 @@ const GitPage = () => {
   }
 
   return (
-    <Stack
-      direction="row"
-      flexGrow={1}
-      height="100%"
-      {...(originalDiff ? {} : stackPropsIfNoChanges)}
-    >
+    <Stack direction="row" flexGrow={1} height="100%" {...(originalDiff ? {} : stackPropsIfNoChanges)}>
       <CommitModal mainBranchName={mainBranchName} />
       {originalDiff ? (
         <>
@@ -120,12 +103,7 @@ const GitPage = () => {
               >
                 Edit
               </Button>
-              <Button
-                size="small"
-                startIcon={<ReplayIcon />}
-                color="error"
-                onClick={() => codeChangesDispatch(rollback(updatedDiff))}
-              >
+              <Button size="small" startIcon={<ReplayIcon />} color="error" onClick={() => codeChangesDispatch(rollback(updatedDiff))}>
                 Rollback
               </Button>
             </Stack>
@@ -134,13 +112,7 @@ const GitPage = () => {
             </Box>
           </Stack>
           <Box width="80%">
-            <DiffEditor
-              language="yml"
-              original={originalDiff?.values}
-              modified={updatedDiff?.values}
-              height="100%"
-              options={{ readOnly: true }}
-            />
+            <DiffEditor language="yml" original={originalDiff?.values} modified={updatedDiff?.values} height="100%" options={{ readOnly: true }} />
           </Box>
         </>
       ) : (

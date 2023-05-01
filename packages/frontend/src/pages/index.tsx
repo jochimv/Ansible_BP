@@ -16,10 +16,7 @@ import {
   InputAdornment,
 } from '@mui/material';
 import { useRouter } from 'next/router';
-import {
-  useCodeChangesContext,
-  useCodeChangesDispatchContext,
-} from '@frontend/context/CodeChangesContext';
+import { useCodeChangesContext, useCodeChangesDispatchContext } from '@frontend/context/CodeChangesContext';
 import { deleteProject, selectProject } from '@frontend/reducers/codeChangesReducer';
 import DownloadIcon from '@mui/icons-material/Download';
 import ImportProjectModal from '@frontend/components/ImportProjectModal';
@@ -29,19 +26,16 @@ import { useMutation, useQuery } from 'react-query';
 import { useSnackbar } from '@frontend/context/SnackbarContext';
 import ConfirmDialog from '@frontend/components/ConfirmDialog';
 import { ProjectHosts, RepositoryActionResult } from '@frontend/types';
-import { BE_IP_ADDRESS } from '@frontend/constants';
 import LoadingPage from '@frontend/components/Loading';
 import { faServer } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { BE_BASE_URL } from '@frontend/constants';
 const fetchProjectsHosts = async (): Promise<ProjectHosts[]> => {
-  const response = await axios.get(`http://${BE_IP_ADDRESS}:4000/projects-hosts`);
+  const response = await axios.get(`${BE_BASE_URL}/projects-hosts`);
   return response.data;
 };
 const deleteRepository = async (data: any): Promise<RepositoryActionResult> => {
-  const response: AxiosResponse<any> = await axios.post(
-    `http://${BE_IP_ADDRESS}:4000/delete-repository`,
-    data,
-  );
+  const response: AxiosResponse<any> = await axios.post(`${BE_BASE_URL}/delete-repository`, data);
   return response.data;
 };
 const HomePage = () => {
@@ -70,9 +64,7 @@ const HomePage = () => {
   };
   const handleChangeProjectsAutocompleteValues = () => {
     refetch();
-    setProjectNames((projectNames: string[]) =>
-      projectNames.filter((projectName: string) => projectName !== selectedProjectName),
-    );
+    setProjectNames((projectNames: string[]) => projectNames.filter((projectName: string) => projectName !== selectedProjectName));
   };
   const { mutate } = useMutation(deleteRepository, {
     onSuccess: (response: RepositoryActionResult) => {
@@ -125,11 +117,7 @@ const HomePage = () => {
         <Autocomplete
           id="servers"
           disabled={!selectedProjectName}
-          options={
-            projectHosts?.find(
-              (projectHost: ProjectHosts) => projectHost.project === selectedProjectName,
-            )?.hosts || []
-          }
+          options={projectHosts?.find((projectHost: ProjectHosts) => projectHost.project === selectedProjectName)?.hosts || []}
           sx={{ width: 300 }}
           renderInput={(params: AutocompleteRenderInputParams) => (
             <TextField
@@ -148,19 +136,12 @@ const HomePage = () => {
               }}
             />
           )}
-          onChange={(
-            event: SyntheticEvent,
-            newValue: AutocompleteValue<unknown, false, false, false>,
-          ) => {
+          onChange={(event: SyntheticEvent, newValue: AutocompleteValue<unknown, false, false, false>) => {
             router.push(`/${selectedProjectName}/host-details/${newValue}`);
           }}
         />
         <Divider style={{ width: '100%' }}>OR</Divider>
-        <Button
-          color="success"
-          startIcon={<DownloadIcon />}
-          onClick={() => setIsImportProjectModalOpen(true)}
-        >
+        <Button color="success" startIcon={<DownloadIcon />} onClick={() => setIsImportProjectModalOpen(true)}>
           Import repository
         </Button>
         <Button
