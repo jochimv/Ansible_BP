@@ -165,7 +165,7 @@ const HomePage = () => {
           open={isConfirmDialogOpen}
           onClose={() => setIsConfirmDialogOpen(false)}
           onConfirm={handleDelete}
-          title="Delete Repository"
+          title="Delete repository"
           message={`Are you sure you want to delete the project "${selectedProjectName}"?`}
         />
       </Stack>
