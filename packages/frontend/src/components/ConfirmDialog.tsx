@@ -4,13 +4,7 @@
  */
 
 import React from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-} from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import { CloseButton } from '@frontend/components/CloseButton';
 import ConfirmButton from '@frontend/components/ConfirmButton';
 
@@ -22,15 +16,9 @@ interface ConfirmDialogProps {
   message: string;
 }
 
-const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
-  open,
-  onClose,
-  onConfirm,
-  title,
-  message,
-}) => {
+const ConfirmDialog = ({ open, onClose, onConfirm, title, message }: ConfirmDialogProps) => {
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
         <DialogContentText>{message}</DialogContentText>
