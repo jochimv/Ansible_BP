@@ -5,69 +5,33 @@
  *          showing different variables (applied, common, group, host). All variable files except applied are editable,
  */
 
-import { useQuery } from 'react-query';
 import { useRouter } from 'next/router';
-import axios, { AxiosResponse } from 'axios';
 import { Stack } from '@mui/material';
-import { useCodeChangesContext, useCodeChangesDispatchContext } from '@frontend/context/CodeChangesContext';
-import { initializeEditor, enableEditorInitialize } from '@frontend/reducers/codeChangesReducer';
 import HostNotFound from '@frontend/components/HostNotFound';
 import ProjectNotFound from '@frontend/components/ProjectNotFound';
 import LoadingPage from '@frontend/components/Loading';
-import { HostDetailsResponse } from '@frontend/types';
-import { BE_BASE_URL } from '@frontend/constants';
 import HostInfoBox from '@frontend/components/HostInfoBox';
 import EditorWrapper from '@frontend/components/EditorWrapper';
 import EditorInfoSnackbar from '@frontend/components/EditorInfoSnackbar';
-
-const fetchHostDetails = async (projectName: string, hostname: string | string[]): Promise<HostDetailsResponse> => {
-  const response: AxiosResponse<any> = await axios.get(`${BE_BASE_URL}/${projectName}/host-details/${hostname}`);
-  return response.data;
-};
-
+import ErrorPage from '@frontend/components/ErrorPage';
+import useFetchHostDetails from '@frontend/hooks/useFetchHostDetails';
+//importy
 const HostDetailsPage = () => {
   const router = useRouter();
+  // extrakce segmentů URL adresy
   const { projectName, hostname } = router.query;
-  const dispatch = useCodeChangesDispatchContext();
-  const { isInitializeEditorEnabled } = useCodeChangesContext();
 
-  const {
-    isLoading: hostDataLoading,
-    isSuccess,
-    data,
-  } = useQuery(
-    ['hostDetails', { projectName, hostname }],
-    () => {
-      if (typeof projectName === 'string' && typeof hostname === 'string') {
-        return fetchHostDetails(projectName, hostname);
-      }
-    },
-    {
-      enabled: !!projectName && !!hostname,
-      refetchOnWindowFocus: false,
-      onSuccess: (response: HostDetailsResponse) => {
-        const { hostDetailsByInventoryType, projectExists, hostExists } = response;
-        if (projectExists && hostExists && isInitializeEditorEnabled) {
-          dispatch(
-            initializeEditor({
-              hostDetailsByInventoryType,
-              projectName,
-              hostname,
-            }),
-          );
-        } else {
-          dispatch(enableEditorInitialize());
-        }
-      },
-      cacheTime: 0,
-    },
-  );
+  // použití segmentů k zavolání back-endu k získání detailů hosta
+  const { isLoading, isError, data: response, error } = useFetchHostDetails({ projectName, hostname });
 
-  if (hostDataLoading || !projectName || !hostname || !isSuccess) {
+  // vyobrazení patřičné stránky
+  if (isLoading || !projectName || !hostname) {
     return <LoadingPage />;
+  } else if (isError && error instanceof Error) {
+    return <ErrorPage errorMessage={error.message} />;
   }
 
-  const { projectExists, hostExists } = data || {};
+  const { projectExists, hostExists } = response!;
 
   if (!projectExists) {
     return <ProjectNotFound />;

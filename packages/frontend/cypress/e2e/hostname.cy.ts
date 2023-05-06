@@ -14,7 +14,7 @@ describe('Host Details Page', () => {
       const server: string = response?.body[0]?.hosts[0];
 
       cy.intercept(`http://127.0.0.1:4000/${projectName}/${server}`, {
-        fixture: 'hostDetails.json',
+        fixture: 'host-details.json',
       }).as('fetchHostDetails');
 
       cy.get('#projects').type(projectName).type('{downarrow}').type('{enter}');
@@ -24,7 +24,7 @@ describe('Host Details Page', () => {
 
   beforeEach(() => {
     cy.intercept('GET', 'http://127.0.0.1:4000/projects-hosts', {
-      fixture: 'projectHosts.json',
+      fixture: 'projects-hosts.json',
     }).as('fetchProjectsHosts');
 
     cy.visit('http://localhost:3000');
@@ -34,8 +34,7 @@ describe('Host Details Page', () => {
   it('Should fetch host details correctly', () => {
     cy.wait('@fetchHostDetails').then((interception: Interception) => {
       if (interception.response) {
-        const { statusCode, body }: { statusCode: number; body: Cypress.Response<any>['body'] } =
-          interception.response;
+        const { statusCode, body }: { statusCode: number; body: Cypress.Response<any>['body'] } = interception.response;
 
         expect(statusCode).to.eq(200);
         expect(body).to.have.property('hostDetailsByInventoryType');
@@ -53,8 +52,7 @@ describe('Host Details Page', () => {
         const body: Cypress.Response<any>['body'] = interception.response;
         const hostDetailsByInventoryType: HostDetails[] = body.hostDetailsByInventoryType;
         hostDetailsByInventoryType.forEach((hostDetails: HostDetails) => {
-          const { inventoryType, variables }: { inventoryType: string; variables: HostVariable[] } =
-            hostDetails;
+          const { inventoryType, variables }: { inventoryType: string; variables: HostVariable[] } = hostDetails;
           cy.get(`#inventory-button-${inventoryType}`).should('exist');
           variables.forEach((variable: HostVariable) => {
             const { type } = variable;

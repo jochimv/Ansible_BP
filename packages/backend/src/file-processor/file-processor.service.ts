@@ -46,6 +46,49 @@ export const getMainBranchName = async (git): Promise<string> => {
   }
 };
 
+async function createAndCheckoutBranch(git, commitBranchName, originalBranchName) {
+  try {
+    await git.checkoutBranch(commitBranchName, originalBranchName);
+  } catch (e) {
+    throw new Error(e.message);
+  }
+}
+
+async function commitAndPushChanges(git, commitMessage, commitBranchName, remoteRepoUrl) {
+  try {
+    await git.add('./*').commit(commitMessage);
+    const repositoryUrlWithCredentials = addCredentialsToUrl(process.env.GIT_USERNAME, process.env.GIT_PASSWORD, remoteRepoUrl);
+    return await git.push(repositoryUrlWithCredentials, commitBranchName);
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
+async function revertToOriginalBranch(git, originalBranchName, commitBranchName) {
+  try {
+    await git.checkout(originalBranchName).deleteLocalBranch(commitBranchName, true);
+  } catch (e) {
+    throw new Error(`${e.message}\nfatal error: unable to delete local branch`);
+  }
+}
+
+function writeChangesToFiles(updatedVars) {
+  for (const updatedVar of updatedVars) {
+    const { pathInProject, values } = updatedVar;
+    const fullPath = join(process.env.ANSIBLE_REPOS_PATH, pathInProject);
+    writeFileSync(fullPath, values);
+  }
+}
+
+async function getRemoteRepoUrl(git: any): Promise<string> {
+  try {
+    const remotes = await git.getRemotes(true);
+    return remotes.map((remote) => remote.refs.fetch)[0];
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 @Injectable()
 export class FileProcessorService {
   getProjectDetails = async (projectName: string): Promise<ProjectDetailsResponse> => {
@@ -121,46 +164,22 @@ export class FileProcessorService {
     const { commitMessage, commitBranchName, projectName, updatedVars } = commitDto;
     const repositoryPath = join(process.env.ANSIBLE_REPOS_PATH, projectName);
     const git = await simpleGit(repositoryPath);
-    let remoteRepoUrl;
-    await git.getRemotes(true, (err, remotes) => {
-      if (err) {
-        console.error(err);
-        return;
-      }
-      remoteRepoUrl = remotes.map((remote) => remote.refs.fetch)[0];
-    });
-
+    const remoteRepoUrl = await getRemoteRepoUrl(git)!;
     const originalBranchName = await getMainBranchName(git);
-    try {
-      await git.checkoutBranch(commitBranchName, originalBranchName);
-    } catch (e) {
-      return { error: e.message };
-    }
-    for (const updatedVar of updatedVars) {
-      const { pathInProject, values } = updatedVar;
-      const fullPath = join(process.env.ANSIBLE_REPOS_PATH, pathInProject);
-      writeFileSync(fullPath, values);
-    }
 
-    await git.add('./*').commit(commitMessage);
-
-    const repositoryUrlWithCredentials = addCredentialsToUrl(
-      process.env.GIT_USERNAME,
-      process.env.GIT_PASSWORD,
-      remoteRepoUrl,
-    );
     try {
-      const response = await git.push(repositoryUrlWithCredentials, commitBranchName);
+      await createAndCheckoutBranch(git, commitBranchName, originalBranchName);
+      writeChangesToFiles(updatedVars);
+      const response = await commitAndPushChanges(git, commitMessage, commitBranchName, remoteRepoUrl);
       const pullRequestUrl = response.remoteMessages.all[1];
-      await git.checkout(originalBranchName).deleteLocalBranch(commitBranchName, true);
+      await revertToOriginalBranch(git, originalBranchName, commitBranchName);
       return { error: false, pullRequestUrl };
     } catch (error) {
       try {
-        await git.checkout(originalBranchName).deleteLocalBranch(commitBranchName, true);
+        await revertToOriginalBranch(git, originalBranchName, commitBranchName);
       } catch (e) {
-        return { error: error.message };
+        return { error: e.message };
       }
-      error.task.commands[1] = removeCredentialsFromUrl(remoteRepoUrl);
       return { error: error.message };
     }
   }

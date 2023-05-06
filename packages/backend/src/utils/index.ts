@@ -26,8 +26,7 @@ const directoriesToIgnore = [
   'group_vars',
   'host_vars',
 ];
-export const getMainBranchName = async (git: SimpleGit): Promise<Response<string>> =>
-  await git.revparse(['--abbrev-ref', 'HEAD']);
+export const getMainBranchName = async (git: SimpleGit): Promise<Response<string>> => await git.revparse(['--abbrev-ref', 'HEAD']);
 const checkAndUpdateProject = async (projectPath: string) => {
   const git = await simpleGit(projectPath);
   const mainBranchName: string = await getMainBranchName(git)!;
@@ -91,11 +90,7 @@ export const getProjectDetails = async (projectName: string): Promise<ProjectDet
           const groupName = getGroupNameFromIniInventory(inventoryFilePath, hostname)!;
           const baseGroupName = extractBeforeColon(groupName);
 
-          const groupVarsFilePath = join(
-            inventoryDirectoryPath,
-            'group_vars',
-            `${baseGroupName}.yml`,
-          );
+          const groupVarsFilePath = join(inventoryDirectoryPath, 'group_vars', `${baseGroupName}.yml`);
           let groupValues;
           if (existsSync(groupVarsFilePath)) {
             groupValues = readFileSync(groupVarsFilePath, 'utf-8');
@@ -109,10 +104,7 @@ export const getProjectDetails = async (projectName: string): Promise<ProjectDet
           if (existsSync(commonVarsFilePath)) {
             commonValues = readFileSync(commonVarsFilePath, 'utf-8').replace(/\r\n/g, '\n');
           } else if (existsSync(alternativeCommonVarsFilePath)) {
-            commonValues = readFileSync(alternativeCommonVarsFilePath, 'utf-8').replace(
-              /\r\n/g,
-              '\n',
-            );
+            commonValues = readFileSync(alternativeCommonVarsFilePath, 'utf-8').replace(/\r\n/g, '\n');
           }
           const appliedVariables = {
             ...(commonValues && parseYaml(commonValues)),
@@ -271,87 +263,87 @@ const getCommonVariablesObj = (filePath: string): HostVariable => {
     // don't put "updated" key here as it causes original and updated variables not to match
   };
 };
-export const getHostDetails = async (
-  projectName: string,
-  hostName: string,
-): Promise<HostDetailsResponse> => {
+const getHostConfigInInventory = (hostname, inventoryFilePath) => {
+  const inventoryDirectoryPath = extractDirectoryPath(inventoryFilePath);
+  const inventoryType = getLastPathSegment(inventoryDirectoryPath);
+  const hostVarsFilePath = join(inventoryDirectoryPath, 'host_vars', `${hostname}.yml`);
+  const groupName = getGroupNameFromIniInventory(inventoryFilePath, hostname)!;
+  const baseGroupName = extractBeforeColon(groupName);
+  const groupVarsFilePath = join(inventoryDirectoryPath, 'group_vars', `${baseGroupName}.yml`);
+  const groupVarsDirectoryPath = join(inventoryDirectoryPath, 'group_vars');
+  const commonVarsFilePath = join(groupVarsDirectoryPath, 'all', 'common.yml');
+  const alternativeCommonVarsFilePath = join(groupVarsDirectoryPath, 'all.yml');
+
+  const variables = [];
+
+  const hostVariables = existsSync(hostVarsFilePath)
+    ? {
+        type: 'host',
+        pathInProject: removeAnsibleReposPathFromPath(hostVarsFilePath),
+        values: readFileSync(hostVarsFilePath, 'utf-8').replace(/\r\n/g, '\n'),
+        updated: false,
+      }
+    : null;
+
+  const groupVariables = existsSync(groupVarsFilePath)
+    ? {
+        type: 'group',
+        pathInProject: removeAnsibleReposPathFromPath(groupVarsFilePath),
+        values: readFileSync(groupVarsFilePath, 'utf-8').replace(/\r\n/g, '\n'),
+        updated: false,
+      }
+    : null;
+
+  let commonVariables;
+  if (existsSync(commonVarsFilePath)) {
+    commonVariables = getCommonVariablesObj(commonVarsFilePath);
+  } else if (existsSync(alternativeCommonVarsFilePath)) {
+    commonVariables = getCommonVariablesObj(alternativeCommonVarsFilePath);
+  }
+
+  if (hostVariables) variables.push(hostVariables);
+  if (groupVariables) variables.push(groupVariables);
+  if (commonVariables) variables.push(commonVariables);
+
+  const appliedVariables = {
+    ...(commonVariables && parseYaml(commonVariables.values)),
+    ...(groupVariables && parseYaml(groupVariables.values)),
+    ...(hostVariables && parseYaml(hostVariables.values)),
+  };
+
+  variables.unshift({
+    type: 'applied',
+    pathInProject: 'Applied variables',
+    values: stringify(appliedVariables),
+    updated: false,
+  });
+
+  return {
+    inventoryType,
+    groupName,
+    variables,
+  };
+};
+
+export const getHostDetails = async (projectName: string, hostname: string): Promise<HostDetailsResponse> => {
   const projectPath: string = join(process.env.ANSIBLE_REPOS_PATH, projectName);
 
   if (!existsSync(projectPath)) {
     return { projectExists: false, hostDetailsByInventoryType: null, hostExists: false };
   }
 
-  await checkAndUpdateProject(projectPath);
-
   const inventoryFilesPaths = getInventoryFilesPaths(projectPath);
   const hostDetailsByInventoryType = [];
   let hostExists = false;
+
   for (const inventoryFilePath of inventoryFilesPaths) {
     const inventoryHosts = extractHostsFromInventory(inventoryFilePath);
-    if (inventoryHosts.includes(hostName)) {
+    if (inventoryHosts.includes(hostname)) {
       hostExists = true;
-      const variables = [];
-      const inventoryDirectoryPath = extractDirectoryPath(inventoryFilePath);
-      const inventoryType = getLastPathSegment(inventoryDirectoryPath);
-
-      const hostVarsFilePath = join(inventoryDirectoryPath, 'host_vars', `${hostName}.yml`);
-
-      let hostVariables;
-      if (existsSync(hostVarsFilePath)) {
-        hostVariables = {
-          type: 'host',
-          pathInProject: removeAnsibleReposPathFromPath(hostVarsFilePath),
-          values: readFileSync(hostVarsFilePath, 'utf-8').replace(/\r\n/g, '\n'),
-          updated: false,
-        };
-        variables.push(hostVariables);
-      }
-      const groupName = getGroupNameFromIniInventory(inventoryFilePath, hostName)!;
-      // because some groups have name "foo:children," which will be displayed to the user, but the variables are placed in file foo.yml (without ":children")
-      const baseGroupName = extractBeforeColon(groupName);
-
-      const groupVarsFilePath = join(inventoryDirectoryPath, 'group_vars', `${baseGroupName}.yml`);
-      let groupVariables;
-      if (existsSync(groupVarsFilePath)) {
-        groupVariables = {
-          type: 'group',
-          pathInProject: removeAnsibleReposPathFromPath(groupVarsFilePath),
-          values: readFileSync(groupVarsFilePath, 'utf-8').replace(/\r\n/g, '\n'),
-          updated: false,
-        };
-        variables.push(groupVariables);
-      }
-
-      const groupVarsDirectoryPath: string = join(inventoryDirectoryPath, 'group_vars');
-      const commonVarsFilePath: string = join(groupVarsDirectoryPath, 'all', 'common.yml');
-      const alternativeCommonVarsFilePath: string = join(groupVarsDirectoryPath, 'all.yml');
-
-      let commonVariables;
-      if (existsSync(commonVarsFilePath)) {
-        commonVariables = getCommonVariablesObj(commonVarsFilePath);
-        variables.push(commonVariables);
-      } else if (existsSync(alternativeCommonVarsFilePath)) {
-        commonVariables = getCommonVariablesObj(alternativeCommonVarsFilePath);
-        variables.push(commonVariables);
-      }
-      const appliedVariables = {
-        ...(commonVariables && parseYaml(commonVariables.values)),
-        ...(groupVariables && parseYaml(groupVariables.values)),
-        ...(hostVariables && parseYaml(hostVariables.values)),
-      };
-      variables.unshift({
-        type: 'applied',
-        pathInProject: 'Applied variables',
-        values: stringify(appliedVariables),
-        updated: false,
-      });
-      hostDetailsByInventoryType.push({
-        inventoryType,
-        groupName,
-        variables,
-      });
-      break;
+      const hostConfig = getHostConfigInInventory(hostname, inventoryFilePath);
+      hostDetailsByInventoryType.push(hostConfig);
     }
   }
+
   return { hostDetailsByInventoryType, hostExists, projectExists: true };
 };

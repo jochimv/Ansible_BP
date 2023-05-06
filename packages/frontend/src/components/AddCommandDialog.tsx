@@ -64,7 +64,7 @@ interface AddCommandDialogProps {
 }
 
 const fetchProjectPlaybooksAndDetails = async (projectName: string): Promise<ProjectDetailsAndPlaybooks> => {
-  const data: AxiosResponse<any> = await axios.get(`${BE_BASE_URL}/${projectName}/details-playbooks`);
+  const data: AxiosResponse<any> = await axios.get(`${BE_BASE_URL}/${projectName}/file-structure`);
   return data.data;
 };
 

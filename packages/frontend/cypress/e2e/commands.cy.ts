@@ -15,10 +15,10 @@ describe('commands page', () => {
   };
   beforeEach(() => {
     cy.intercept(`http://127.0.0.1:4000/projects-hosts`, {
-      fixture: 'projectHosts.json',
+      fixture: 'projects-hosts.json',
     }).as('fetchProjectsHosts');
-    cy.intercept(`http://127.0.0.1:4000/jochimz/details-playbooks`, {
-      fixture: 'detailsPlaybooks.json',
+    cy.intercept(`http://127.0.0.1:4000/jochimz/file-structure`, {
+      fixture: 'file-structure.json',
     });
     cy.intercept('GET', `http://127.0.0.1:4000/jochimz/exists`, {
       fixture: 'project-exists.json',

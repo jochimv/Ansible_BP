@@ -29,19 +29,13 @@ export class FileProcessorController {
     return this.fileProcessorService.projectExists(projectName);
   }
 
-  @Get('/:projectName/details-playbooks')
-  async getProjectDetailsAndPlaybooks(
-    @Param('projectName') projectName: string,
-  ): Promise<ProjectDetailsAndPlaybooks> {
-    const { projectExists, projectDetails } = await this.fileProcessorService.getProjectDetails(
-      projectName,
-    );
+  @Get('/:projectName/file-structure')
+  async getProjectDetailsAndPlaybooks(@Param('projectName') projectName: string): Promise<ProjectDetailsAndPlaybooks> {
+    const { projectExists, projectDetails } = await this.fileProcessorService.getProjectDetails(projectName);
     if (!projectExists) {
       return { projectExists, projectDetails: null, projectPlaybooks: null };
     }
-    const projectPlaybooks: ProjectPlaybook[] = await this.fileProcessorService.getProjectPlaybooks(
-      projectName,
-    );
+    const projectPlaybooks: ProjectPlaybook[] = await this.fileProcessorService.getProjectPlaybooks(projectName);
     return { projectDetails, projectPlaybooks, projectExists };
   }
 
@@ -50,18 +44,13 @@ export class FileProcessorController {
     return await this.fileProcessorService.getMainBranchName(projectName);
   }
 
-  @Get('/:projectName/details')
-  async getProjectDetails(
-    @Param('projectName') projectName: string,
-  ): Promise<ProjectDetailsResponse> {
+  @Get('/:projectName/server-structure')
+  async getProjectDetails(@Param('projectName') projectName: string): Promise<ProjectDetailsResponse> {
     return await this.fileProcessorService.getProjectDetails(projectName);
   }
 
   @Get('/:projectName/host-details/:hostname')
-  async getHostDetails(
-    @Param('projectName') projectName: string,
-    @Param('hostname') hostname: string,
-  ): Promise<HostDetailsResponse> {
+  async getHostDetails(@Param('projectName') projectName: string, @Param('hostname') hostname: string): Promise<HostDetailsResponse> {
     return await this.fileProcessorService.getHostDetails(projectName, hostname);
   }
   @Get('projects-hosts')
@@ -73,9 +62,7 @@ export class FileProcessorController {
     return await this.fileProcessorService.commit(commitDto);
   }
   @Post('download-repository')
-  async downloadRepository(
-    @Body('gitRepositoryUrl') gitRepositoryUrl,
-  ): Promise<RepositoryActionResult> {
+  async downloadRepository(@Body('gitRepositoryUrl') gitRepositoryUrl): Promise<RepositoryActionResult> {
     return await this.fileProcessorService.downloadRepository(gitRepositoryUrl);
   }
 

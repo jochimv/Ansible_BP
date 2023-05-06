@@ -28,7 +28,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import React from 'react';
 
 const fetchMainBranchName = async (projectName: string): Promise<ProjectMainBranch> => {
-  const response: AxiosResponse<any> = await axios.get(`${BE_BASE_URL}/${projectName}/main-branch-name`);
+  const response: AxiosResponse = await axios.get(`${BE_BASE_URL}/${projectName}/main-branch-name`);
   return response.data;
 };
 

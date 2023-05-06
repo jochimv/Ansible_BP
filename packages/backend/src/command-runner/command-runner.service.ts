@@ -17,31 +17,27 @@ export class CommandRunnerService {
   async runCommand(runCommandDto: RunCommandDto): Promise<RunCommandOutput> {
     const { projectName, command, alias }: RunCommandDto = runCommandDto;
     return new Promise((resolve) => {
-      exec(
-        `cd ansible_repos && cd ${projectName} && ${command}`,
-        async (error, stdout: string, stderr: string) => {
-          let output: string;
-          let isError: boolean;
-          if (error) {
-            // Check if there is any content in stdout
-            output = stdout.trim() ? stdout : stderr;
-            isError = true;
-          } else {
-            output = stdout;
-            isError = false;
-          }
-          const isSuccess = !isError;
-          const commandExecution = new CommandExecution();
-          commandExecution.alias = alias;
-          commandExecution.output = output;
-          commandExecution.success = isSuccess;
-          commandExecution.command = command;
-          commandExecution.projectName = projectName;
-          commandExecution.executionDate = new Date();
-          await this.commandExecutionRepository.save(commandExecution);
-          resolve({ output: output, success: isSuccess });
-        },
-      );
+      exec(`cd ansible_repos && cd ${projectName} && ${command}`, async (error, stdout: string, stderr: string) => {
+        let output: string;
+        let isError: boolean;
+        if (error) {
+          output = stdout.trim() ? stdout : stderr;
+          isError = true;
+        } else {
+          output = stdout;
+          isError = false;
+        }
+        const isSuccess = !isError;
+        const commandExecution = new CommandExecution();
+        commandExecution.alias = alias;
+        commandExecution.output = output;
+        commandExecution.success = isSuccess;
+        commandExecution.command = command;
+        commandExecution.projectName = projectName;
+        commandExecution.executionDate = new Date();
+        await this.commandExecutionRepository.save(commandExecution);
+        resolve({ output: output, success: isSuccess });
+      });
     });
   }
 

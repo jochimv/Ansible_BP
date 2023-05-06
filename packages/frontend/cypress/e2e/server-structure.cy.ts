@@ -2,12 +2,12 @@
 
 describe('ProjectDetailsTree', () => {
   beforeEach(() => {
-    cy.intercept('GET', 'http://127.0.0.1:4000/*/details', {
+    cy.intercept('GET', 'http://127.0.0.1:4000/*/server-structure', {
       fixture: 'project-details.json',
     }).as('fetchProjectDetails');
 
     cy.intercept(`http://127.0.0.1:4000/projects-hosts`, {
-      fixture: 'projectHosts.json',
+      fixture: 'projects-hosts.json',
     }).as('fetchProjectsHosts');
 
     cy.visit('http://localhost:3000');

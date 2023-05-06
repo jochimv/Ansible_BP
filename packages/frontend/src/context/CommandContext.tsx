@@ -23,28 +23,19 @@ export const CommandsProvider = ({ children }: AnsibleCommandsProviderProps) => 
   const [projectsCommands, setProjectsCommands] = useState<ProjectCommand[]>([]);
 
   useEffect(() => {
-    const commands = JSON.parse(localStorage.getItem('commandsContext') || '[]');
+    const commands = JSON.parse(localStorage.getItem('commandsContextData') || '[]');
     if (commands) {
       setProjectsCommands(commands);
     }
   }, []);
 
-  const updateCommand = (
-    projectName: string,
-    id: number,
-    command: string,
-    alias: string,
-    mode: string,
-    builderData?: any,
-  ) => {
+  const updateCommand = (projectName: string, id: number, command: string, alias: string, mode: string, builderData?: any) => {
     setProjectsCommands((prevCommands: ProjectCommand[]) => {
       return prevCommands.map((prevCommand: ProjectCommand) => {
         if (prevCommand.projectName === projectName) {
           return {
             projectName,
-            commands: prevCommand.commands.map((cmd: Command) =>
-              cmd.id === id ? { id, command, alias, mode, builderData } : cmd,
-            ),
+            commands: prevCommand.commands.map((cmd: Command) => (cmd.id === id ? { id, command, alias, mode, builderData } : cmd)),
           };
         } else {
           return prevCommand;
@@ -53,18 +44,10 @@ export const CommandsProvider = ({ children }: AnsibleCommandsProviderProps) => 
     });
   };
 
-  const addCommand = (
-    projectName: string,
-    command: string,
-    alias: string,
-    mode: string,
-    builderData?: any,
-  ) => {
+  const addCommand = (projectName: string, command: string, alias: string, mode: string, builderData?: any) => {
     const id = Date.now();
     setProjectsCommands((prevCommands: ProjectCommand[]) => {
-      const projectPresentInContext = !!prevCommands.find(
-        (prevCommand: ProjectCommand) => prevCommand.projectName === projectName,
-      );
+      const projectPresentInContext = !!prevCommands.find((prevCommand: ProjectCommand) => prevCommand.projectName === projectName);
       const newCommand = { id, command, alias, mode, builderData };
       if (projectPresentInContext) {
         return prevCommands.map((prevCommand: ProjectCommand) => {
@@ -98,9 +81,5 @@ export const CommandsProvider = ({ children }: AnsibleCommandsProviderProps) => 
     });
   };
 
-  return (
-    <CommandContext.Provider value={{ projectsCommands, addCommand, removeCommand, updateCommand }}>
-      {children}
-    </CommandContext.Provider>
-  );
+  return <CommandContext.Provider value={{ projectsCommands, addCommand, removeCommand, updateCommand }}>{children}</CommandContext.Provider>;
 };

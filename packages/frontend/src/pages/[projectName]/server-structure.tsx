@@ -20,7 +20,7 @@ import axios from 'axios';
 import { BE_BASE_URL } from '@frontend/constants';
 
 export const getProjectDetails = async (projectName: string): Promise<ProjectDetailsResponse> => {
-  const data = await axios.get(`${BE_BASE_URL}/${projectName}/details`);
+  const data = await axios.get(`${BE_BASE_URL}/${projectName}/server-structure`);
   return data.data;
 };
 const ProjectPage = () => {

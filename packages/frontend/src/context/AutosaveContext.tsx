@@ -17,22 +17,15 @@ export const AutoSaveContextProvider = ({ children }: AutoSaveContextProviderPro
   const codeChangesContextData = useCodeChangesContext();
   const { projectsCommands } = useCommandContext();
   useEffect(() => {
-    window.addEventListener('beforeunload', () =>
-      handleBeforeUnload(codeChangesContextData, projectsCommands),
-    );
+    window.addEventListener('beforeunload', () => handleBeforeUnload(codeChangesContextData, projectsCommands));
 
     return () => {
-      window.removeEventListener('beforeunload', () =>
-        handleBeforeUnload(codeChangesContextData, projectsCommands),
-      );
+      window.removeEventListener('beforeunload', () => handleBeforeUnload(codeChangesContextData, projectsCommands));
     };
   }, [codeChangesContextData, projectsCommands]);
   return <>{children}</>;
 };
-const handleBeforeUnload = (
-  codeChangesContextData: CodeChangesState,
-  commandContextData: ProjectCommand[],
-) => {
-  localStorage.setItem('commandsContext', JSON.stringify(commandContextData));
+const handleBeforeUnload = (codeChangesContextData: CodeChangesState, commandContextData: ProjectCommand[]) => {
+  localStorage.setItem('commandsContextData', JSON.stringify(commandContextData));
   localStorage.setItem('codeChangesContextData', JSON.stringify(codeChangesContextData));
 };
