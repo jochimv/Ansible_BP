@@ -12,8 +12,9 @@ This is an open-source app with following features
 ## How to run the app
 
 #### development environment
+1) run `yarn install` in the root of the project, then in `packages/backend` and finally in `packages/frontend`
 
-1) add .env.development file to packages/backend folder with given content:
+2) add .env.development file to packages/backend folder with given content:
 
 ```ini
 DATABASE_HOST=localhost
@@ -25,7 +26,7 @@ GIT_USERNAME=your_username
 GIT_PASSWORD=your_password
 ANSIBLE_REPOS_PATH=C:\Users\John_doe\Desktop\ansible_bp\packages\backend\ansible_repos
 ```
-2) run command `yarn dev` in the root of the project
+3) run command `yarn dev` in the root of the project
 
 #### production environment
 1) add .env.development file to packages/backend folder with given content:
@@ -45,5 +46,3 @@ ANSIBLE_REPOS_PATH=/app/ansible_repos
 
 
 If you find any bugs, feel free to open an issue.
-
-PS: This is a bachelor thesis project. Pray for my finals.
