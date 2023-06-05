@@ -16,8 +16,17 @@ export class CommandRunnerService {
 
   async runCommand(runCommandDto: RunCommandDto): Promise<RunCommandOutput> {
     const { projectName, command, alias }: RunCommandDto = runCommandDto;
+    let enhancedCommand = command;
+    if (command.startsWith('ansible-playbook')) {
+      const commandParts = command.split(' ');
+      const iIndex = commandParts.findIndex(part => part === '-i');
+      if (iIndex >= 0 && iIndex + 1 < commandParts.length) {
+        commandParts[iIndex + 1] = `${process.env.ANSIBLE_REPOS_PATH}/${commandParts[iIndex + 1]}`;
+        enhancedCommand = commandParts.join(' ');
+      }
+    }
     return new Promise((resolve) => {
-      exec(`cd ansible_repos && cd ${projectName} && ${command}`, async (error, stdout: string, stderr: string) => {
+      exec(`cd ansible_repos && cd ${projectName} && ${enhancedCommand}`, async (error, stdout: string, stderr: string) => {
         let output: string;
         let isError: boolean;
         if (error) {
